@@ -1,0 +1,9 @@
+setopt no_beep
+setopt nolistbeep
+setopt auto_pushd
+setopt share_history
+setopt hist_ignore_dups
+setopt hist_ignore_all_dups
+setopt hist_ignore_space
+setopt hist_reduce_blanks
+

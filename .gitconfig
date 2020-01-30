@@ -1,0 +1,39 @@
+[core]
+  excludesfile = ~/.gitignore
+  editor = vim
+
+[alias]
+  a = add
+  b = branch
+  c = commit
+  co = checkout
+  d = diff
+  e = add --edit
+  f = fetch
+  g = grep
+  h = help
+  i = init
+  l = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
+  ll = log --stat
+  m = merge
+  r = remote
+  rs = restore
+  s = status --branch --short
+  sw = switch
+  t = tag
+  w = whatchanged
+  delete-merged-branches = !git branch --merged | grep -vE '^\\*|master$|develop$' | xargs -I % git branch -d %
+
+[color]
+  ui = always
+  status = auto
+  branch = auto
+  interactive = auto
+  diff = auto
+  grep = auto
+
+[user]
+  useConfigOnly = true
+  name = "Tetsuo NAKAMURA"
+  email = "tetsuo.nakamura@gmail.com"
+

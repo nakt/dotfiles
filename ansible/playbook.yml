@@ -1,0 +1,93 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  vars:
+    homebrew_packages:
+      - name: coreutils
+      - name: tig
+      - name: tmux
+      - name: zsh
+      - name: kohkimakimoto/essh/essh
+      - name: direnv
+      - name: wget
+      - name: shellcheck
+      - name: pwgen
+      - name: jq
+      - name: go
+      - name: tfenv
+      - name: aws-iam-authenticator
+      - name: rbenv
+      - name: ghq
+      - name: terraform-docs
+      - name: peco
+      - name: minamijoyo/tfschema/tfschema
+      - name: nodebrew
+      - name: bat
+      - name: adr-tools
+      - name: fontconfig
+    homebrew_cask_packages:
+      - name: google-chrome
+      - name: slack
+      - name: iterm2
+      - name: dropbox
+      - name: evernote
+      - name: docker
+      - name: visual-studio-code
+      - name: station
+      - name: authy
+    pip:
+      packages:
+        - virtualenv
+        - cryptography
+        - requests
+        - pre-commit
+        - snakemake
+      tools:
+        - awscli
+        - aws-sam-cli
+        - docker-compose
+        - awscli-local
+        - aws-shell
+    virtualenv:
+      base_dir: .venv
+      project_name: default
+
+  tasks:
+    - name: Update homebrew
+      homebrew:
+        update_homebrew: yes
+
+    - name: Install homebrew packages
+      homebrew:
+        name: '{{ item.name }}'
+        state: '{{ item.state | default("present") }}'
+      with_items: '{{ homebrew_packages }}'
+
+    - name: Install homebrew cask packages
+      homebrew_cask: name={{ item.name }} state=installed
+      environment:
+        HOMEBREW_CASK_OPTS: "--appdir=/Applications"
+      with_items: '{{ homebrew_cask_packages }}'
+
+    - name: Install pip Packages in Global Environment
+      pip:
+        name: "{{ pip.packages }}"
+
+    - name: Create virtualenv Project Directory
+      become: false
+      shell: python3 -m venv "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+
+    - name: Install pip Tools in virtualenv
+      become: false
+      pip:
+        name: "{{ pip.tools }}"
+        virtualenv: "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+
+    - name: Install nodejs using nodebrew
+      ignore_errors: True
+      shell: |
+        mkdir -p "{{ ansible_env.HOME }}/.nodebrew/src" && \
+          nodebrew install-binary stable \
+          nodebrew use stable
+      register: install_nodejs_result
