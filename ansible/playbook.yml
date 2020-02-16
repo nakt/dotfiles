@@ -36,6 +36,7 @@
       - name: visual-studio-code
       - name: station
       - name: authy
+      - name: aws-vault
     pip:
       packages:
         - virtualenv
@@ -44,11 +45,9 @@
         - pre-commit
         - snakemake
       tools:
-        - awscli
         - aws-sam-cli
         - docker-compose
         - awscli-local
-        - aws-shell
     virtualenv:
       base_dir: .venv
       project_name: default
