@@ -1,10 +1,13 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0
-    hooks:
-    - id: trailing-whitespace
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.5.0
+  hooks:
     - id: mixed-line-ending
     - id: check-yaml
     - id: check-json
     - id: check-added-large-files
 
+- repo: git://github.com/smian/pre-commit-makefile
+  rev: 261f8fb4b31dfdc05d1a1d7fbde1f1462ecde66d
+  hooks:
+    - id: makefile-doc

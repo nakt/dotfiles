@@ -1,0 +1,68 @@
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Version control
+.git/
+.hg/
+.svn/
+#.gitignore
+
+# backup,log
+*~
+~*
+*.swp
+.swp.*
+*.tmp
+*.bak
+*.old
+*.autosave
+
+# Local
+hosts
+
+# eclipse
+.settings/
+.project
+.classpath
+.buildpath
+
+# XCode
+*.xcodeproj/*
+
+# python
+*.pyc
+.venv
+
+# ansible
+*.retry
+conf.secret.yml
+
+# terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+secret.tfvars
+terraform.tfstate.d
+provider.tf
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# direnv
+.direnv
+.envrc
+
+# Architecture Decision Record
+.adr-dir
+
+# VSCode
+.vscode

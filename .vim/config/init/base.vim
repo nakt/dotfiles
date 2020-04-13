@@ -10,7 +10,6 @@ set shiftwidth=2
 set incsearch
 set ignorecase
 set smartcase
-set nocompatible
 set notimeout
 set ttimeout
 set timeoutlen=100

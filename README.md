@@ -18,3 +18,16 @@ Iniitalize & Install base application
 # make install
 # make font
 ```
+
+<!-- START makefile-doc -->
+```
+$ make help 
+clean                          Cleanup all configuration and tools
+deploy                         Create symboric link to home directory
+font                           Install powerline font
+install                        Execute prep, deploy, setting
+prep                           Prepare tools before setup
+setting                        Execute optional setup script
+update                         Update all tools 
+```
+<!-- END makefile-doc -->
