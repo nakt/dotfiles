@@ -19,4 +19,5 @@ Plug 'kana/vim-operator-user'
 Plug 'jmcantrell/vim-virtualenv'
 Plug 'hashivim/vim-terraform'
 Plug 'simeji/winresizer'
+Plug 'nathanaelkane/vim-indent-guides'
 call plug#end()
