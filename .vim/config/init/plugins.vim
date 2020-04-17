@@ -18,4 +18,5 @@ Plug 'rhysd/vim-operator-surround'
 Plug 'kana/vim-operator-user'
 Plug 'jmcantrell/vim-virtualenv'
 Plug 'hashivim/vim-terraform'
+Plug 'simeji/winresizer'
 call plug#end()
