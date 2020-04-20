@@ -15,4 +15,4 @@ elif which clip.exe >/dev/null 2>&1 ; then
   alias -g C='| clip.exe 2> /dev/null'
 fi
 
-alias g='cd $(ghq root)/$(ghq list | peco)'
+alias g='cd $(ghq root)/$(ghq list | sort | peco)'
