@@ -20,4 +20,6 @@ Plug 'jmcantrell/vim-virtualenv'
 Plug 'hashivim/vim-terraform'
 Plug 'simeji/winresizer'
 Plug 'nathanaelkane/vim-indent-guides'
+Plug 'preservim/nerdtree'
+Plug 'mechatroner/rainbow_csv'
 call plug#end()
