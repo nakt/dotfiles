@@ -26,6 +26,8 @@
       - name: bat
       - name: adr-tools
       - name: fontconfig
+      - name: weaveworks/tap/eksctl
+      - name: asdf
     homebrew_cask_packages:
       - name: google-chrome
       - name: slack
