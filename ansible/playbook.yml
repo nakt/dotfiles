@@ -23,7 +23,6 @@
       - name: peco
       - name: minamijoyo/tfschema/tfschema
       - name: nodebrew
-      - name: bat
       - name: adr-tools
       - name: fontconfig
       - name: asdf
@@ -38,6 +37,9 @@
       - name: station
       - name: authy
       - name: aws-vault
+    asdf_plugins:
+      - name: eksctl
+      - name: bat
     pip:
       packages:
         - virtualenv
@@ -69,6 +71,18 @@
       environment:
         HOMEBREW_CASK_OPTS: "--appdir=/Applications"
       with_items: '{{ homebrew_cask_packages }}'
+
+    - name: Install asdf plugins
+      shell: >-
+        asdf plugin add {{ item.name }}
+      with_items: "{{ asdf_plugins }}"
+      ignore_errors: True
+
+    - name: Install asdf packages
+      shell: >-
+        asdf install {{ item.name }} latest
+      with_items: "{{ asdf_plugins }}"
+      ignore_errors: True
 
     - name: Install pip Packages in Global Environment
       pip:
