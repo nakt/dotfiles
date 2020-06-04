@@ -8,24 +8,25 @@
       - name: tig
       - name: tmux
       - name: zsh
-      - name: kohkimakimoto/essh/essh
       - name: direnv
       - name: wget
       - name: shellcheck
       - name: pwgen
       - name: jq
-      - name: go
       - name: tfenv
       - name: aws-iam-authenticator
       - name: rbenv
       - name: ghq
       - name: terraform-docs
       - name: peco
-      - name: minamijoyo/tfschema/tfschema
       - name: nodebrew
       - name: adr-tools
       - name: fontconfig
+      - name: bat
       - name: asdf
+    homebrew_external_packages:
+      - name: kohkimakimoto/essh/essh
+      - name: minamijoyo/tfschema/tfschema
     homebrew_cask_packages:
       - name: google-chrome
       - name: slack
@@ -37,9 +38,12 @@
       - name: station
       - name: authy
       - name: aws-vault
+      - name: homebrew/cask-versions/visual-studio-code-insiders
     asdf_plugins:
+      - name: golang
       - name: eksctl
-      - name: bat
+      - name: helm
+      - name: vault
     pip:
       packages:
         - virtualenv
@@ -64,7 +68,9 @@
       homebrew:
         name: '{{ item.name }}'
         state: '{{ item.state | default("present") }}'
-      with_items: '{{ homebrew_packages }}'
+      with_items:
+        - '{{ homebrew_packages }}'
+        - '{{ homebrew_external_packages }}'
 
     - name: Install homebrew cask packages
       homebrew_cask: name={{ item.name }} state=installed
