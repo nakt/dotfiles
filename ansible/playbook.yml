@@ -24,6 +24,8 @@
       - name: fontconfig
       - name: bat
       - name: asdf
+      - name: composer
+      - name: tree
     homebrew_external_packages:
       - name: kohkimakimoto/essh/essh
       - name: minamijoyo/tfschema/tfschema
@@ -38,7 +40,6 @@
       - name: station
       - name: authy
       - name: aws-vault
-      - name: homebrew/cask-versions/visual-studio-code-insiders
     asdf_plugins:
       - name: golang
       - name: eksctl
@@ -58,56 +59,94 @@
     virtualenv:
       base_dir: .venv
       project_name: default
+    nodejs:
+      path: ~/.nodebrew/current/lib/node_modules
+      npm_packages:
+        - textlint
+        - textlint-rule-preset-ja-spacing
+        - textlint-rule-preset-ja-technical-writing
+        - textlint-rule-spellcheck-tech-word
 
   tasks:
-    - name: Update homebrew
-      homebrew:
-        update_homebrew: yes
+    - block:
+      - name: Update homebrew
+        homebrew:
+          update_homebrew: yes
 
-    - name: Install homebrew packages
-      homebrew:
-        name: '{{ item.name }}'
-        state: '{{ item.state | default("present") }}'
-      with_items:
-        - '{{ homebrew_packages }}'
-        - '{{ homebrew_external_packages }}'
+      - name: Install homebrew packages
+        homebrew:
+          name: '{{ item.name }}'
+          state: '{{ item.state | default("present") }}'
+        with_items:
+          - '{{ homebrew_packages }}'
+          - '{{ homebrew_external_packages }}'
 
-    - name: Install homebrew cask packages
-      homebrew_cask: name={{ item.name }} state=installed
-      environment:
-        HOMEBREW_CASK_OPTS: "--appdir=/Applications"
-      with_items: '{{ homebrew_cask_packages }}'
+      - name: Install homebrew cask packages
+        homebrew_cask: name={{ item.name }} state=installed
+        environment:
+          HOMEBREW_CASK_OPTS: "--appdir=/Applications"
+        with_items: '{{ homebrew_cask_packages }}'
 
-    - name: Install asdf plugins
-      shell: >-
-        asdf plugin add {{ item.name }}
-      with_items: "{{ asdf_plugins }}"
-      ignore_errors: True
+      tags: ['brew']
 
-    - name: Install asdf packages
-      shell: >-
-        asdf install {{ item.name }} latest
-      with_items: "{{ asdf_plugins }}"
-      ignore_errors: True
+    - block:
+      - name: Check asdf command exists
+        command: which npm
+        register: install_asdf_result
+        ignore_errors: true
 
-    - name: Install pip Packages in Global Environment
-      pip:
-        name: "{{ pip.packages }}"
+      - name: Install asdf plugins
+        command: "bash -lc 'asdf plugin-add {{ item.name }}'"
+        with_items: "{{ asdf_plugins }}"
+        when: install_asdf_result.rc == 0 and asdf_plugins|length > 0
+        ignore_errors: True
 
-    - name: Create virtualenv Project Directory
-      become: false
-      shell: python3 -m venv "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+      - name: Install asdf packages
+        command: "bash -lc 'asdf install {{ item.name }} latest'"
+        with_items: "{{ asdf_plugins }}"
+        when: install_asdf_result.rc == 0 and asdf_plugins|length > 0
+        ignore_errors: True
 
-    - name: Install pip Tools in virtualenv
-      become: false
-      pip:
-        name: "{{ pip.tools }}"
-        virtualenv: "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+      tags: ['asdf']
 
-    - name: Install nodejs using nodebrew
-      ignore_errors: True
-      shell: |
-        mkdir -p "{{ ansible_env.HOME }}/.nodebrew/src" && \
-          nodebrew install-binary stable \
-          nodebrew use stable
-      register: install_nodejs_result
+    - block:
+      - name: Install pip Packages in Global Environment
+        pip:
+          name: "{{ pip.packages }}"
+
+      - name: Create virtualenv Project Directory
+        become: false
+        shell: python3 -m venv "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+
+      - name: Install pip Tools in virtualenv
+        become: false
+        pip:
+          name: "{{ pip.tools }}"
+          virtualenv: "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+
+      tags: ['python']
+
+    - block:
+      - name: Install nodejs using nodebrew
+        ignore_errors: True
+        shell: |
+          mkdir -p "{{ ansible_env.HOME }}/.nodebrew/src" && \
+            nodebrew install-binary stable \
+            nodebrew use stable
+        register: install_nodejs_result
+
+      - name: Check npm command exists
+        command: which npm
+        register: install_npm_result
+        ignore_errors: true
+
+      - name: Install npm packages
+        npm:
+          name: "{{ item }}"
+          global: no
+          path: "{{ nodejs.path }}"
+          state: latest
+        when: install_npm_result.rc == 0
+        with_items: "{{ nodejs.npm_packages }}"
+
+      tags: ['npm']
