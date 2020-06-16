@@ -1,4 +1,4 @@
-export GOPATH=$HOME/go
+export GOPATH=$HOME/.go
 export PATH=$GOPATH/bin:$PATH
 
 if which go >/dev/null 2>&1 ; then
