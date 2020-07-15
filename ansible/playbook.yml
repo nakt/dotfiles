@@ -52,6 +52,7 @@
         - requests
         - pre-commit
         - snakemake
+        - checkov
       tools:
         - aws-sam-cli
         - docker-compose
