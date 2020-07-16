@@ -22,4 +22,5 @@ Plug 'simeji/winresizer'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'preservim/nerdtree'
 Plug 'mechatroner/rainbow_csv'
+Plug 'easymotion/vim-easymotion'
 call plug#end()

@@ -31,3 +31,5 @@ nnoremap * *zz
 " TABにて対応ペアにジャンプ
 nnoremap <Tab> %
 vnoremap <Tab> %
+
+let mapleader = "\<Space>"
