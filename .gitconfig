@@ -18,7 +18,7 @@
   m = merge
   r = remote
   rs = restore
-  s = status --branch --short
+  s = status --branch
   sw = switch
   t = tag
   w = whatchanged

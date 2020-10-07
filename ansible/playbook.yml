@@ -26,6 +26,7 @@
       - name: asdf
       - name: composer
       - name: tree
+      - name: gpg
     homebrew_external_packages:
       - name: kohkimakimoto/essh/essh
       - name: minamijoyo/tfschema/tfschema
@@ -45,6 +46,7 @@
       - name: eksctl
       - name: helm
       - name: vault
+      - name: yarn
     pip:
       packages:
         - virtualenv
