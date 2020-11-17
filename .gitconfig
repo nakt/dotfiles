@@ -36,5 +36,5 @@
   name = "Tetsuo Nakamura"
   email = "tetsuo.nakamura@gmail.com"
 
- [includeIf "gitdir:~/.ghq/gitlab.pct.*/"]
+[includeIf "gitdir:~/.ghq/gitlab.pct.*/"]
   path = ~/.gitconfig.office

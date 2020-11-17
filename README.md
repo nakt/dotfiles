@@ -11,7 +11,7 @@ Checkout dotfiles repository
 
 Iniitalize & Install base application
 ```
-# cd $HOME/.ghq/github.com/nakt/dotfiles/
+# cd $HOME/ghq/github.com/nakt/dotfiles/
 # tools/01_init.sh
 # pushd ansible && ansible-playbook playbook.yml
 # popd
@@ -21,13 +21,13 @@ Iniitalize & Install base application
 
 <!-- START makefile-doc -->
 ```
-$ make help 
+$ make help
 clean                          Cleanup all configuration and tools
 deploy                         Create symboric link to home directory
 font                           Install powerline font
 install                        Execute prep, deploy, setting
 prep                           Prepare tools before setup
 setting                        Execute optional setup script
-update                         Update all tools 
+update                         Update all tools
 ```
 <!-- END makefile-doc -->
