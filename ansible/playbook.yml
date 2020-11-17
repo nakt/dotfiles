@@ -32,16 +32,16 @@
       - name: kohkimakimoto/essh/essh
       - name: minamijoyo/tfschema/tfschema
     homebrew_cask_packages:
-      #      - name: google-chrome
-      #      - name: slack
-            - name: iterm2
-      #      - name: dropbox
-      #      - name: evernote
-      #      - name: docker
-      #      - name: visual-studio-code
-      #      - name: station
-      #      - name: authy
-      #      - name: aws-vault
+      - name: google-chrome
+      - name: slack
+      - name: iterm2
+      - name: dropbox
+      - name: evernote
+      - name: docker
+      - name: visual-studio-code
+      - name: station
+      - name: authy
+      - name: aws-vault
     asdf_plugins:
       - name: golang
       - name: eksctl
