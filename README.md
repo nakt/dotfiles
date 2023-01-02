@@ -23,7 +23,7 @@ Iniitalize & Install base application
 ```
 $ make help
 clean                          Cleanup all configuration and tools
-deploy                         Create symboric link to home directory
+deploy                         Create symbolic link to home directory
 font                           Install powerline font
 install                        Execute prep, deploy, setting
 prep                           Prepare tools before setup
