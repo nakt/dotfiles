@@ -35,7 +35,7 @@ update: ## Update all tools
 	@ git -C $(PREZTO_PATH) pull
 	@ git -C $(PREZTO_PATH) submodule update --init --recursive
 
-deploy: ## Create symboric link to home directory
+deploy: ## Create symbolic link to home directory
 	@ $(foreach val, $(DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/$(val);)
 	@ $(foreach val, $(PREZTO_DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/.$(notdir $(val));)
 	@ $(foreach val, $(NORD_DIRCOLORS_DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/.$(notdir $(val));)

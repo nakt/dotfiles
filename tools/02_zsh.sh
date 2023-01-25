@@ -2,7 +2,7 @@
 
 SEC_ZSH="### zsh local setting"
 
-if [ ! -n ~/.zsh/completion ]; then
+if [ ! -d ~/.zsh/completion ]; then
   echo "Create directory for zsh completion file"
   mkdir -p ~/.zsh/completion
 fi

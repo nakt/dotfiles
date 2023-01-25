@@ -32,6 +32,8 @@
       - name: buku
       - name: mecab
       - name: mecab-ipadic
+      - name: rustup-init
+      - name: pre-commit
     homebrew_external_packages:
       - name: kohkimakimoto/essh/essh
       - name: minamijoyo/tfschema/tfschema
@@ -40,15 +42,19 @@
       - name: slack
       - name: iterm2
       - name: dropbox
-      - name: evernote
       - name: docker
       - name: visual-studio-code
-      - name: station
+      - name: deepl
       - name: authy
       - name: aws-vault
       - name: cyberduck
+      - name: 1password
+      - name: alfred
+      - name: tradingview
+      - name: tweeten
     asdf_plugins:
       - name: golang
+      - name: python
       - name: eksctl
       - name: helm
       - name: vault
@@ -58,7 +64,6 @@
         - virtualenv
         - cryptography
         - requests
-        - pre-commit
         - snakemake
         - checkov
       tools:
@@ -100,7 +105,7 @@
 
     - block:
       - name: Check asdf command exists
-        command: which npm
+        command: which asdf
         register: install_asdf_result
         ignore_errors: true
 
@@ -108,13 +113,13 @@
         command: "bash -lc 'asdf plugin-add {{ item.name }}'"
         with_items: "{{ asdf_plugins }}"
         when: install_asdf_result.rc == 0 and asdf_plugins|length > 0
-        ignore_errors: True
+        ignore_errors: true
 
       - name: Install asdf packages
         command: "bash -lc 'asdf install {{ item.name }} latest'"
         with_items: "{{ asdf_plugins }}"
         when: install_asdf_result.rc == 0 and asdf_plugins|length > 0
-        ignore_errors: True
+        ignore_errors: true
 
       tags: ['asdf']
 
@@ -125,7 +130,9 @@
 
       - name: Create virtualenv Project Directory
         become: false
-        shell: python3 -m venv "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
+        shell: |
+          python3 -m venv "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}" && \
+          "{{ ansible_env.HOME }}"/.venv/default/bin/python3 -m pip install --upgrade pip
 
       - name: Install pip Tools in virtualenv
         become: false
@@ -136,12 +143,20 @@
       tags: ['python']
 
     - block:
+
+      - name: Check nodebrew src directory
+        stat:
+          path: "{{ ansible_env.HOME }}/.nodebrew/src"
+        register: dir_nodebrewsrc_result
+        ignore_errors: true
+
       - name: Install nodejs using nodebrew
-        ignore_errors: True
+        ignore_errors: true
         shell: |
           mkdir -p "{{ ansible_env.HOME }}/.nodebrew/src" && \
-            nodebrew install-binary stable \
+            nodebrew install-binary stable && \
             nodebrew use stable
+        when: dir_nodebrewsrc_result.stat.exists != false
         register: install_nodejs_result
 
       - name: Check npm command exists
@@ -150,9 +165,11 @@
         ignore_errors: true
 
       - name: Install npm packages
+        environment:
+          PATH: "{{ ansible_env.HOME }}/.nodebrew/current/bin:{{ ansible_env.PATH }}"
         npm:
           name: "{{ item }}"
-          global: no
+          global: yes
           path: "{{ nodejs.path }}"
           state: latest
         when: install_npm_result.rc == 0

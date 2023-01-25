@@ -35,3 +35,6 @@
 [user]
   name = "Tetsuo Nakamura"
   email = "tetsuo.nakamura@gmail.com"
+
+[url "https://github.com/"]
+	insteadOf = git://github.com/
