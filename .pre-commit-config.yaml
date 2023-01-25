@@ -1,13 +1,13 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v3.3.0
+  rev: v4.4.0
   hooks:
     - id: mixed-line-ending
     - id: check-yaml
     - id: check-json
     - id: check-added-large-files
 
-- repo: git://github.com/smian/pre-commit-makefile
-  rev: 261f8fb4b31dfdc05d1a1d7fbde1f1462ecde66d
+- repo: git://github.com/nakt/pre-commit-makefile
+  rev: master
   hooks:
     - id: makefile-doc
