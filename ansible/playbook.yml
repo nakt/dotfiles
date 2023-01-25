@@ -33,6 +33,7 @@
       - name: mecab
       - name: mecab-ipadic
       - name: rustup-init
+      - name: pre-commit
     homebrew_external_packages:
       - name: kohkimakimoto/essh/essh
       - name: minamijoyo/tfschema/tfschema
@@ -43,6 +44,7 @@
       - name: dropbox
       - name: docker
       - name: visual-studio-code
+      - name: deepl
       - name: authy
       - name: aws-vault
       - name: cyberduck
@@ -52,6 +54,7 @@
       - name: tweeten
     asdf_plugins:
       - name: golang
+      - name: python
       - name: eksctl
       - name: helm
       - name: vault
@@ -61,7 +64,6 @@
         - virtualenv
         - cryptography
         - requests
-        - pre-commit
         - snakemake
         - checkov
       tools:
