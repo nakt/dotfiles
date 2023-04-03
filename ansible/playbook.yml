@@ -52,6 +52,7 @@
       - name: alfred
       - name: tradingview
       - name: tweeten
+      - name: notion
     asdf_plugins:
       - name: golang
       - name: python
