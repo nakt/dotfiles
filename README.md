@@ -5,9 +5,8 @@
 Checkout dotfiles repository
 
 ```
-# ghq get --shallow https://github.com/nakt/dotfiles
+# GHQ_ROOT=~/repos ghq get --shallow https://github.com/nakt/dotfiles
 ```
-
 
 Iniitalize & Install base application
 ```
@@ -16,7 +15,6 @@ Iniitalize & Install base application
 # pushd ansible && ansible-playbook playbook.yml
 # popd
 # make install
-# make font
 ```
 
 <!-- START makefile-doc -->
@@ -24,7 +22,6 @@ Iniitalize & Install base application
 $ make help
 clean                          Cleanup all configuration and tools
 deploy                         Create symbolic link to home directory
-font                           Install powerline font
 install                        Execute prep, deploy, setting
 prep                           Prepare tools before setup
 setting                        Execute optional setup script

@@ -1,179 +1,55 @@
-- hosts: localhost
+- name: Install packages via Homebrew and configure environment
+  hosts: localhost
   connection: local
-  become: no
+  become: false
 
   vars:
     homebrew_packages:
-      - name: gcc
-      - name: cask
-      - name: coreutils
-      - name: tig
-      - name: tmux
-      - name: zsh
-      - name: direnv
-      - name: wget
-      - name: shellcheck
-      - name: pwgen
-      - name: jq
-      - name: tfenv
-      - name: aws-iam-authenticator
-      - name: rbenv
-      - name: ghq
-      - name: terraform-docs
-      - name: peco
-      - name: nodebrew
-      - name: adr-tools
-      - name: fontconfig
-      - name: bat
-      - name: asdf
-      - name: composer
-      - name: tree
-      - name: gpg
-      - name: buku
-      - name: mecab
-      - name: mecab-ipadic
-      - name: rustup-init
-      - name: pre-commit
-    homebrew_external_packages:
-      - name: kohkimakimoto/essh/essh
-      - name: minamijoyo/tfschema/tfschema
+      - gcc
+      - tig
+      - tmux
+      - direnv
+      - jq
+      - ghq
+      - peco
+      - adr-tools
+      - pre-commit
+      - uv
+
     homebrew_cask_packages:
-      - name: google-chrome
-      - name: slack
-      - name: iterm2
-      - name: dropbox
-      - name: docker
-      - name: visual-studio-code
-      - name: deepl
-      - name: authy
-      - name: aws-vault
-      - name: cyberduck
-      - name: 1password
-      - name: alfred
-      - name: tradingview
-      - name: tweeten
-      - name: notion
-    asdf_plugins:
-      - name: golang
-      - name: python
-      - name: eksctl
-      - name: helm
-      - name: vault
-      - name: yarn
-    pip:
-      packages:
-        - virtualenv
-        - cryptography
-        - requests
-        - snakemake
-        - checkov
-      tools:
-        - aws-sam-cli
-        - docker-compose
-        - awscli-local
-    virtualenv:
-      base_dir: .venv
-      project_name: default
-    nodejs:
-      path: ~/.nodebrew/current/lib/node_modules
-      npm_packages:
-        - textlint
-        - textlint-rule-preset-ja-spacing
-        - textlint-rule-preset-ja-technical-writing
-        - textlint-rule-spellcheck-tech-word
+      - font-plemol-jp
+      - google-chrome
+      - slack
+      - iterm2
+      - dropbox
+      - docker
+      - visual-studio-code
+      - cyberduck
+      - 1password
+      - alfred
+      - tradingview
+      - notion
+      - chatgpt
+      - claude
 
   tasks:
-    - block:
-      - name: Update homebrew
-        homebrew:
-          update_homebrew: yes
+    - name: Install and update Homebrew packages
+      block:
+        - name: Update Homebrew
+          homebrew:
+            update_homebrew: true
 
-      - name: Install homebrew packages
-        homebrew:
-          name: '{{ item.name }}'
-          state: '{{ item.state | default("present") }}'
-        with_items:
-          - '{{ homebrew_packages }}'
-          - '{{ homebrew_external_packages }}'
+        - name: Install standard Homebrew packages
+          homebrew:
+            name: "{{ item }}"
+            state: present
+          loop: "{{ homebrew_packages }}"
 
-      - name: Install homebrew cask packages
-        homebrew_cask: name={{ item.name }} state=installed
-        environment:
-          HOMEBREW_CASK_OPTS: "--appdir=/Applications"
-        with_items: '{{ homebrew_cask_packages }}'
-
+        - name: Install Homebrew cask packages
+          homebrew_cask:
+            name: "{{ item }}"
+            state: present
+          environment:
+            HOMEBREW_CASK_OPTS: "--appdir=/Applications"
+          loop: "{{ homebrew_cask_packages }}"
       tags: ['brew']
-
-    - block:
-      - name: Check asdf command exists
-        command: which asdf
-        register: install_asdf_result
-        ignore_errors: true
-
-      - name: Install asdf plugins
-        command: "bash -lc 'asdf plugin-add {{ item.name }}'"
-        with_items: "{{ asdf_plugins }}"
-        when: install_asdf_result.rc == 0 and asdf_plugins|length > 0
-        ignore_errors: true
-
-      - name: Install asdf packages
-        command: "bash -lc 'asdf install {{ item.name }} latest'"
-        with_items: "{{ asdf_plugins }}"
-        when: install_asdf_result.rc == 0 and asdf_plugins|length > 0
-        ignore_errors: true
-
-      tags: ['asdf']
-
-    - block:
-      - name: Install pip Packages in Global Environment
-        pip:
-          name: "{{ pip.packages }}"
-
-      - name: Create virtualenv Project Directory
-        become: false
-        shell: |
-          python3 -m venv "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}" && \
-          "{{ ansible_env.HOME }}"/.venv/default/bin/python3 -m pip install --upgrade pip
-
-      - name: Install pip Tools in virtualenv
-        become: false
-        pip:
-          name: "{{ pip.tools }}"
-          virtualenv: "{{ ansible_env.HOME }}/{{ virtualenv.base_dir }}/{{ virtualenv.project_name }}"
-
-      tags: ['python']
-
-    - block:
-
-      - name: Check nodebrew src directory
-        stat:
-          path: "{{ ansible_env.HOME }}/.nodebrew/src"
-        register: dir_nodebrewsrc_result
-        ignore_errors: true
-
-      - name: Install nodejs using nodebrew
-        ignore_errors: true
-        shell: |
-          mkdir -p "{{ ansible_env.HOME }}/.nodebrew/src" && \
-            nodebrew install-binary stable && \
-            nodebrew use stable
-        when: dir_nodebrewsrc_result.stat.exists != false
-        register: install_nodejs_result
-
-      - name: Check npm command exists
-        command: which npm
-        register: install_npm_result
-        ignore_errors: true
-
-      - name: Install npm packages
-        environment:
-          PATH: "{{ ansible_env.HOME }}/.nodebrew/current/bin:{{ ansible_env.PATH }}"
-        npm:
-          name: "{{ item }}"
-          global: yes
-          path: "{{ nodejs.path }}"
-          state: latest
-        when: install_npm_result.rc == 0
-        with_items: "{{ nodejs.npm_packages }}"
-
-      tags: ['npm']

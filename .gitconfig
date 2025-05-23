@@ -38,3 +38,6 @@
 
 [url "https://github.com/"]
 	insteadOf = git://github.com/
+
+[ghq]
+	root = ~/repos
