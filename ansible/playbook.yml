@@ -15,6 +15,7 @@
       - adr-tools
       - pre-commit
       - uv
+      - node
 
     homebrew_cask_packages:
       - font-plemol-jp
