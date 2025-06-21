@@ -2,11 +2,18 @@
   excludesfile = ~/.gitignore
   editor = vim
 
+[init]
+  defaultBranch = main
+
+[pull]
+  rebase = false
+
 [alias]
   a = add
   b = branch
   c = commit
   co = checkout
+  cob = checkout -b
   d = diff
   e = add --edit
   f = fetch
@@ -22,7 +29,10 @@
   sw = switch
   t = tag
   w = whatchanged
-  delete-merged-branches = !git branch --merged | grep -vE '^\\*|master$|develop$' | xargs -I % git branch -d %
+  pf = push --force-with-lease
+  pom = push origin main
+  poh = push origin HEAD
+  delete-merged-branches = !git branch --merged | grep -vE '^\\*|main$|develop$' | xargs -I % git branch -d %
 
 [color]
   ui = always
