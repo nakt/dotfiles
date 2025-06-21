@@ -1,20 +1,39 @@
 # dotfiles
 
-## Deploy
+Personal dotfiles repository for managing shell, editor, and development tool configurations.
 
-Checkout dotfiles repository
+## Managed Dotfiles
 
-```
-# GHQ_ROOT=~/repos ghq get --shallow https://github.com/nakt/dotfiles
+- `.claude/` - Claude configuration
+- `.config/` - Configuration directory
+- `.gitconfig` - Git configuration
+- `.gitignore` - Git ignore patterns
+- `.pre-commit-config.yaml` - Pre-commit hook configuration
+- `.tmux.conf` - tmux configuration
+- `.vim/` - Vim configuration directory
+- `.vimrc` - Vim configuration file
+
+## Setup Instructions
+
+### 1. Clone Repository
+
+```bash
+GHQ_ROOT=~/repos ghq get --shallow https://github.com/nakt/dotfiles
+cd ~/repos/github.com/nakt/dotfiles
 ```
 
-Iniitalize & Install base application
-```
-# cd $HOME/ghq/github.com/nakt/dotfiles/
-# tools/01_init.sh
-# pushd ansible && ansible-playbook playbook.yml
-# popd
-# make install
+### 2. Initialize and Install Applications
+
+```bash
+# Install Homebrew and ansible
+tools/01_init.sh
+
+# Install packages via ansible
+cd ansible && ansible-playbook playbook.yml
+cd ..
+
+# Deploy dotfiles and configure
+make install
 ```
 
 <!-- START makefile-doc -->
