@@ -4,3 +4,4 @@
 # Except .gitignore and CLAUDE.md
 !.gitignore
 !CLAUDE.md
+!settings.json
