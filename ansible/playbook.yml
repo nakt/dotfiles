@@ -16,6 +16,7 @@
       - pre-commit
       - uv
       - node
+      - gh
 
     homebrew_cask_packages:
       - font-plemol-jp
