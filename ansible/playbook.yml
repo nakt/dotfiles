@@ -17,7 +17,6 @@
       - uv
       - node
       - gh
-      - ollama
 
     homebrew_cask_packages:
       - font-plemol-jp
@@ -34,6 +33,7 @@
       - notion
       - chatgpt
       - claude
+      - ollama-app
 
   tasks:
     - name: Install and update Homebrew packages
