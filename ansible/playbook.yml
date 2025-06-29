@@ -17,6 +17,7 @@
       - uv
       - node
       - gh
+      - ollama
 
     homebrew_cask_packages:
       - font-plemol-jp
