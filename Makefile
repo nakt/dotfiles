@@ -52,4 +52,4 @@ clean: ## Cleanup all configuration and tools
 	@ echo 'Remove dot files...'
 	@ $(foreach val, $(DOTFILES), rm -vrf $(HOME)/$(val);)
 	rm -rf $(PREZTO_PATH)
-	rm -f $(HOME)/.zlogin $(HOME)/.zlogout $(HOME)/.zpreztorc $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc
+	rm -f $(HOME)/.zlogin $(HOME)/.zlogout $(HOME)/.zpreztorc $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc ${HOME}/.dir_colors
