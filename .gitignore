@@ -66,3 +66,7 @@ override.tf.json
 
 # VSCode
 .vscode
+
+# Gemini (keep directory but ignore contents)
+.gemini/*
+!.gemini/.gitkeep

@@ -1,24 +1,9 @@
-autostart
-Code
-configstore
-dconf
-direnv
-enchant
-evolution
-gcloud
-gedit
-gnome-control-center
-gnome-session
-goa-*
-google-chrome
-gtk-*
-hlb
-ibus
-menus
-nautilus
-pulse
-Station
-mimeapps.list
-user-dirs.dirs
-user-dirs.locale
-iterm2
+# Exclude all by default
+*
+
+# Whitelist specific directories and files
+!git/
+!tmux/
+!nvim/
+!zsh/
+!.gitignore
