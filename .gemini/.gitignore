@@ -1,0 +1,6 @@
+# Ignore everything
+/*
+
+# Except .gitignore and CLAUDE.md
+!.gitignore
+!settings.json
