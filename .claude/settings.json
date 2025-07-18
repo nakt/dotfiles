@@ -67,7 +67,19 @@
       "Bash(git reset:*)",
       "Bash(git cherry-pick:*)"
     ],
-    "deny": []
+    "deny": [
+      "Read(.env)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Read(**/*token*)",
+      "Read(**/*key*)",
+      "Bash(sudo:*)",
+      "Bash(rm:*)",
+      "Bash(rm -rf:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(nc:*)"
+    ]
   },
   "hooks": {
     "Notification": [
@@ -76,7 +88,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Sosumi.aiff"
+            "command": "afplay /System/Library/Sounds/Sosumi.aiff || true"
           }
         ]
       }
@@ -87,7 +99,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Blow.aiff"
+            "command": "afplay /System/Library/Sounds/Blow.aiff || true"
           }
         ]
       }
