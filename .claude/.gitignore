@@ -1,7 +1,7 @@
 # Ignore everything
 /*
 
-# Except .gitignore and CLAUDE.md
+# Except rules
 !.gitignore
 !CLAUDE.md
 !settings.json
