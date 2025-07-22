@@ -16,10 +16,11 @@ Analyze uncommitted files and commit logically related changes with appropriate 
 3. Categorize changes into logical groups
 4. Commit with appropriate granularity
 5. Consider updating project memory
- - Consider adding important policy changes, technical challenges, and solutions to workspace/
+ - Consider adding important policy changes, technical challenges, and solutions to .workspace/knowledge/
  - Accumulate knowledge that leads to improved implementation quality and development efficiency in the future
 
 ## Constraints
 
 - コミットログは英語で記載してください
 - その他の会話は特別な指定がない限り日本語で回答してください
+
