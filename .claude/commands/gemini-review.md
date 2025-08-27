@@ -14,3 +14,5 @@ Before implementation, you can request a review with the following command:
 gemini -p "Review this implementation plan. Point out any flaws or suggest improvements.  
 <Your plan here>"
 ```
+
+Output in Japanese.
