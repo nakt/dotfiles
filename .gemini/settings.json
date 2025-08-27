@@ -1,4 +1,6 @@
 {
   "selectedAuthType": "oauth-personal",
-  "theme": "GitHub Light"
+  "theme": "GitHub Light",
+  "hasSeenIdeIntegrationNudge": true,
+  "ideMode": true
 }
