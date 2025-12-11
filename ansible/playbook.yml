@@ -34,7 +34,7 @@
       - notion
       - chatgpt
       - claude
-      - ollama-app
+      - lm-studio
 
   tasks:
     - name: Install and update Homebrew packages
