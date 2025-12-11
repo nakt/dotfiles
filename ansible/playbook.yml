@@ -17,6 +17,7 @@
       - uv
       - node
       - gh
+      - ripgrep
 
     homebrew_cask_packages:
       - font-plemol-jp
