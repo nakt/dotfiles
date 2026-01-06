@@ -36,6 +36,7 @@
       - claude
       - lm-studio
       - gemini-cli
+      - ghostty
 
   tasks:
     - name: Install and update Homebrew packages
