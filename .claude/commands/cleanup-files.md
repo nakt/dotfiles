@@ -23,7 +23,7 @@ Clean up experiment workspace and scan/remove unnecessary files project-wide bas
    - Remove the corresponding directory under `.workspace/{experiments, analysis}/` to free up space
 
 ### Phase 3: Project-wide File Cleanup
-1. **Scan entire project for unnecessary files** (content-based analysis, not just extension):
+1. Scan entire project for unnecessary files (content-based analysis, not just extension):
    - Temporary files: *.tmp, *.temp, *.bak, *.orig, *.swp, *~
    - Build artifacts: __pycache__/, .pytest_cache/, node_modules/, target/, dist/, build/
    - IDE/Editor files: .vscode/settings.json, .idea/, *.pyc, .DS_Store
@@ -32,17 +32,17 @@ Clean up experiment workspace and scan/remove unnecessary files project-wide bas
    - Files with patterns like: test_, tmp_, old_, backup_, draft_, experimental_
    - Log files: *.log, logs/
    - Files with outdated modification dates and low git activity
-2. **Analyze file content and usage**:
+2. Analyze file content and usage:
    - Check git history for file activity
    - Identify files not referenced by main codebase
    - Look for TODO or FIXME comments indicating temporary nature
    - Check file size and creation patterns
-3. **Categorize files by importance**:
+3. Categorize files by importance:
    - Critical: Core functionality files, main source code
    - Important: Configuration, documentation, active tests
    - Low priority: Old documentation, unused configs
    - Candidate for removal: Experimental, temporary, unused, build artifacts
-4. **Present organized removal candidates to user for confirmation**:
+4. Present organized removal candidates to user for confirmation:
    - Group by type (temporary, build artifacts, experimental, etc.)
    - Show file paths, sizes, and last modification dates
    - Provide rationale for each deletion candidate

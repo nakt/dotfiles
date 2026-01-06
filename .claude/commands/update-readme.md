@@ -7,10 +7,10 @@ Analyze project structure and codebase to generate and update README.md with a c
 
 ## Analysis Targets
 
-1. **Configuration files**: pyproject.toml, package.json, Cargo.toml, requirements.txt, setup.py ...
-2. **Project structure**: src/, lib/, tests/
-3. **Main files**: Entry points, configuration files
-4. **Existing README**: Consistency check between current content and implementation
+1. Configuration files: pyproject.toml, package.json, Cargo.toml, requirements.txt, setup.py ...
+2. Project structure: src/, lib/, tests/
+3. Main files: Entry points, configuration files
+4. Existing README: Consistency check between current content and implementation
 
 ## Generated/Updated README Structure
 
@@ -36,7 +36,7 @@ Analyze project structure and codebase to generate and update README.md with a c
 4. Analyze project structure to understand module composition
 5. Identify entry points
 6. Check test configuration
-7. **Identify discrepancies between existing content and implementation, ensure consistency**
+7. Identify discrepancies between existing content and implementation, ensure consistency
 8. Generate/update README.md with unified format, focusing on current implementation state
 
 ## Constraints
@@ -48,5 +48,5 @@ Analyze project structure and codebase to generate and update README.md with a c
 - Focus solely on describing current implementation state, avoid change history or feature announcements
 - Document what the code actually does, not what has been added or updated
 - Avoid using emojis as much as possible
-- Minimize use of bold formatting (** **)
+- Minimize use of bold formatting ( )
 - Do not include troubleshooting or FAQ sections
