@@ -1,6 +1,14 @@
 {
-  "selectedAuthType": "oauth-personal",
-  "theme": "GitHub Light",
-  "hasSeenIdeIntegrationNudge": true,
-  "ideMode": true
+  "ide": {
+    "hasSeenNudge": true,
+    "enabled": true
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "ui": {
+    "theme": "GitHub Light"
+  }
 }
