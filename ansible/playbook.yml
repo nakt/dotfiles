@@ -35,6 +35,7 @@
       - chatgpt
       - claude
       - lm-studio
+      - gemini-cli
 
   tasks:
     - name: Install and update Homebrew packages
