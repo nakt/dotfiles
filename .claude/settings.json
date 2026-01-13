@@ -64,7 +64,6 @@
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Bash(git checkout:*)",
       "Bash(git remote set-url:*)",
       "Bash(git pull:*)",
       "Bash(git reset:*)",
@@ -82,7 +81,8 @@
       "Bash(curl:*)",
       "Bash(wget:*)",
       "Bash(nc:*)"
-    ]
+    ],
+    "defaultMode": "default"
   },
   "hooks": {
     "Notification": [
@@ -109,6 +109,8 @@
     ]
   },
   "enabledPlugins": {
-    "frontend-design@claude-code-plugins": true
-  }
+    "frontend-design@claude-code-plugins": true,
+    "context7@claude-plugins-official": true
+  },
+  "language": "Japanese"
 }
