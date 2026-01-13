@@ -17,6 +17,7 @@
 | git-workflow | All files         | コミット規約、ブランチ戦略、PR ガイドライン |
 | markdown     | `**/*.md`      | Markdown 作成時のスタイルガイド |
 | plan-files   | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー |
+| python       | `**/*.py`      | Python 開発ガイド              |
 
 ## 利用可能な Skills
 
