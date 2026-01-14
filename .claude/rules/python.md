@@ -143,6 +143,23 @@ uv run black --check . && uv run ruff check . && uv run mypy src/ && uv run pyte
 
 Code style follows `black` and `ruff`. Automatically applied via pre-commit hooks.
 
+### Comment Labels
+
+Use standard labels for temporary comments or deferred work:
+
+- `TODO`: Work to be done later
+- `FIXME`: Known issue that needs to be fixed
+
+```python
+# TODO: Implement caching for better performance
+def fetch_data():
+    pass
+
+# FIXME: This fails when input is empty
+def process_input(data):
+    return data[0]
+```
+
 ### Docstrings
 
 Use reStructuredText (Sphinx) style and write in English:

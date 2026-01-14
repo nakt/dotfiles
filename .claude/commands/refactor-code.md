@@ -16,7 +16,7 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
 ### Phase 2: Comment Quality Improvement
 1. Scan code files for comment types:
    - Update history comments ("2024/01/15 modified", "v1.2 changes")
-   - Ad-hoc temporary comments ("TODO: fix later", "HACK:", "quick fix")
+   - Ad-hoc temporary comments ("TODO:", "FIXME:", "HACK:", "quick fix")
    - Commented-out old code blocks
 2. Identify permanent comments to preserve:
    - Design intent and architectural decisions
