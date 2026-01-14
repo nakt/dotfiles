@@ -8,4 +8,5 @@
 !zsh/
 !.gitignore
 !ccstatusline/
+!ccstatusline/settings.json
 !gh/config.yml
