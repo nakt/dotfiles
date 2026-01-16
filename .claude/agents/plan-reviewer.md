@@ -2,6 +2,7 @@
 name: plan-reviewer
 description: Reviewer that validates plan completeness and clarifies ambiguities with the user
 tools: Read, Glob, Grep, AskUserQuestion
+color: blue
 ---
 
 Read the plan content and extract ambiguous sections to clarify with the user.
