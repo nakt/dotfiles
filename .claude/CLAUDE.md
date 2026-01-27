@@ -18,6 +18,8 @@
 | markdown     | `**/*.md`      | Markdown 作成時のスタイルガイド |
 | plan-files   | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー |
 | python       | `**/*.py`      | Python 開発ガイド              |
+| react        | `**/*.tsx`, `**/*.jsx` | React 開発ガイド |
+| typescript   | `**/*.ts`, `**/*.tsx` | TypeScript 開発ガイド |
 
 ## 利用可能な Skills
 
