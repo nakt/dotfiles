@@ -108,15 +108,15 @@
       }
     ]
   },
-  "enabledPlugins": {
-    "frontend-design@claude-code-plugins": [],
-    "context7@claude-plugins-official": []
-  },
-  "language": "Japanese",
   "statusLine": {
     "type": "command",
     "command": "npx -y ccstatusline@latest",
     "padding": 0
   },
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": [],
+    "context7@claude-plugins-official": []
+  },
+  "language": "Japanese",
   "plansDirectory": "./.claude/plans"
 }
