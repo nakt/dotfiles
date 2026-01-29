@@ -106,6 +106,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/lint-markdown.sh",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

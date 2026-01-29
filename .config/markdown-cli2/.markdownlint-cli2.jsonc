@@ -1,0 +1,22 @@
+{
+  "config": {
+    // Allow skipping heading levels
+    "MD001": false,
+
+    // Disable line length limit for Japanese content
+    "MD013": false,
+
+    "MD050": {
+      "style": "consistent"
+    },
+
+    // Allow duplicate headings under different parents
+    "MD024": { "siblings_only": true },
+
+    // Disable to avoid false positives with front matter
+    "MD041": false,
+
+    // Enforce backtick style for code fences
+    "MD048": { "style": "backtick" }
+  }
+}

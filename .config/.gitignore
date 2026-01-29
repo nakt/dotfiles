@@ -3,10 +3,17 @@
 
 # Whitelist specific directories and files
 !git/
+!git/**
 !tmux/
+!tmux/**
 !nvim/
+!nvim/**
 !zsh/
+!zsh/**
 !.gitignore
 !ccstatusline/
 !ccstatusline/settings.json
+!gh/
 !gh/config.yml
+!markdown-cli2/
+!markdown-cli2/.markdownlint-cli2.jsonc
