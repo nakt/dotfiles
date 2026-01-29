@@ -1,30 +1,22 @@
 {
-  // markdownlint 本体のルール設定
   "config": {
-    // 見出しレベルの飛びを許可
+    // Allow skipping heading levels
     "MD001": false,
 
-    // 行長制限はしない（日本語Markdownあるある）
+    // Disable line length limit for Japanese content
     "MD013": false,
 
-    // 強調記法はスタイル統一だけ（禁止はしない）
     "MD050": {
       "style": "consistent"
     },
 
-    // 見出し前後の空行は厳しすぎるので緩める
-    "MD022": false,
-    "MD032": false
-  },
+    // Allow duplicate headings under different parents
+    "MD024": { "siblings_only": true },
 
-  // lint 対象
-  "globs": [
-    "**/*.md"
-  ],
+    // Disable to avoid false positives with front matter
+    "MD041": false,
 
-  // 無視したいファイル
-  "ignores": [
-    "node_modules/**",
-    "dist/**"
-  ]
+    // Enforce backtick style for code fences
+    "MD048": { "style": "backtick" }
+  }
 }
