@@ -7,8 +7,8 @@
 
 ## 構造
 
-- Rules (`.claude/rules/`): ファイルパスに基づいて自動的に読み込まれる
-- Skills (`.claude/skills/`): 特定の統合のために手動で呼び出す
+- Rules (`~/.claude/rules/`): ファイルパスに基づいて自動的に読み込まれる
+- Skills (`~/.claude/skills/`): 特定の統合のために手動で呼び出す
 
 ## 利用可能な Rules
 
@@ -25,3 +25,4 @@
 
 | Skill | 用途 |
 | ----- | ---- |
+| gpt5-prompting | GPT-5系モデル向けプロンプト設計のベストプラクティス |

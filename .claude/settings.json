@@ -118,5 +118,5 @@
     "context7@claude-plugins-official": []
   },
   "language": "Japanese",
-  "plansDirectory": "./.claude/plans"
+  "plansDirectory": ".claude/plans"
 }
