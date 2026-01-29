@@ -1,0 +1,30 @@
+{
+  // markdownlint 本体のルール設定
+  "config": {
+    // 見出しレベルの飛びを許可
+    "MD001": false,
+
+    // 行長制限はしない（日本語Markdownあるある）
+    "MD013": false,
+
+    // 強調記法はスタイル統一だけ（禁止はしない）
+    "MD050": {
+      "style": "consistent"
+    },
+
+    // 見出し前後の空行は厳しすぎるので緩める
+    "MD022": false,
+    "MD032": false
+  },
+
+  // lint 対象
+  "globs": [
+    "**/*.md"
+  ],
+
+  // 無視したいファイル
+  "ignores": [
+    "node_modules/**",
+    "dist/**"
+  ]
+}

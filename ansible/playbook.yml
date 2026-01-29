@@ -18,6 +18,7 @@
       - node
       - gh
       - ripgrep
+      - markdownlint-cli2
 
     homebrew_cask_packages:
       - font-plemol-jp
