@@ -9,6 +9,9 @@ file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 # ファイルが存在しない場合も何もしない
 [[ ! -f "$file_path" ]] && exit 0
 
+# plan file は lint をスキップ
+[[ "$file_path" == */.claude/plans/*.md ]] && exit 0
+
 # markdownlint-cli2 を実行（--no-globs で設定ファイルの globs を無視）
 output=$(markdownlint-cli2 --config "$HOME/.config/markdown-cli2/.markdownlint-cli2.jsonc" --no-globs "$file_path" 2>&1)
 exit_code=$?
