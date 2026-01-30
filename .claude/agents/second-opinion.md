@@ -39,7 +39,8 @@ Analyze the content to determine its type:
 - Content describing components, services, or system interactions -> Architecture Review
 
 If the content type cannot be determined, use a general review prompt:
-```
+
+```text
 Review this content and provide feedback on quality, completeness, and potential improvements.
 
 [Content]
@@ -56,7 +57,8 @@ Focus on:
 Construct a targeted review prompt for Gemini based on content type:
 
 For Implementation Plans:
-```
+
+```text
 Review this implementation plan for completeness, feasibility, and potential issues.
 
 [Plan content]
@@ -69,7 +71,8 @@ Focus on:
 ```
 
 For Code Changes:
-```
+
+```text
 Review this code for quality, correctness, and best practices.
 
 [Code content]
@@ -82,7 +85,8 @@ Focus on:
 ```
 
 For Design Decisions:
-```
+
+```text
 Review this design decision for trade-offs and alternatives.
 
 [Design content]
@@ -95,7 +99,8 @@ Focus on:
 ```
 
 For Ideas and Concepts:
-```
+
+```text
 Evaluate this idea for viability and potential improvements.
 
 [Idea content]
@@ -108,7 +113,8 @@ Focus on:
 ```
 
 For Architecture Proposals:
-```
+
+```text
 Review this architecture proposal for soundness and completeness.
 
 [Architecture content]
@@ -141,7 +147,7 @@ Evaluate each piece of feedback from Gemini:
 
 After evaluation, provide a structured summary:
 
-```
+```text
 ## Second Opinion Results
 
 ### Content Reviewed
