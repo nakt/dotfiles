@@ -1,6 +1,7 @@
 ---
 description: Python Development Guide
-globs: "**/*.py"
+paths:
+  - "**/*.py"
 ---
 
 # Python Development Guide
@@ -269,7 +270,7 @@ def process_file(file_path: str) -> dict:
 
 ## Project Structure
 
-```
+```text
 project/
 ├── src/                        # Source code
 │   └── your_package/

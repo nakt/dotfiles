@@ -46,7 +46,7 @@ After receiving user responses, record decisions:
 
 When all ambiguities are resolved:
 
-```
+```text
 Plan review complete
 ```
 

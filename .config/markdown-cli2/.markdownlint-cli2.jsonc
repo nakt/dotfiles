@@ -17,6 +17,9 @@
     "MD041": false,
 
     // Enforce backtick style for code fences
-    "MD048": { "style": "backtick" }
+    "MD048": { "style": "backtick" },
+
+    // Disable table column alignment check for CJK content
+    "MD060": false
   }
 }
