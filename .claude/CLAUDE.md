@@ -26,6 +26,7 @@
 
 | Skill          | 用途                                           |
 | -------------- | ---------------------------------------------- |
+| gemini         | Gemini CLI を活用した意見取得・リサーチ         |
 | gpt5-prompting | GPT-5系モデル向けプロンプト設計のベストプラクティス |
 | react          | React 開発ガイド                               |
 | typescript     | TypeScript 開発ガイド                          |
