@@ -1,6 +1,7 @@
 ---
 description: Markdown ファイル作成時のスタイルガイド
-globs: "**/*.md"
+paths:
+  - "**/*.md"
 ---
 
 # Markdown 作成ルール

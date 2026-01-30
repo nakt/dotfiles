@@ -1,6 +1,7 @@
 ---
 description: プランファイル作成時のワークフロー
-globs: "**/.claude/plans/*.md"
+paths:
+  - "**/.claude/plans/*.md"
 ---
 
 # プラン作成ルール

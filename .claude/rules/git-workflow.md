@@ -1,6 +1,7 @@
 ---
 description: Git 操作に関するルール
-globs: "**/*"
+paths:
+  - "**/*"
 ---
 
 # Git ワークフロールール

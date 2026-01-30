@@ -1,6 +1,7 @@
 ---
 description: Python Development Guide
-globs: "**/*.py"
+paths:
+  - "**/*.py"
 ---
 
 # Python Development Guide
