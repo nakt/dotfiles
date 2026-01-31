@@ -2,6 +2,21 @@
 
 OpenAI公式ドキュメントに基づくGPT-5系モデルのプロンプティングベストプラクティス。
 
+## 目次
+
+1. [エージェント積極性（Eagerness）の制御](#1-エージェント積極性eagernessの制御)
+2. [Tool Preamble](#2-tool-preambleツール呼び出し前の説明)
+3. [reasoning_effort パラメータ](#3-reasoning_effort-パラメータ)
+4. [verbosity パラメータ](#4-verbosity-パラメータ)
+5. [Responses API 推奨](#5-responses-api-推奨)
+6. [指示遵守の注意点](#6-指示遵守の注意点)
+7. [minimal reasoning モードのプロンプティング](#7-minimal-reasoning-モードのプロンプティング)
+8. [Cursorのプロンプトチューニング事例](#8-cursorのプロンプトチューニング事例)
+9. [Markdownフォーマット](#9-markdownフォーマット)
+10. [メタプロンプティング](#10-メタプロンプティング)
+11. [公式ベンチマーク用プロンプト抜粋](#11-公式ベンチマーク用プロンプト抜粋)
+12. [まとめ: 実務向けプロンプト構成テンプレート](#まとめ-実務向けプロンプト構成テンプレート)
+
 ---
 
 ## 1. エージェント積極性（Eagerness）の制御
