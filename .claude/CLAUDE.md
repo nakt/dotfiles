@@ -9,7 +9,7 @@
 ## 構造
 
 - Rules (`~/.claude/rules/`): ファイルパスに基づいて自動的に読み込まれる
-- Skills (`~/.claude/skills/`): 特定の統合のために手動で呼び出す
+- Skills (`~/.claude/skills/`): YAML frontmatter の description でトリガー判定、`/name` で手動呼び出しも可能
 
 ## 利用可能な Rules
 
