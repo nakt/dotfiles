@@ -115,6 +115,11 @@
             "type": "command",
             "command": "$HOME/.claude/hooks/lint-markdown.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/open-plan-vscode.sh",
+            "timeout": 10
           }
         ]
       }
