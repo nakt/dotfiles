@@ -188,7 +188,7 @@ class DataProcessor:
     :param encoding: File encoding (default: 'utf-8')
     """
 
-    def __init__(self, data_source: str, encoding: str = 'utf-8'):
+    def __init__(self, data_source: str, encoding: str = "utf-8"):
         self.data_source = data_source
         self.encoding = encoding
 
@@ -206,26 +206,22 @@ class DataProcessor:
 ### Type Hints Best Practices
 
 ```python
-from typing import Optional, Union, Generic, TypeVar
-from collections.abc import Sequence, Mapping
-
-T = TypeVar('T')
+from typing import Protocol
 
 # Basic type hints
 def process_items(items: list[str]) -> dict[str, int]:
     return {item: len(item) for item in items}
 
-# Using Optional
-def find_user(user_id: int) -> Optional[dict]:
+# Using X | Y syntax (Python 3.10+)
+def find_user(user_id: int) -> dict | None:
     # When None may be returned
     return None
 
-# Using Union
-def parse_value(value: Union[str, int]) -> float:
+def parse_value(value: str | int) -> float:
     return float(value)
 
-# Using Generics
-class Container(Generic[T]):
+# Using Generics (PEP 695, Python 3.12+)
+class Container[T]:
     def __init__(self, value: T) -> None:
         self.value = value
 
@@ -233,8 +229,6 @@ class Container(Generic[T]):
         return self.value
 
 # Using Protocol (structural subtyping)
-from typing import Protocol
-
 class Drawable(Protocol):
     def draw(self) -> None: ...
 
@@ -261,7 +255,7 @@ def process_file(file_path: str) -> dict:
     """
     logger.info(f"Processing file: {file_path}")
 
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         data = f.read()
 
     logger.info("File processing completed successfully")
