@@ -2,6 +2,22 @@
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
+  "alwaysThinkingEnabled": true,
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "npmjs.org",
+        "registry.npmjs.org",
+        "pypi.org",
+        "rubygems.org",
+        "crates.io"
+      ]
+    }
+  },
   "permissions": {
     "allow": [
       "Bash(ls *)",
