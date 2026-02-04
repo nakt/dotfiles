@@ -118,6 +118,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/check-arch-docs.sh",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Notification": [

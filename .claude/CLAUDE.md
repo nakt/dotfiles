@@ -30,3 +30,4 @@
 | gpt5-prompting | GPT-5系モデル向けプロンプト設計のベストプラクティス |
 | react          | React 開発ガイド                               |
 | typescript     | TypeScript 開発ガイド                          |
+| update-arch    | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
