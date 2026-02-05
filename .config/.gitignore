@@ -9,7 +9,7 @@
 !nvim/
 !nvim/**
 !zsh/
-!zsh/**
+!zsh/*.zsh
 !.gitignore
 !ccstatusline/
 !ccstatusline/settings.json
