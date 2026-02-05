@@ -1,5 +1,5 @@
 ---
-name: react
+name: react-dev-guide
 description: >-
   bun + Vite + Biome を使った React 開発の支援スキル。
   プロジェクト固有の構成、コーディング規約、推奨ツールのガイドラインを提供する。
