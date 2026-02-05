@@ -47,7 +47,8 @@
       },
       {
         "id": "a9018fa7-f6ca-46f6-8984-e57b696a84a3",
-        "type": "session-clock"
+        "type": "session-clock",
+        "color": "blue"
       },
       {
         "id": "a59c6f58-004c-48da-bf39-62a9393f1dfb",
@@ -58,9 +59,24 @@
         "type": "session-cost"
       }
     ],
-    []
+    [
+      {
+        "id": "dec763c5-ee77-42e4-b19e-5c9ee4f215fa",
+        "type": "git-branch",
+        "color": "black"
+      },
+      {
+        "id": "8f0fb290-548f-4940-802f-a108d0d8fdd5",
+        "type": "separator"
+      },
+      {
+        "id": "2de57e51-a4e5-4a34-a69b-6fa858b2b129",
+        "type": "git-changes",
+        "color": "black"
+      }
+    ]
   ],
-  "flexMode": "full-minus-40",
+  "flexMode": "full",
   "compactThreshold": 60,
   "colorLevel": 2,
   "inheritSeparatorColors": false,
