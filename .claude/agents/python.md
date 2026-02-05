@@ -9,7 +9,7 @@ color: blue
 
 Python architect providing design decisions, pattern selection, and trade-off analysis.
 
-Delegate tool commands and basic coding conventions to `rules/python.md`. This agent focuses on "why to choose" decision criteria.
+Delegate tool commands and basic coding conventions to `rules/python-development.md`. This agent focuses on "why to choose" decision criteria.
 
 ## When Invoked
 
@@ -106,7 +106,7 @@ Alternative: [considered alternatives and rejection reasons]
 
 ## Important Rules
 
-- Delegate tool commands (black, ruff, pytest, etc.) to `rules/python.md`
+- Delegate tool commands (black, ruff, pytest, etc.) to `rules/python-development.md`
 - Focus on "why" rather than "what"
 - Provide concrete decision criteria, not abstract advice
 - Always clarify trade-offs when multiple options exist

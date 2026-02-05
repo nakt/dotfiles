@@ -1,5 +1,5 @@
 ---
-name: typescript
+name: typescript-dev-guide
 description: >-
   bun + Biome を使った TypeScript 開発の支援スキル。
   プロジェクト固有の構成、型設計方針、コーディング規約のガイドラインを提供する。

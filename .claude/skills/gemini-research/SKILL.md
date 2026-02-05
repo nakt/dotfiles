@@ -1,5 +1,5 @@
 ---
-name: gemini
+name: gemini-research
 description: >-
   Gemini CLI を活用して外部モデルの視点を取り入れる補助スキル。
   意見取得（Opinion）とウェブリサーチ（Research）の2モードを提供する。
