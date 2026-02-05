@@ -77,7 +77,9 @@
       "Bash(git add *)",
       "Bash(git remote *)",
       "Bash(git pull *)",
-      "Bash(git cherry-pick *)"
+      "Bash(git cherry-pick *)",
+      "WebSearch",
+      "WebFetch"
     ],
     "ask": [
       "Bash(git push *)",
