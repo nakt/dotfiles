@@ -4,19 +4,7 @@
   },
   "alwaysThinkingEnabled": true,
   "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true,
-    "network": {
-      "allowedDomains": [
-        "github.com",
-        "api.github.com",
-        "npmjs.org",
-        "registry.npmjs.org",
-        "pypi.org",
-        "rubygems.org",
-        "crates.io"
-      ]
-    }
+    "enabled": false
   },
   "permissions": {
     "allow": [
