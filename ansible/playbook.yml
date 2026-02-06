@@ -19,6 +19,7 @@
       - gh
       - ripgrep
       - markdownlint-cli2
+      - font-hackgen-nerd
 
     homebrew_cask_packages:
       - font-plemol-jp
