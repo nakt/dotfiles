@@ -63,7 +63,7 @@
       {
         "id": "dec763c5-ee77-42e4-b19e-5c9ee4f215fa",
         "type": "git-branch",
-        "color": "black"
+        "color": "white"
       },
       {
         "id": "8f0fb290-548f-4940-802f-a108d0d8fdd5",
@@ -72,13 +72,13 @@
       {
         "id": "2de57e51-a4e5-4a34-a69b-6fa858b2b129",
         "type": "git-changes",
-        "color": "black"
+        "color": "white"
       }
     ]
   ],
   "flexMode": "full",
   "compactThreshold": 60,
-  "colorLevel": 2,
+  "colorLevel": 1,
   "inheritSeparatorColors": false,
   "globalBold": false,
   "powerline": {
