@@ -48,8 +48,8 @@ DANGEROUS_PATTERNS=(
 )
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if [[ "$COMMAND" == *"$pattern"* ]]; then
-    # JSON で block 決定を返す
+  # パターン直後が継続パス（./foo 等）にならないよう境界を確認
+  if [[ "$COMMAND" == "$pattern" || "$COMMAND" == "$pattern "* || "$COMMAND" == "$pattern;"* || "$COMMAND" == "$pattern&"* || "$COMMAND" == "$pattern|"* ]]; then
     cat <<EOF
 {"decision": "block", "reason": "危険な rm パターンを検出しました: $pattern"}
 EOF
@@ -57,10 +57,12 @@ EOF
   fi
 done
 
-# 追加チェック: 変数展開を使った危険なパターン
-if [[ "$COMMAND" =~ rm[[:space:]]+-[rf]+[[:space:]]+(/|/\*|\$HOME|\$\{HOME\}|~) ]]; then
+# 追加チェック: -r/-f フラグ付きの危険なパス指定を検出
+# 再帰削除(-r)や強制削除(-f)は取り返しのつかない結果を招く可能性があるため、
+# 対象パスを一つずつ確認しながら作業すること
+if [[ "$COMMAND" =~ rm[[:space:]]+-[rf]+[[:space:]]+(/|/\*|\$HOME|\$\{HOME\}|~|\.\.) ]]; then
   cat <<EOF
-{"decision": "block", "reason": "危険な rm パターンを検出しました（変数展開の可能性）"}
+{"decision": "block", "reason": "再帰/強制削除は取り返しのつかない結果を招く可能性があります。対象パスを一つずつ確認してください"}
 EOF
   exit 0
 fi
