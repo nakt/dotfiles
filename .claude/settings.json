@@ -2,10 +2,6 @@
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
-  "alwaysThinkingEnabled": true,
-  "sandbox": {
-    "enabled": false
-  },
   "permissions": {
     "allow": [
       "Bash(ls *)",
@@ -69,15 +65,6 @@
       "WebSearch",
       "WebFetch"
     ],
-    "ask": [
-      "Bash(git push *)",
-      "Bash(git reset --hard *)",
-      "Bash(git rebase *)",
-      "Bash(docker rm *)",
-      "Bash(docker rmi *)",
-      "Bash(npm publish *)",
-      "Bash(gh pr merge *)"
-    ],
     "deny": [
       "Read(**/.env)",
       "Read(**/.env.*)",
@@ -94,6 +81,15 @@
       "Bash(ssh *)",
       "Bash(scp *)",
       "Bash(sftp *)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git rebase *)",
+      "Bash(docker rm *)",
+      "Bash(docker rmi *)",
+      "Bash(npm publish *)",
+      "Bash(gh pr merge *)"
     ],
     "defaultMode": "default"
   },
@@ -170,5 +166,9 @@
     "context7@claude-plugins-official": true
   },
   "language": "Japanese",
+  "sandbox": {
+    "enabled": false
+  },
+  "alwaysThinkingEnabled": true,
   "plansDirectory": ".claude/plans"
 }
