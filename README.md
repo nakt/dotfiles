@@ -15,14 +15,20 @@ Personal dotfiles repository for managing shell, editor, and development tool co
 
 ## Setup Instructions
 
-### 1. Clone Repository
+### 1. Install Developer Tools
 
 ```bash
-GHQ_ROOT=~/repos ghq get --shallow https://github.com/nakt/dotfiles
+xcode-select --install
+```
+
+### 2. Clone Repository
+
+```bash
+git clone --depth 1 https://github.com/nakt/dotfiles ~/repos/github.com/nakt/dotfiles
 cd ~/repos/github.com/nakt/dotfiles
 ```
 
-### 2. Initialize and Install Applications
+### 3. Initialize and Install Applications
 
 ```bash
 # Install Homebrew and ansible
@@ -37,7 +43,7 @@ make install
 ```
 
 <!-- START makefile-doc -->
-```
+```text
 $ make help
 clean                          Cleanup all configuration and tools
 deploy                         Create symbolic link to home directory
