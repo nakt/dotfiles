@@ -50,4 +50,4 @@
 	insteadOf = git://github.com/
 
 [ghq]
-	root = ~/repos
+	root = /Volumes/Data/repos
