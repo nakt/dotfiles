@@ -1,3 +1,9 @@
+if [[ -d /Volumes/Data/repos ]]; then
+  export GHQ_ROOT=/Volumes/Data/repos
+else
+  export GHQ_ROOT="$HOME/repos"
+fi
+
 function peco-src () {
   local selected_dir=$(ghq list -p | peco --query "$LBUFFER")
   if [ -n "$selected_dir" ]; then
