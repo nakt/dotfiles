@@ -1,6 +1,9 @@
 #!/bin/bash
 # プランファイルが作成・更新されたら VS Code で開く
 
+# VS Code のターミナル内でのみ実行
+[[ "$TERM_PROGRAM" != "vscode" ]] && exit 0
+
 # stdin から JSON を読み取り、file_path を取得
 input=$(cat)
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
