@@ -1,11 +1,6 @@
 ---
 name: typescript-dev-guide
-description: >-
-  bun + Biome を使った TypeScript 開発の支援スキル。
-  プロジェクト固有の構成、型設計方針、コーディング規約のガイドラインを提供する。
-  TypeScript プロジェクトの新規作成、tsconfig.json の設定、
-  型設計パターン（Result 型、Zod バリデーション等）の確認、
-  Biome 設定やプロジェクト構成の整備に使用する。
+description: bun + Biome を使った TypeScript 開発の支援スキル。プロジェクト固有の構成、型設計方針、コーディング規約のガイドラインを提供する。TypeScript プロジェクトの新規作成、tsconfig.json の設定、型設計パターン（Result 型、Zod バリデーション等）の確認、Biome 設定やプロジェクト構成の整備に使用する。
 ---
 
 ## Tech Stack
