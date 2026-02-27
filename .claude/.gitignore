@@ -5,7 +5,6 @@
 !.gitignore
 !CLAUDE.md
 !settings.json
-!commands
 !agents
 !rules
 !skills
