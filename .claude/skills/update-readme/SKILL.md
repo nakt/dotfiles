@@ -1,6 +1,11 @@
 ---
+name: update-readme
+description: >-
+  プロジェクト構造とコードベースを分析して README.md を自動生成・更新するスキル。
+  ユーザーが README の作成・更新を求めたとき、
+  「README を書いて」「README を更新して」「ドキュメントを整備して」と言ったとき、
+  またはプロジェクトの初期セットアップ後にドキュメント整備が必要なときに使用する。
 allowed-tools: Read(*), Glob(*), LS(*), Grep(*), Write(*)
-description: Generate and update project README.md by analyzing codebase structure
 ---
 
 Analyze project structure and codebase to generate and update README.md with a consistent format.
@@ -8,25 +13,27 @@ Analyze project structure and codebase to generate and update README.md with a c
 ## Analysis Targets
 
 1. Configuration files: pyproject.toml, package.json, Cargo.toml, requirements.txt, setup.py ...
-2. Project structure: src/, lib/, tests/
+2. Project structure: `src/`, `lib/`, `tests/`
 3. Main files: Entry points, configuration files
 4. Existing README: Consistency check between current content and implementation
 
 ## Generated/Updated README Structure
 
 ### Required Sections
-- # Project Name
-- ## Overview
-- ## Tech Stack
-- ## Directory Structure
-- ## Setup
-- ## Usage
+
+- Project Name
+- Overview
+- Tech Stack
+- Directory Structure
+- Setup
+- Usage
 
 ### Conditional Sections
-- ## Development Environment Setup (when dev dependencies exist)
-- ## Running Tests (when tests/ directory exists)
-- ## CLI Usage (for command-line tools)
-- ## API Documentation (when web framework is detected)
+
+- Development Environment Setup (when dev dependencies exist)
+- Running Tests (when `tests/` directory exists)
+- CLI Usage (for command-line tools)
+- API Documentation (when web framework is detected)
 
 ## Tasks
 
@@ -48,5 +55,5 @@ Analyze project structure and codebase to generate and update README.md with a c
 - Focus solely on describing current implementation state, avoid change history or feature announcements
 - Document what the code actually does, not what has been added or updated
 - Avoid using emojis as much as possible
-- Minimize use of bold formatting ( )
+- Minimize use of bold formatting
 - Do not include troubleshooting or FAQ sections
