@@ -52,6 +52,7 @@ description: >-
 
 | チェック項目 | 参照 | 確認内容 |
 |---|---|---|
+| ロール指定の混入 | guide.md「ロール指定とパーソナリティの区別」 | 専門性バイアスを誘導するロール指定が含まれていないか（後述） |
 | 矛盾した指示の有無 | guide.md「指示遵守の注意点」 | 相反する指示が含まれていないか |
 | 成功基準の明示 | guide.md「まとめ」 | DoDが明確に定義されているか |
 | 出力フォーマット指定 | guide.md「まとめ」 | 出力形式が曖昧でないか |
@@ -62,15 +63,38 @@ description: >-
 | 自己検証指示 | guide.md「minimal reasoning モード」 | 反省・検証ステップが含まれているか |
 | Markdown指示 | guide.md「Markdownフォーマット」 | フォーマット要件が明示されているか |
 | 永続性指示 | guide.md「エージェント積極性の制御」 | 長時間タスクでの継続性が確保されているか |
+| スコープドリフト防止 | guide.md「スコープドリフト防止」 | 要求外の機能追加やスタイリングを禁止しているか |
 | メタプロンプティング | guide.md「メタプロンプティング」 | GPT-5自身にプロンプト改善を問う手法が活用できるか |
+
+### ロール指定の混入について
+
+GPT-5系リーズニングモデルでは「あなたは○○の専門家です」のような**専門性ロール指定は避けるべき**である。
+
+**避けるべきパターン（専門性ロール指定）:**
+
+- 「You are a world-class expert in ...」
+- 「あなたは熟練の○○エンジニアです」
+- 「○○の専門家として分析してください」
+
+これらは内部推論にバイアスを注入し、分析結果を歪める（[arxiv:2602.18710](https://arxiv.org/abs/2602.18710)）。リーズニングモデルは内部CoTで最適な推論パスを自律的に選択するため、外部からの専門性ロールは有害なノイズとなる。
+
+**許容されるパターン（パーソナリティ定義）:**
+
+- トーン・スタイル制御（warmth, brevity, directness）
+- コミュニケーション頻度の調整
+- 出力の簡潔さ・丁寧さの度合い
+
+公式ガイドが推奨する「clear agent persona」はこのパーソナリティ定義を指しており、専門性ロール指定ではない。レビュー時にこの区別を確認すること。
 
 ## Quick Reference
 
 ### reasoning_effort
 
-| minimal | low | medium | high |
-|---|---|---|---|
-| 低レイテンシ優先 | 簡単なタスク | デフォルト | 複雑なマルチステップ |
+| none | minimal | low | medium | high | xhigh |
+|---|---|---|---|---|---|
+| 非推論（GPT-4.1相当） | 低レイテンシ優先 | 簡単なタスク | GPT-5デフォルト | 複雑なマルチステップ | 最大推論深度 |
+
+GPT-5.1/5.2のデフォルトは `none`。GPT-5のデフォルトは `medium`。
 
 ### 積極性制御
 
@@ -89,3 +113,4 @@ description: >-
 - [GPT-5 prompting guide | OpenAI Cookbook](https://cookbook.openai.com/examples/gpt-5/gpt-5_prompting_guide)
 - [GPT-5.1 Prompting Guide | OpenAI Cookbook](https://cookbook.openai.com/examples/gpt-5/gpt-5-1_prompting_guide)
 - [GPT-5.2 Prompting Guide | OpenAI Cookbook](https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide)
+- [Prompt Personalities | OpenAI Cookbook](https://cookbook.openai.com/examples/gpt-5/prompt_personalities)
