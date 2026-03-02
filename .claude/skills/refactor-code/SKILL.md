@@ -1,6 +1,7 @@
 ---
+name: refactor-code
+description: コード品質を改善するリファクタリングスキル。コメント整理、構造改善、未使用コード削除、テスト実行を6フェーズで実施する。ユーザーが「リファクタリングして」「コードを整理して」「コード品質を改善して」と言ったとき、またはコードレビュー後の改善作業に使用する。
 allowed-tools: Read(*), Glob(*), Grep(*), Edit(*), MultiEdit(*), Bash(find:*), Bash(grep:*), Bash(git:*), Bash(pytest:*), Bash(npm:*), Bash(cargo:*)
-description: Improve code quality through refactoring, comment cleanup, and unused code elimination
 ---
 
 Improve code quality by refactoring code structure, cleaning up comments, removing unused code, and ensuring tests pass.
@@ -8,12 +9,14 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
 ## Refactoring Procedure
 
 ### Phase 1: Pre-refactoring Preparation
+
 1. Check git status and ensure working directory is clean
 2. Create backup branch if performing major refactoring
 3. Identify project type and test framework
 4. Run existing tests to establish baseline
 
 ### Phase 2: Comment Quality Improvement
+
 1. Scan code files for comment types:
    - Update history comments ("2024/01/15 modified", "v1.2 changes")
    - Ad-hoc temporary comments ("TODO:", "FIXME:", "HACK:", "quick fix")
@@ -29,6 +32,7 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
    - Improve clarity of preserved comments
 
 ### Phase 3: Code Structure Refactoring
+
 1. Identify refactoring opportunities:
    - Long functions/methods that should be split
    - Duplicated code that can be extracted
@@ -44,6 +48,7 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
    - Ensure behavior remains unchanged
 
 ### Phase 4: Unused Code Elimination
+
 1. Static analysis for unused elements:
    - Unused functions, classes, variables
    - Unused import statements
@@ -59,10 +64,11 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
    - Verify no functionality is broken
 
 ### Phase 5: Test Execution and Improvement
+
 1. Check for test existence:
-   - Scan for test directories (test/, tests/, spec/)
+   - Scan for test directories (`test/`, `tests/`, `spec/`)
    - Identify test files and test frameworks
-   - Check for test configuration files (pytest.ini, jest.config.js, etc.)
+   - Check for test configuration files (`pytest.ini`, `jest.config.js`, etc.)
 2. Run existing tests:
    - Execute test suite using appropriate test runner
    - Identify failing tests caused by refactoring changes
@@ -77,6 +83,7 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
    - Suggest additional tests for critical functionality
 
 ### Phase 6: Final Verification
+
 1. Ensure all tests pass after refactoring and fixes
 2. Check that application still runs correctly
 3. Review git diff to confirm all changes improve code quality
@@ -86,24 +93,28 @@ Improve code quality by refactoring code structure, cleaning up comments, removi
 ## Constraints
 
 ### Safety and Quality
+
 - Always run tests after significant refactoring changes
 - Preserve existing functionality while improving code structure
 - Ask for user confirmation before major structural changes
 - Ensure refactoring improves readability and maintainability
 
 ### Code Quality Standards
+
 - Only remove comments that are clearly outdated or temporary
 - Preserve comments that explain complex logic, design decisions, or important constraints
 - When in doubt about code usage, ask user for confirmation rather than assuming it's unused
 - Follow established coding conventions and style guides
 
 ### Test Requirements
+
 - Always run tests after refactoring if test suite exists
 - Fix all test failures before completing refactoring process
 - Do not consider refactoring complete until all tests pass
 - Update or remove tests that are no longer relevant after code changes
 
 ### Communication
+
 - .mdファイルなどのアウトプット、その他のコミュニケーションも全て日本語で出力してください
 - Provide clear rationale for each refactoring recommendation
 - Explain the benefits of proposed changes

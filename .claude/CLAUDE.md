@@ -24,10 +24,14 @@
 
 ## 利用可能な Skills
 
-| Skill              | 用途                                              |
-| ------------------ | ------------------------------------------------- |
-| gemini-research    | Gemini CLI を活用した意見取得・リサーチ             |
-| gpt5-prompting     | GPT-5系モデル向けプロンプト設計のベストプラクティス  |
-| react-dev-guide    | React 開発ガイド                                   |
-| typescript-dev-guide | TypeScript 開発ガイド                            |
-| update-arch        | アーキテクチャドキュメント(docs/arch)の更新・初期化  |
+| Skill                | 用途                                               |
+| -------------------- | -------------------------------------------------- |
+| commit               | 変更を分析し適切な粒度でコミット                   |
+| cleanup-files        | 実験ワークスペースとプロジェクト全体の不要ファイル整理 |
+| gemini-research      | Gemini CLI を活用した意見取得・リサーチ             |
+| gpt5-prompting       | GPT-5系モデル向けプロンプト設計のベストプラクティス |
+| react-dev-guide      | React 開発ガイド                                   |
+| refactor-code        | コード品質改善のためのリファクタリング             |
+| typescript-dev-guide | TypeScript 開発ガイド                              |
+| update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
+| update-readme        | プロジェクト構造分析による README.md 生成・更新     |
