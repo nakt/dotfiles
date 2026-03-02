@@ -2,6 +2,7 @@
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(ls *)",
@@ -162,7 +163,7 @@
     "padding": 0
   },
   "enabledPlugins": {
-    "context7@claude-plugins-official": false,
+    "context7@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
@@ -172,6 +173,5 @@
     "enabled": false
   },
   "alwaysThinkingEnabled": true,
-  "includeCoAuthoredBy": false,
   "plansDirectory": ".claude/plans"
 }
