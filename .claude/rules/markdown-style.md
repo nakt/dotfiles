@@ -48,3 +48,8 @@ paths:
 ```markdown
 **この**機能は**config.json**で**設定**できます。
 ```
+
+## Linter について
+
+- markdownlint は PostToolUse hook が自動実行するため、自分で `npx markdownlint` 等を Bash で実行しない
+- hook からの lint エラーフィードバックを受けたら、その内容に従って Edit ツールで修正する
