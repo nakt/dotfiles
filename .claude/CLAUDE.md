@@ -33,5 +33,6 @@
 | react-dev-guide      | React 開発ガイド                                   |
 | refactor-code        | コード品質改善のためのリファクタリング             |
 | typescript-dev-guide | TypeScript 開発ガイド                              |
+| python-init          | Python プロジェクトの初期セットアップ（テンプレート生成） |
 | update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |
