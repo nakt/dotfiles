@@ -29,6 +29,9 @@ htmlcov/
 .vscode/
 .idea/
 
+# Workspace (Claude Code temporary files)
+.workspace/
+
 # Credentials / secrets
 .env
 .env.*

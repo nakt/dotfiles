@@ -15,6 +15,7 @@
 
 | Rule                 | 対象                    | 説明                                          |
 | -------------------- | ----------------------- | --------------------------------------------- |
+| workspace-management | All files               | .workspace ディレクトリの運用ルール            |
 | git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    |
 | markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                |
 | plan-files           | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー                  |
