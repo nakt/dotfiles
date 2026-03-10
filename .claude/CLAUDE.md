@@ -15,6 +15,7 @@
 
 | Rule                 | 対象                    | 説明                                          |
 | -------------------- | ----------------------- | --------------------------------------------- |
+| workspace-management | All files               | .workspace ディレクトリの運用ルール            |
 | git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    |
 | markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                |
 | plan-files           | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー                  |
@@ -33,5 +34,6 @@
 | react-dev-guide      | React 開発ガイド                                   |
 | refactor-code        | コード品質改善のためのリファクタリング             |
 | typescript-dev-guide | TypeScript 開発ガイド                              |
+| python-init          | Python プロジェクトの初期セットアップ（テンプレート生成） |
 | update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |

@@ -1,39 +1,41 @@
 ---
-description: Python Development Guide
+description: Python 開発ガイド
 paths:
   - "**/*.py"
 ---
 
-# Python Development Guide
+# Python 開発ガイド
 
-## Quick Start
+## クイックスタート
 
-Follow these steps to start a new project:
+> 新規プロジェクトの場合は `/python-init` スキルでテンプレートを生成できます。
+
+新規プロジェクトの開始手順:
 
 ```bash
-# 1. Create virtual environment
+# 1. 仮想環境を作成
 uv venv
 
-# 2. Install dependencies (including dev tools)
+# 2. 依存関係をインストール（開発ツール含む）
 uv sync --all-extras
 
-# 3. Set up pre-commit hooks (update and install)
+# 3. pre-commit フックのセットアップ（更新とインストール）
 uv run pre-commit autoupdate
 uv run pre-commit install
 
-# 4. Verify setup
+# 4. セットアップの確認
 uv run black --check .
 uv run ruff check .
 uv run mypy src/
 ```
 
-## Daily Development Workflow
+## 日常の開発ワークフロー
 
-### Environment Management
+### 環境管理
 
-#### Python Version Management
+#### Python バージョン管理
 
-Specify the minimum version in `pyproject.toml`:
+`pyproject.toml` で最小バージョンを指定する:
 
 ```toml
 # pyproject.toml
@@ -41,129 +43,129 @@ Specify the minimum version in `pyproject.toml`:
 requires-python = ">=3.12"
 ```
 
-#### Virtual Environment Best Practices
+#### 仮想環境のベストプラクティス
 
 ```bash
-# Create project-specific virtual environment
+# プロジェクト固有の仮想環境を作成
 uv venv
 
-# Verify virtual environment activation
+# 仮想環境の有効化を確認
 uv run python --version
 ```
 
-#### Dependency Management Strategy
+#### 依存関係管理の方針
 
-- Production dependencies: Keep to a minimum
-- Development dependencies: Actively adopt quality improvement tools
-- Dependency pinning: Strict version management with `uv.lock`
+- 本番依存: 最小限に抑える
+- 開発依存: 品質向上ツールを積極的に導入
+- バージョン固定: `uv.lock` で厳密なバージョン管理
 
 ```bash
-# Update dependencies
+# 依存関係の更新
 uv sync --upgrade
 
-# Security audit
+# セキュリティ監査
 uv run safety check
 
-# Visualize dependencies
+# 依存関係の可視化
 uv tree --depth 2
 ```
 
-### Common Commands
+### よく使うコマンド
 
 ```bash
-# Dependency management
-uv add requests                    # Add package
-uv add --dev pytest black ruff    # Add dev packages
-uv tree                           # Check dependencies
+# 依存関係管理
+uv add requests                    # パッケージ追加
+uv add --dev pytest black ruff    # 開発パッケージ追加
+uv tree                           # 依存関係確認
 
-# Development tasks
-uv run python script.py          # Run Python
-uv run pytest                    # Run tests
-uv run black .                   # Format code
-uv run ruff check .              # Run linter
+# 開発タスク
+uv run python script.py          # Python 実行
+uv run pytest                    # テスト実行
+uv run black .                   # コードフォーマット
+uv run ruff check .              # リンター実行
 ```
 
-### Test-Driven Development (TDD) Workflow
+### テスト駆動開発 (TDD) ワークフロー
 
 ```bash
-# 1. Write tests first
+# 1. テストを先に書く
 uv run pytest tests/test_feature.py -v
 
-# 2. Implement minimum code to pass tests
+# 2. テストが通る最小限のコードを実装
 uv run pytest tests/test_feature.py
 
-# 3. Refactor
+# 3. リファクタリング
 uv run black .
 uv run ruff check --fix .
 
-# 4. Run all tests
+# 4. 全テストを実行
 uv run pytest --cov=src/
 ```
 
-## Code Quality Management
+## コード品質管理
 
-### Recommended Tools
+### 推奨ツール
 
-- Formatter: `black` - Unified code style
-- Linter: `ruff` - Fast and comprehensive linter
-- Testing: `pytest` - Rich features and plugins
-- Type checking: `mypy` - Static type checking
-- Coverage: `pytest-cov` - Test coverage measurement
-- Security: `bandit` - Security vulnerability detection
+- フォーマッター: `black` - 統一されたコードスタイル
+- リンター: `ruff` - 高速で包括的なリンター
+- テスト: `pytest` - 豊富な機能とプラグイン
+- 型チェック: `mypy` - 静的型チェック
+- カバレッジ: `pytest-cov` - テストカバレッジ計測
+- セキュリティ: `bandit` - セキュリティ脆弱性検出
 
-### Quality Check Commands
+### 品質チェックコマンド
 
 ```bash
-# Code formatting
-uv run black .                    # Auto-format
-uv run black --check .            # Check formatting
+# コードフォーマット
+uv run black .                    # 自動フォーマット
+uv run black --check .            # フォーマットチェック
 
-# Linter
-uv run ruff check .               # Detect issues
-uv run ruff check --fix .         # Auto-fix
+# リンター
+uv run ruff check .               # 問題の検出
+uv run ruff check --fix .         # 自動修正
 
-# Type checking
-uv run mypy src/                  # Run type check
+# 型チェック
+uv run mypy src/                  # 型チェック実行
 
-# Testing & coverage
-uv run pytest                     # Run tests
-uv run pytest --cov=src/          # Test with coverage
-uv run pytest --cov-report=html   # Generate HTML report
+# テストとカバレッジ
+uv run pytest                     # テスト実行
+uv run pytest --cov=src/          # カバレッジ付きテスト
+uv run pytest --cov-report=html   # HTML レポート生成
 
-# Security check
-uv run bandit -r src/             # Detect security vulnerabilities
-uv run safety check               # Check dependency vulnerabilities
+# セキュリティチェック
+uv run bandit -r src/             # セキュリティ脆弱性検出
+uv run safety check               # 依存関係の脆弱性チェック
 
-# Comprehensive quality check
+# 総合品質チェック
 uv run black --check . && uv run ruff check . && uv run mypy src/ && uv run pytest --cov=src/
 ```
 
-## Coding Conventions
+## コーディング規約
 
-### Formatting and Linting
+### フォーマットとリンティング
 
-Code style follows `black` and `ruff`. Automatically applied via pre-commit hooks.
+コードスタイルは `black` と `ruff` に従う。pre-commit フックで自動適用される。
 
-### Comment Labels
+### コメントラベル
 
-Use standard labels for temporary comments or deferred work:
+一時的なコメントや保留事項には標準ラベルを使用する:
 
-- `TODO`: Work to be done later
-- `FIXME`: Known issue that needs to be fixed
+- `TODO`: 後で対応する作業
+- `FIXME`: 修正が必要な既知の問題
 
 ```python
-# TODO: Implement caching for better performance
+# TODO: パフォーマンス向上のためキャッシュを実装する
 def fetch_data():
     pass
 
-# FIXME: This fails when input is empty
+# FIXME: 入力が空の場合に失敗する
 def process_input(data):
     return data[0]
 ```
 
-### Docstrings
+### Docstring
 
-Use reStructuredText (Sphinx) style and write in English:
+reStructuredText (Sphinx) スタイルを使用し、英語で記述する:
 
 ```python
 def calculate_area(length: float, width: float) -> float:
@@ -203,24 +205,24 @@ class DataProcessor:
         pass
 ```
 
-### Type Hints Best Practices
+### 型ヒントのベストプラクティス
 
 ```python
 from typing import Protocol
 
-# Basic type hints
+# 基本的な型ヒント
 def process_items(items: list[str]) -> dict[str, int]:
     return {item: len(item) for item in items}
 
-# Using X | Y syntax (Python 3.10+)
+# X | Y 構文の使用 (Python 3.10+)
 def find_user(user_id: int) -> dict | None:
-    # When None may be returned
+    # None を返す可能性がある場合
     return None
 
 def parse_value(value: str | int) -> float:
     return float(value)
 
-# Using Generics (PEP 695, Python 3.12+)
+# ジェネリクスの使用 (PEP 695, Python 3.12+)
 class Container[T]:
     def __init__(self, value: T) -> None:
         self.value = value
@@ -228,7 +230,7 @@ class Container[T]:
     def get(self) -> T:
         return self.value
 
-# Using Protocol (structural subtyping)
+# Protocol の使用（構造的部分型）
 class Drawable(Protocol):
     def draw(self) -> None: ...
 
@@ -236,7 +238,7 @@ def render(item: Drawable) -> None:
     item.draw()
 ```
 
-### Error Handling and Logging
+### エラーハンドリングとロギング
 
 ```python
 import logging
@@ -262,43 +264,43 @@ def process_file(file_path: str) -> dict:
     return {"status": "success", "data": data}
 ```
 
-## Project Structure
+## プロジェクト構成
 
 ```text
 project/
-├── src/                        # Source code
+├── src/                        # ソースコード
 │   └── your_package/
 │       ├── __init__.py
 │       ├── main.py
 │       └── utils/
-├── tests/                      # Test code
+├── tests/                      # テストコード
 │   ├── __init__.py
 │   ├── test_main.py
-│   └── conftest.py             # pytest configuration
-├── pyproject.toml              # Project configuration
-├── uv.lock                     # Lock file
-└── README.md                   # Project overview
+│   └── conftest.py             # pytest 設定
+├── pyproject.toml              # プロジェクト設定
+├── uv.lock                     # ロックファイル
+└── README.md                   # プロジェクト概要
 ```
 
-## Maintenance
+## メンテナンス
 
-### Regular Dependency Updates
+### 定期的な依存関係の更新
 
 ```bash
-# Check for outdated dependencies
+# 古い依存関係の確認
 uv tree --outdated
 
-# Update dependencies
+# 依存関係の更新
 uv sync --upgrade
 
-# Check for security updates
+# セキュリティ更新の確認
 uv run safety check --json
 ```
 
-### Project Health Check
+### プロジェクトヘルスチェック
 
 ```bash
-# Comprehensive quality check
+# 総合品質チェック
 uv run black --check .
 uv run ruff check .
 uv run mypy src/
@@ -307,24 +309,24 @@ uv run bandit -r src/
 uv run safety check
 ```
 
-## Appendix
+## 付録
 
-### Debugging Tools
+### デバッグツール
 
 ```bash
-# PDB (Python Debugger)
+# PDB (Python デバッガ)
 uv run python -m pdb script.py
 
-# More powerful debugger
+# より高機能なデバッガ
 uv add --dev ipdb
 uv run python -c "import ipdb; ipdb.set_trace()"
 
-# Logging setup
+# ロギングのセットアップ
 uv add --dev rich
 ```
 
 ```python
-# Debug logging configuration
+# デバッグ用ロギング設定
 import logging
 from rich.logging import RichHandler
 
@@ -337,45 +339,45 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 ```
 
-### Security Management
+### セキュリティ管理
 
 ```bash
-# Bandit: Security vulnerability detection
+# Bandit: セキュリティ脆弱性検出
 uv add --dev bandit
 uv run bandit -r src/
 
-# Safety: Dependency vulnerability check
+# Safety: 依存関係の脆弱性チェック
 uv add --dev safety
 uv run safety check
 
-# Semgrep: Advanced static analysis
+# Semgrep: 高度な静的解析
 uv add --dev semgrep
 uv run semgrep --config=auto src/
 ```
 
-### Notes for AI Tool Usage
+### AI ツール使用時の注意事項
 
-#### Recommended Operations
+#### 推奨する操作
 
-When using Claude Code or Gemini CLI, use the following package management operations:
+Claude Code や Gemini CLI を使用する際は、以下のパッケージ管理操作を行う:
 
 ```bash
-# Package management
-uv add package_name              # Add package
-uv add --dev package_name        # Add dev package
-uv sync                          # Sync dependencies
-uv tree                          # Check dependencies
+# パッケージ管理
+uv add package_name              # パッケージ追加
+uv add --dev package_name        # 開発パッケージ追加
+uv sync                          # 依存関係の同期
+uv tree                          # 依存関係確認
 ```
 
-#### Operations to Avoid
+#### 避けるべき操作
 
-- `pip install` (direct installation without uv)
-- `pip freeze > requirements.txt` (use pyproject.toml instead)
-- Direct installation to global environment
+- `pip install`（uv を介さない直接インストール）
+- `pip freeze > requirements.txt`（pyproject.toml を使用すること）
+- グローバル環境への直接インストール
 
-#### Important Notes
+#### 重要な注意点
 
-- Always commit `uv.lock`
-- Avoid direct use of `pip`
-- Package installation outside virtual environment is prohibited
-- Verify code formatting before running tests
+- `uv.lock` は必ずコミットする
+- `pip` の直接使用を避ける
+- 仮想環境外へのパッケージインストールは禁止
+- テスト実行前にコードフォーマットを確認する

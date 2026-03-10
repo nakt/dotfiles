@@ -67,6 +67,9 @@ override.tf.json
 # VSCode
 .vscode
 
+# Workspace (Claude Code temporary files)
+.workspace/
+
 # Gemini (keep directory but ignore contents)
 .gemini/*
 !.gemini/.gitkeep

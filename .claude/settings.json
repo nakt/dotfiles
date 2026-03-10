@@ -81,7 +81,8 @@
       "Bash(nc *)",
       "Bash(ssh *)",
       "Bash(scp *)",
-      "Bash(sftp *)"
+      "Bash(sftp *)",
+      "Bash(cd /*)"
     ],
     "ask": [
       "Bash(git push *)",
