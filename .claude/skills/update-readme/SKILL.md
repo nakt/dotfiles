@@ -4,52 +4,52 @@ description: プロジェクト構造とコードベースを分析して README
 allowed-tools: Read(*), Glob(*), LS(*), Grep(*), Write(*)
 ---
 
-Analyze project structure and codebase to generate and update README.md with a consistent format.
+プロジェクト構造とコードベースを分析し、統一フォーマットで README.md を生成・更新する。
 
-## Analysis Targets
+## 分析対象
 
-1. Configuration files: pyproject.toml, package.json, Cargo.toml, requirements.txt, setup.py ...
-2. Project structure: `src/`, `lib/`, `tests/`
-3. Main files: Entry points, configuration files
-4. Existing README: Consistency check between current content and implementation
+1. 設定ファイル: pyproject.toml, package.json, Cargo.toml, requirements.txt, setup.py など
+2. プロジェクト構造: `src/`, `lib/`, `tests/`
+3. メインファイル: エントリーポイント、設定ファイル
+4. 既存 README: 現在の内容と実装の整合性チェック
 
-## Generated/Updated README Structure
+## 生成・更新する README の構造
 
-### Required Sections
+### 必須セクション
 
-- Project Name
-- Overview
-- Tech Stack
-- Directory Structure
-- Setup
-- Usage
+- プロジェクト名
+- 概要
+- 技術スタック
+- ディレクトリ構造
+- セットアップ
+- 使い方
 
-### Conditional Sections
+### 条件付きセクション
 
-- Development Environment Setup (when dev dependencies exist)
-- Running Tests (when `tests/` directory exists)
-- CLI Usage (for command-line tools)
-- API Documentation (when web framework is detected)
+- 開発環境セットアップ（dev dependencies がある場合）
+- テスト実行（`tests/` ディレクトリがある場合）
+- CLI の使い方（コマンドラインツールの場合）
+- API ドキュメント（Web フレームワークが検出された場合）
 
-## Tasks
+## タスク
 
-1. Analyze existing README.md content (if exists)
-2. Auto-detect project type (Python/Node.js/Rust etc.)
-3. Extract dependencies and basic information from configuration files
-4. Analyze project structure to understand module composition
-5. Identify entry points
-6. Check test configuration
-7. Identify discrepancies between existing content and implementation, ensure consistency
-8. Generate/update README.md with unified format, focusing on current implementation state
+1. 既存の README.md の内容を分析する（存在する場合）
+2. プロジェクトタイプを自動検出する（Python/Node.js/Rust など）
+3. 設定ファイルから依存関係と基本情報を抽出する
+4. プロジェクト構造を分析してモジュール構成を把握する
+5. エントリーポイントを特定する
+6. テスト設定を確認する
+7. 既存の内容と実装の差異を特定し、整合性を確保する
+8. 現在の実装状態に基づいて統一フォーマットで README.md を生成・更新する
 
-## Constraints
+## 制約
 
-- When existing README.md exists, preserve content while updating based on implementation comparison
-- Communicate in Japanese, generate README in English
-- Extract information from appropriate configuration files based on project type
-- Preserve manually added sections (contributing guidelines, etc.) as much as possible
-- Focus solely on describing current implementation state, avoid change history or feature announcements
-- Document what the code actually does, not what has been added or updated
-- Avoid using emojis as much as possible
-- Minimize use of bold formatting
-- Do not include troubleshooting or FAQ sections
+- 既存の README.md がある場合は、実装との比較に基づいて内容を保持しつつ更新する
+- README は英語で生成する
+- プロジェクトタイプに応じた適切な設定ファイルから情報を抽出する
+- 手動で追加されたセクション（コントリビューションガイドラインなど）はできる限り保持する
+- 現在の実装状態の記述に専念し、変更履歴や機能アナウンスは含めない
+- コードが実際に何をするかを記述し、何が追加・更新されたかは書かない
+- 絵文字はできる限り使用しない
+- 強調（太字）の使用を最小限にする
+- トラブルシューティングや FAQ セクションは含めない
