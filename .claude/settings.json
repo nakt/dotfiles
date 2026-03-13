@@ -169,6 +169,14 @@
     "code-simplifier@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true
   },
+  "extraKnownMarketplaces": {
+    "claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code"
+      }
+    }
+  },
   "language": "Japanese",
   "sandbox": {
     "enabled": false
