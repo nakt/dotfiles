@@ -2,6 +2,24 @@
 
 Capture detailed execution traces for debugging and analysis. Traces include DOM snapshots, screenshots, network activity, and console logs.
 
+## Table of Contents
+
+- [Basic Usage](#basic-usage)
+- [Trace Output Files](#trace-output-files)
+  - [`trace-{timestamp}.trace`](#trace-timestamptrace)
+  - [`trace-{timestamp}.network`](#trace-timestampnetwork)
+  - [`resources/`](#resources)
+- [What Traces Capture](#what-traces-capture)
+- [Use Cases](#use-cases)
+  - [Debugging Failed Actions](#debugging-failed-actions)
+  - [Analyzing Performance](#analyzing-performance)
+  - [Capturing Evidence](#capturing-evidence)
+- [Trace vs Video vs Screenshot](#trace-vs-video-vs-screenshot)
+- [Best Practices](#best-practices)
+  - [1. Start Tracing Before the Problem](#1-start-tracing-before-the-problem)
+  - [2. Clean Up Old Traces](#2-clean-up-old-traces)
+- [Limitations](#limitations)
+
 ## Basic Usage
 
 ```bash
@@ -24,6 +42,7 @@ When you start tracing, Playwright creates a `traces/` directory with several fi
 ### `trace-{timestamp}.trace`
 
 **Action log** - The main trace file containing:
+
 - Every action performed (clicks, fills, navigations)
 - DOM snapshots before and after each action
 - Screenshots at each step
@@ -34,6 +53,7 @@ When you start tracing, Playwright creates a `traces/` directory with several fi
 ### `trace-{timestamp}.network`
 
 **Network log** - Complete network activity:
+
 - All HTTP requests and responses
 - Request headers and bodies
 - Response headers and bodies
@@ -44,6 +64,7 @@ When you start tracing, Playwright creates a `traces/` directory with several fi
 ### `resources/`
 
 **Resources directory** - Cached resources:
+
 - Images, fonts, stylesheets, scripts
 - Response bodies for replay
 - Assets needed to reconstruct page state

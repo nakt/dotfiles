@@ -1,6 +1,7 @@
 ---
 name: cleanup-files
 description: 実験ワークスペースのクリーンアップとプロジェクト全体の不要ファイル削除を行うスキル。ユーザーが「ファイルを整理して」「クリーンアップして」「不要ファイルを削除して」と言ったとき、またはプロジェクトのディスク使用量を削減したいときに使用する。
+disable-model-invocation: true
 allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cat:*), Bash(cp:*), Bash(mkdir:*), Bash(echo:*), Bash(tail:*), Bash(head:*), Bash(find:*), Bash(grep:*), Bash(git:*), Read(*), Glob(*), Grep(*)
 ---
 

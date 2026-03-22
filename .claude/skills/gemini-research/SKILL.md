@@ -1,12 +1,13 @@
 ---
 name: gemini-research
 description: Gemini CLI を活用して外部モデルの視点を取り入れる補助スキル。意見取得（Opinion）とウェブリサーチ（Research）の2モードを提供する。ユーザーがプラン・コード・設計・アイデアへのフィードバックを求めたとき、またはウェブ検索で最新情報や技術調査を行いたいときに使用する。
+argument-hint: "[topic or question]"
 allowed-tools: Bash(gemini *)
 ---
 
 ## モード判定
 
-リクエスト内容に応じて判断する。
+リクエスト内容に応じて判断する。引数が渡された場合（`$ARGUMENTS`）はそれをトピックとして使用する。
 
 - **Opinion**: プラン、コード、設計、アイデアへのフィードバックを求める場合
 - **Research**: ウェブ検索を活用した調査・情報収集を行う場合
