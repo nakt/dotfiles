@@ -12,26 +12,32 @@ allowed-tools:
 
 フィーチャーブランチから PR を作成し、オプションでマージまで行うスキル。
 
+## Current state
+
+- Branch: !`git branch --show-current`
+- Uncommitted changes: !`git status --porcelain`
+- Commits ahead of main: !`git log main..HEAD --oneline 2>/dev/null`
+- Diff stats: !`git diff main..HEAD --stat 2>/dev/null`
+- Existing PR: !`gh pr list --head $(git branch --show-current) --json number,url,title 2>/dev/null`
+
 ## ワークフロー
 
 ### Phase 1: 事前チェック
 
-1. 現在のブランチを確認: `git branch --show-current`
-   - `main` の場合: 「フィーチャーブランチから実行してください。`/commit` を先に実行するとブランチが自動作成されます」と案内して終了
-2. 未コミットの変更を確認: `git status --porcelain`
-   - 未コミットの変更がある場合: 「未コミットの変更があります。`/commit` を先に実行してください」と案内して終了
-3. main との差分コミットを取得: `git log main..HEAD --oneline`
-   - コミットがない場合: 「main に対する新しいコミットがありません」と報告して終了
-4. 既存 PR を確認: `gh pr list --head {branch} --json number,url,title`
-   - 既存 PR がある場合: PR 作成をスキップし、push のみ実行する旨を報告
+上記の Current state を確認し、以下の条件に該当する場合は終了する:
+
+- Branch が `main` の場合: 「`/commit` を先に実行するとブランチが自動作成されます」と案内
+- Uncommitted changes がある場合: 「`/commit` を先に実行してください」と案内
+- Commits ahead of main が空の場合: 「main に対する新しいコミットがありません」と報告
+- Existing PR にエントリがある場合: PR 作成をスキップし、push のみ実行する旨を報告
 
 ### Phase 2: PR 情報の生成
 
-コミットメッセージと変更内容を分析して PR のタイトルと本文を自動生成する。
+上記の Commits ahead of main と Diff stats を分析して PR のタイトルと本文を自動生成する。
 
 タイトル: `type(scope): description` 形式
 
-- `git log main..HEAD --oneline` のコミットメッセージから type を集約
+- コミットメッセージから type を集約
 - scope はブランチ名や変更ファイルのディレクトリから推定
 - description はコミット群の要約（英語、簡潔に）
 
