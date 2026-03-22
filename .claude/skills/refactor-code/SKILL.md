@@ -6,13 +6,18 @@ allowed-tools: Read(*), Glob(*), Grep(*), Edit(*), MultiEdit(*), Bash(find:*), B
 
 Improve code quality by refactoring code structure, cleaning up comments, removing unused code, and ensuring tests pass.
 
+## Current state
+
+- Git status: !`git status --short`
+- Project type: !`ls pyproject.toml package.json Cargo.toml go.mod 2>/dev/null`
+
 ## Refactoring Procedure
 
 ### Phase 1: Pre-refactoring Preparation
 
-1. Check git status and ensure working directory is clean
+1. Review the current state above to ensure working directory is clean
 2. Create backup branch if performing major refactoring
-3. Identify project type and test framework
+3. Identify project type from the detected config files above and determine test framework
 4. Run existing tests to establish baseline
 
 ### Phase 2: Comment Quality Improvement
