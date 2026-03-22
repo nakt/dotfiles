@@ -5,6 +5,7 @@ description: >-
   gitignore を選択して gh repo create で作成する。作成後に verify-repo.sh で visibility と default branch の検証を行う。
   ユーザーが「リポジトリを作って」「GitHub リポ作成」「gh repo create」「新しいプロジェクトを始めたい」
   「リポを作りたい」と言ったときに使用する。プロジェクト新規作成の文脈でも積極的に使用すること。
+disable-model-invocation: true
 allowed-tools:
   - Bash(gh:*)
   - Bash(ghq:*)

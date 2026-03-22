@@ -5,6 +5,8 @@ description: >-
   ユーザーが「PRを作って」「プルリクエスト」「マージして」「PRお願い」「pr-merge」と言ったときに使用する。
   コミット済みの前提で動作する（未コミットなら /commit を案内）。
   マージはオプションで、ユーザーが求めた場合のみ実行する。
+disable-model-invocation: true
+effort: low
 allowed-tools:
   - Bash(git:*)
   - Bash(gh:*)
