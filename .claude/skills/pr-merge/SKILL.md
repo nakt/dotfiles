@@ -18,7 +18,6 @@ allowed-tools:
 - Uncommitted changes: !`git status --porcelain`
 - Commits ahead of main: !`git log main..HEAD --oneline 2>/dev/null`
 - Diff stats: !`git diff main..HEAD --stat 2>/dev/null`
-- Existing PR: !`gh pr list --head $(git branch --show-current) --json number,url,title 2>/dev/null`
 
 ## ワークフロー
 
@@ -29,7 +28,8 @@ allowed-tools:
 - Branch が `main` の場合: 「`/commit` を先に実行するとブランチが自動作成されます」と案内
 - Uncommitted changes がある場合: 「`/commit` を先に実行してください」と案内
 - Commits ahead of main が空の場合: 「main に対する新しいコミットがありません」と報告
-- Existing PR にエントリがある場合: PR 作成をスキップし、push のみ実行する旨を報告
+- 既存 PR を確認: `gh pr list --head {branch} --json number,url,title`
+  - 既存 PR がある場合: PR 作成をスキップし、push のみ実行する旨を報告
 
 ### Phase 2: PR 情報の生成
 
