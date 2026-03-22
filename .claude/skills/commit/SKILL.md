@@ -1,7 +1,7 @@
 ---
 name: commit
 description: 未コミットの変更を分析し、論理的なグループに分類して適切な粒度でコミットするスキル。ユーザーが「コミットして」「変更をコミット」「commit」と言ったとき、または作業完了後にコミットを求められたときに使用する。
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*)
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(pre-commit:*)
 ---
 
 Analyze uncommitted files and commit logically related changes with appropriate granularity.
@@ -28,7 +28,12 @@ Analyze uncommitted files and commit logically related changes with appropriate 
    - If not on `main`: proceed without changes
 3. Categorize changes into logical groups
 4. Commit with appropriate granularity
-5. Consider updating project memory
+5. Check pre-commit hook updates (if `.pre-commit-config.yaml` exists in the project root)
+   - Run `pre-commit autoupdate`
+   - If the config was updated, commit the change separately:
+     `git add .pre-commit-config.yaml && git commit -m "chore: update pre-commit hooks"`
+   - If no updates were made, skip silently
+6. Consider updating project memory
    - Consider adding important policy changes, technical challenges, and solutions to `.workspace/knowledge/`
    - Accumulate knowledge that leads to improved implementation quality and development efficiency in the future
 
