@@ -58,7 +58,8 @@ EOF
 done
 
 # 追加チェック: 危険なパスへの再帰削除をブロックする
-if [[ "$COMMAND" =~ rm[[:space:]]+-[rf]+[[:space:]]+(/|/\*|\$HOME|\$\{HOME\}|~|\.\.) ]]; then
+# 末尾に $ や [[:space:]] を付けて、/Users/... のような安全なパスを誤検出しない
+if [[ "$COMMAND" =~ rm[[:space:]]+-[rf]+[[:space:]]+(/([[:space:]]|;|$)|\*|/\*|\$HOME|\$\{HOME\}|~|\.\.) ]]; then
   cat <<EOF
 {"decision": "block", "reason": "危険なパスへの削除をブロックしました: ルート・ホーム・親ディレクトリへの再帰削除は許可されていません"}
 EOF
