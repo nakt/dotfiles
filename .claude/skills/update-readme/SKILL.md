@@ -6,6 +6,13 @@ allowed-tools: Read(*), Glob(*), LS(*), Grep(*), Write(*)
 
 プロジェクト構造とコードベースを分析し、統一フォーマットで README.md を生成・更新する。
 
+## Current state
+
+- Top-level files: !`ls -1`
+- Config files: !`ls pyproject.toml package.json Cargo.toml go.mod composer.json Gemfile 2>/dev/null`
+- Directory structure: !`find . -maxdepth 2 -type d -not -path '*/\.*' -not -path './node_modules/*' | head -30`
+- Existing README: !`head -20 README.md 2>/dev/null`
+
 ## 分析対象
 
 1. 設定ファイル: pyproject.toml, package.json, Cargo.toml, requirements.txt, setup.py など

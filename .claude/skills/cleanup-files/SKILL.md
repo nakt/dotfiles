@@ -1,16 +1,23 @@
 ---
 name: cleanup-files
 description: 実験ワークスペースのクリーンアップとプロジェクト全体の不要ファイル削除を行うスキル。ユーザーが「ファイルを整理して」「クリーンアップして」「不要ファイルを削除して」と言ったとき、またはプロジェクトのディスク使用量を削減したいときに使用する。
+disable-model-invocation: true
 allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cat:*), Bash(cp:*), Bash(mkdir:*), Bash(echo:*), Bash(tail:*), Bash(head:*), Bash(find:*), Bash(grep:*), Bash(git:*), Read(*), Glob(*), Grep(*)
 ---
 
 Clean up experiment workspace and scan/remove unnecessary files project-wide based on content analysis, usage patterns, and git activity.
 
+## Current state
+
+- Git status: !`git status --short`
+- Workspace experiments: !`ls .workspace/experiments/ 2>/dev/null`
+- Workspace analysis: !`ls .workspace/analysis/ 2>/dev/null`
+
 ## Cleanup Procedure
 
 ### Phase 1: Pre-cleanup Preparation
 
-1. Check git status and ensure working directory is clean
+1. Review the current state above to assess working directory cleanliness
 2. Create backup if needed
 3. Identify cleanup scope (workspace only vs full project files)
 

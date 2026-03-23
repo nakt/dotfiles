@@ -1,21 +1,29 @@
 ---
 name: update-arch
 description: アーキテクチャドキュメント(docs/arch)の更新・初期化スキル。コード変更時に処理概要・処理フロー・データフローのドキュメント更新要否を判断し、必要に応じて更新する。docs/arch が存在しないプロジェクトでは初期化を行う。ユーザーがアーキテクチャドキュメントの作成・更新を求めたとき、または git commit 時の Hook から呼び出されたときに使用する。
+argument-hint: "[target directory]"
+allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(git:*), Bash(ls:*)
 ---
+
+## Current state
+
+- docs/arch exists: !`test -d docs/arch && echo 'yes' || echo 'no'`
+- Staged changes: !`git diff --cached --stat 2>/dev/null`
 
 ## モード判定
 
-docs/arch ディレクトリの存在で判断する。
+上記 Current state の docs/arch exists で判断する。
 
-- **初期化モード**: docs/arch が存在しない場合
-- **更新モード**: docs/arch が存在する場合
+- **初期化モード**: `no` の場合
+- **更新モード**: `yes` の場合
 
 ## 初期化モード
 
 新規プロジェクトに docs/arch を導入する。
 
-1. ユーザーに対象ディレクトリを確認する
-   - 「docs/arch を初期化します。どのディレクトリを対象にしますか？（例: src/, app/, .）」
+1. 対象ディレクトリを確認する
+   - 引数が渡された場合（`$ARGUMENTS`）はそれを対象ディレクトリとして使用する
+   - 引数がない場合はユーザーに確認する:「docs/arch を初期化します。どのディレクトリを対象にしますか？（例: src/, app/, .）」
 2. 指定ディレクトリの構造を分析する
 3. 以下のドキュメントを生成する
 
