@@ -98,6 +98,9 @@ uv run pre-commit install
 [project]
 requires-python = ">=3.12"
 
+[tool.uv]
+exclude-newer = "1 week"
+
 [tool.ruff]
 target-version = "py312"
 line-length = 120

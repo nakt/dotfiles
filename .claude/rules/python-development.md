@@ -24,7 +24,7 @@ uv run pre-commit autoupdate
 uv run pre-commit install
 
 # 4. セットアップの確認
-uv run black --check .
+uv run ruff format --check .
 uv run ruff check .
 uv run mypy src/
 ```
@@ -58,13 +58,14 @@ uv run python --version
 - 本番依存: 最小限に抑える
 - 開発依存: 品質向上ツールを積極的に導入
 - バージョン固定: `uv.lock` で厳密なバージョン管理
+- サプライチェーン対策: `exclude-newer` で新規リリースの即時取得を防止（ユーザースコープ `~/.config/uv/uv.toml` + プロジェクトスコープ `pyproject.toml` の `[tool.uv]`）
 
 ```bash
 # 依存関係の更新
 uv sync --upgrade
 
 # セキュリティ監査
-uv run safety check
+uv run pip-audit
 
 # 依存関係の可視化
 uv tree --depth 2
@@ -75,13 +76,13 @@ uv tree --depth 2
 ```bash
 # 依存関係管理
 uv add requests                    # パッケージ追加
-uv add --dev pytest black ruff    # 開発パッケージ追加
+uv add --dev pytest ruff          # 開発パッケージ追加
 uv tree                           # 依存関係確認
 
 # 開発タスク
 uv run python script.py          # Python 実行
 uv run pytest                    # テスト実行
-uv run black .                   # コードフォーマット
+uv run ruff format .             # コードフォーマット
 uv run ruff check .              # リンター実行
 ```
 
@@ -95,7 +96,7 @@ uv run pytest tests/test_feature.py -v
 uv run pytest tests/test_feature.py
 
 # 3. リファクタリング
-uv run black .
+uv run ruff format .
 uv run ruff check --fix .
 
 # 4. 全テストを実行
@@ -106,7 +107,7 @@ uv run pytest --cov=src/
 
 ### 推奨ツール
 
-- フォーマッター: `black` - 統一されたコードスタイル
+- フォーマッター: `ruff format` - 統一されたコードスタイル
 - リンター: `ruff` - 高速で包括的なリンター
 - テスト: `pytest` - 豊富な機能とプラグイン
 - 型チェック: `mypy` - 静的型チェック
@@ -117,8 +118,8 @@ uv run pytest --cov=src/
 
 ```bash
 # コードフォーマット
-uv run black .                    # 自動フォーマット
-uv run black --check .            # フォーマットチェック
+uv run ruff format .              # 自動フォーマット
+uv run ruff format --check .      # フォーマットチェック
 
 # リンター
 uv run ruff check .               # 問題の検出
@@ -134,17 +135,17 @@ uv run pytest --cov-report=html   # HTML レポート生成
 
 # セキュリティチェック
 uv run bandit -r src/             # セキュリティ脆弱性検出
-uv run safety check               # 依存関係の脆弱性チェック
+uv run pip-audit                  # 依存関係の脆弱性チェック
 
 # 総合品質チェック
-uv run black --check . && uv run ruff check . && uv run mypy src/ && uv run pytest --cov=src/
+uv run ruff format --check . && uv run ruff check . && uv run mypy src/ && uv run pytest --cov=src/
 ```
 
 ## コーディング規約
 
 ### フォーマットとリンティング
 
-コードスタイルは `black` と `ruff` に従う。pre-commit フックで自動適用される。
+コードスタイルは `ruff format` と `ruff check` に従う。pre-commit フックで自動適用される。
 
 ### コメントラベル
 
@@ -294,19 +295,19 @@ uv tree --outdated
 uv sync --upgrade
 
 # セキュリティ更新の確認
-uv run safety check --json
+uv run pip-audit
 ```
 
 ### プロジェクトヘルスチェック
 
 ```bash
 # 総合品質チェック
-uv run black --check .
+uv run ruff format --check .
 uv run ruff check .
 uv run mypy src/
 uv run pytest --cov=src/ --cov-fail-under=80
 uv run bandit -r src/
-uv run safety check
+uv run pip-audit
 ```
 
 ## 付録
@@ -346,9 +347,9 @@ logger = logging.getLogger(__name__)
 uv add --dev bandit
 uv run bandit -r src/
 
-# Safety: 依存関係の脆弱性チェック
-uv add --dev safety
-uv run safety check
+# pip-audit: 依存関係の脆弱性チェック
+uv add --dev pip-audit
+uv run pip-audit
 
 # Semgrep: 高度な静的解析
 uv add --dev semgrep

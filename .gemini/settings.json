@@ -10,5 +10,12 @@
   },
   "ui": {
     "theme": "GitHub Light"
+  },
+  "general": {
+    "sessionRetention": {
+      "enabled": true,
+      "maxAge": "30d",
+      "warningAcknowledged": true
+    }
   }
 }
