@@ -58,6 +58,7 @@ uv run python --version
 - 本番依存: 最小限に抑える
 - 開発依存: 品質向上ツールを積極的に導入
 - バージョン固定: `uv.lock` で厳密なバージョン管理
+- サプライチェーン対策: `exclude-newer` で新規リリースの即時取得を防止（ユーザースコープ `~/.config/uv/uv.toml` + プロジェクトスコープ `pyproject.toml` の `[tool.uv]`）
 
 ```bash
 # 依存関係の更新

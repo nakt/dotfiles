@@ -14,7 +14,6 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "black",
     "ruff",
     "mypy",
     "pytest",
@@ -28,12 +27,11 @@ dev = [
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 128
-target-version = ["py312"]
+[tool.uv]
+exclude-newer = "1 week"
 
 [tool.ruff]
-line-length = 128
+line-length = 120
 indent-width = 4
 target-version = "py312"
 
@@ -42,32 +40,18 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I"]
+select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = [
     "E501",  # line too long (formatter handles this)
-    "E203",  # whitespace before ':'
-    "F401",  # imported but unused
-    "F841",  # local variable assigned but never used
-    "S101",  # use of assert
-    "S105",  # hardcoded password string
-    "S106",  # hardcoded password argument
-    "S107",  # hardcoded password default
-    "E731",  # lambda assignment
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "F401", "F841"]
+"tests/*" = ["S101"]
 
 [tool.mypy]
 python_version = "3.12"
-warn_return_any = false
-warn_unused_configs = true
-disallow_untyped_defs = false
-show_error_codes = true
-ignore_missing_imports = true
-no_implicit_optional = false
+strict = true
 exclude = ["tests/", "template/", ".workspace/"]
-warn_unused_ignores = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
