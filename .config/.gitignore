@@ -17,3 +17,5 @@
 !gh/config.yml
 !markdown-cli2/
 !markdown-cli2/.markdownlint-cli2.jsonc
+!uv/
+!uv/uv.toml
