@@ -26,6 +26,26 @@ bun run biome check --write .  # 自動修正
 bun run test                   # テスト実行
 ```
 
+## Rules
+
+### パッケージ追加
+
+- `bun add xxx` でパッケージを追加しない
+- `package.json` を直接編集し、`bun install` で反映する
+
+### 型チェック
+
+- `cd` してから `npx tsc --noEmit` を実行しない
+- プロジェクトルートから `--project` オプションで tsconfig を指定する
+
+```bash
+# Good
+npx tsc --noEmit --project dashboard/tsconfig.json
+
+# Bad
+cd dashboard && npx tsc --noEmit
+```
+
 ## Recommended Dependencies
 
 | カテゴリ | パッケージ | 用途 |
