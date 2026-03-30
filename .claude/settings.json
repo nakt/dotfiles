@@ -185,5 +185,6 @@
     "enabled": false
   },
   "alwaysThinkingEnabled": true,
-  "plansDirectory": ".claude/plans"
+  "plansDirectory": ".claude/plans",
+  "autoMemoryEnabled": false
 }
