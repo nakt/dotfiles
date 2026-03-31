@@ -65,6 +65,12 @@ bun run test                   # テスト実行
 }
 ```
 
+## Rules
+
+### サプライチェーン対策
+
+- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
+
 ## Coding Conventions
 
 - 一時コメントには `TODO` / `FIXME` ラベルを使用
