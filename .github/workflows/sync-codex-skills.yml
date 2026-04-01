@@ -1,0 +1,35 @@
+name: Sync Codex Skills
+
+on:
+  push:
+    branches: [main]
+    paths: [".claude/skills/**"]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync skill symlinks
+        run: |
+          cd .codex/skills
+          for skill in ../../.claude/skills/*/; do
+            name=$(basename "$skill")
+            if [ ! -L "$name" ]; then
+              ln -sfnv "../../.claude/skills/$name" "$name"
+            fi
+          done
+
+      - name: Create PR if changes exist
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(codex): sync skill symlinks"
+          title: "chore(codex): sync skill symlinks"
+          body: |
+            `.claude/skills/` に追加されたスキルの symlink を `.codex/skills/` に同期します。
+          branch: chore/sync-codex-skills

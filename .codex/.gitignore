@@ -1,0 +1,7 @@
+# Ignore everything
+/*
+
+# Except rules
+!.gitignore
+!skills/
+skills/.system/
