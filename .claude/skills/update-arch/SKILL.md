@@ -8,7 +8,7 @@ allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(git:*), Bash(l
 ## Current state
 
 - docs/arch exists: !`test -d docs/arch && echo 'yes' || echo 'no'`
-- Staged changes: !`git diff --cached --stat 2>/dev/null`
+- Staged changes: !`git diff --cached --stat 2>/dev/null || true`
 
 ## モード判定
 
