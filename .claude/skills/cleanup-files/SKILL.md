@@ -10,8 +10,8 @@ Clean up experiment workspace and scan/remove unnecessary files project-wide bas
 ## Current state
 
 - Git status: !`git status --short`
-- Workspace experiments: !`ls .workspace/experiments/ 2>/dev/null`
-- Workspace analysis: !`ls .workspace/analysis/ 2>/dev/null`
+- Workspace experiments: !`ls .workspace/experiments/ 2>/dev/null || true`
+- Workspace analysis: !`ls .workspace/analysis/ 2>/dev/null || true`
 
 ## Cleanup Procedure
 

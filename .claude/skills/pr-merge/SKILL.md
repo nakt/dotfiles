@@ -18,8 +18,8 @@ allowed-tools:
 
 - Branch: !`git branch --show-current`
 - Uncommitted changes: !`git status --porcelain`
-- Commits ahead of main: !`git log main..HEAD --oneline 2>/dev/null`
-- Diff stats: !`git diff main..HEAD --stat 2>/dev/null`
+- Commits ahead of main: !`git log main..HEAD --oneline 2>/dev/null || true`
+- Diff stats: !`git diff main..HEAD --stat 2>/dev/null || true`
 
 ## ワークフロー
 

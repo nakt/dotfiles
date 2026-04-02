@@ -9,9 +9,9 @@ allowed-tools: Read(*), Glob(*), LS(*), Grep(*), Write(*)
 ## Current state
 
 - Top-level files: !`ls -1`
-- Config files: !`ls pyproject.toml package.json Cargo.toml go.mod composer.json Gemfile 2>/dev/null`
+- Config files: !`ls pyproject.toml package.json Cargo.toml go.mod composer.json Gemfile 2>/dev/null || true`
 - Directory structure: !`find . -maxdepth 2 -type d -not -path '*/\.*' -not -path './node_modules/*' | head -30`
-- Existing README: !`head -20 README.md 2>/dev/null`
+- Existing README: !`head -20 README.md 2>/dev/null || true`
 
 ## 分析対象
 
