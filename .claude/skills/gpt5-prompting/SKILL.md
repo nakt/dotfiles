@@ -4,6 +4,8 @@ description: GPT-5/GPT-5.1/GPT-5.2 向けプロンプト設計の支援スキル
 allowed-tools: Read(*)
 ---
 
+# GPT-5 Prompting Guide
+
 回答時に references/guide.md のどの原則に基づくかを章タイトルで引用する（例: guide.md「指示遵守の注意点」）。
 
 ## モード判定

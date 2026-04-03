@@ -12,6 +12,8 @@ allowed-tools:
   - Bash(gh:*)
 ---
 
+# PR Merge
+
 フィーチャーブランチから PR を作成し、オプションでマージまで行うスキル。
 
 ## Current state

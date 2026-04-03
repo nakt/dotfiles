@@ -5,6 +5,8 @@ disable-model-invocation: true
 allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cat:*), Bash(cp:*), Bash(mkdir:*), Bash(echo:*), Bash(tail:*), Bash(head:*), Bash(find:*), Bash(grep:*), Bash(git:*), Read(*), Glob(*), Grep(*)
 ---
 
+# Cleanup Files
+
 Clean up experiment workspace and scan/remove unnecessary files project-wide based on content analysis, usage patterns, and git activity.
 
 ## Current state

@@ -5,6 +5,8 @@ argument-hint: "[topic or question]"
 allowed-tools: Bash(gemini *)
 ---
 
+# Gemini Research
+
 ## モード判定
 
 リクエスト内容に応じて判断する。引数が渡された場合（`$ARGUMENTS`）はそれをトピックとして使用する。

@@ -11,6 +11,8 @@ allowed-tools:
   - Bash(ls:*)
 ---
 
+# Python Development Guide
+
 ## Tech Stack
 
 uv + ruff を標準とする。

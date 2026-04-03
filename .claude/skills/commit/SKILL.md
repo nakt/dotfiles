@@ -6,6 +6,8 @@ effort: low
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(pre-commit:*)
 ---
 
+# Git Commit
+
 Analyze uncommitted files and commit logically related changes with appropriate granularity.
 
 ## Current state
