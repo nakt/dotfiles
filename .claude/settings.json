@@ -193,5 +193,6 @@
   },
   "alwaysThinkingEnabled": true,
   "plansDirectory": ".claude/plans",
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "model": "sonnet"
 }
