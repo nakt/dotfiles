@@ -6,6 +6,8 @@ effort: high
 allowed-tools: Read(*), Glob(*), Grep(*), Edit(*), MultiEdit(*), Bash(find:*), Bash(grep:*), Bash(git:*), Bash(pytest:*), Bash(npm:*), Bash(cargo:*)
 ---
 
+# Refactor Code
+
 Improve code quality by refactoring code structure, cleaning up comments, removing unused code, and ensuring tests pass.
 
 If a target path is specified via arguments (`$ARGUMENTS`), scope the refactoring to that path.

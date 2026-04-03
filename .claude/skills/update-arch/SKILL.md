@@ -5,6 +5,8 @@ argument-hint: "[target directory]"
 allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(git:*), Bash(ls:*)
 ---
 
+# Update Architecture Docs
+
 ## Current state
 
 - docs/arch exists: !`test -d docs/arch && echo 'yes' || echo 'no'`

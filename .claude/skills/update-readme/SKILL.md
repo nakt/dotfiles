@@ -4,6 +4,8 @@ description: プロジェクト構造とコードベースを分析して README
 allowed-tools: Read(*), Glob(*), LS(*), Grep(*), Write(*)
 ---
 
+# Update README
+
 プロジェクト構造とコードベースを分析し、統一フォーマットで README.md を生成・更新する。
 
 ## Current state

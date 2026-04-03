@@ -15,6 +15,8 @@ allowed-tools:
   - Read
 ---
 
+# GitHub Repository Creator
+
 GitHub リポジトリを対話的に作成するスキル。ヒアリングから検証まで5フェーズで進める。
 
 ## Current state
