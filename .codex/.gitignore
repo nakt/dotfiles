@@ -7,3 +7,4 @@
 !hooks.json
 !hooks/
 !hooks/*.sh
+!AGENTS.md
