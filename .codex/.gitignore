@@ -4,3 +4,8 @@
 # Except rules
 !.gitignore
 !Makefile
+!hooks.json
+!hooks/
+!hooks/*.sh
+!AGENTS.md
+!config.local.toml

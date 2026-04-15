@@ -1,5 +1,4 @@
 {
-  "effortLevel": "high",
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
     "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1",
@@ -198,6 +197,8 @@
     "enabled": false
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "plansDirectory": ".claude/plans",
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "model": "sonnet"
 }
