@@ -8,3 +8,4 @@
 !hooks/
 !hooks/*.sh
 !AGENTS.md
+!config.local.toml
