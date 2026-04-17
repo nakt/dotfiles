@@ -1,0 +1,5 @@
+prefix_rule(
+    pattern = ["uv", "run", "pytest"],
+    decision = "allow",
+    justification = "Allow pytest via uv outside the sandbox",
+)
