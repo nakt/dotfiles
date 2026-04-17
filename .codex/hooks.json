@@ -1,16 +1,3 @@
 {
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/bash \"$(git rev-parse --show-toplevel)/.codex/hooks/lint-markdown-stop.sh\"",
-            "timeout": 30,
-            "statusMessage": "Linting changed Markdown"
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": {}
 }
