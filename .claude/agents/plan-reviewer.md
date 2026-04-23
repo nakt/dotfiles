@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Reviewer that validates plan completeness and clarifies ambiguities with the user
+description: Use this agent PROACTIVELY after creating or updating any plan file under .claude/plans/. Validates plan completeness and clarifies ambiguities with the user via AskUserQuestion.
 tools: Read, Glob, Grep, AskUserQuestion
 color: blue
 ---
