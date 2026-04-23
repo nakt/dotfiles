@@ -37,6 +37,22 @@ uv run ruff format .             # フォーマット
 uv run mypy src/                 # 型チェック
 ```
 
+## TDD Workflow
+
+```bash
+# 1. テストを先に書く
+uv run pytest tests/test_feature.py -v
+
+# 2. 最小実装
+uv run pytest tests/test_feature.py
+
+# 3. リファクタリング
+uv run ruff format . && uv run ruff check --fix .
+
+# 4. カバレッジ確認
+uv run pytest --cov=src/
+```
+
 ## Project Structure
 
 ```text
@@ -123,6 +139,61 @@ strict = true
 - コードスタイルは ruff で統一
 - テストは pytest を使用
 
+### Docstring
+
+reStructuredText (Sphinx) 形式で英語記述。
+
+```python
+def calculate_area(length: float, width: float) -> float:
+    """
+    Calculate the area of a rectangle.
+
+    :param length: The length of the rectangle in meters
+    :param width: The width of the rectangle in meters
+    :return: The area in square meters
+    :raises ValueError: If length or width is negative
+    """
+    if length < 0 or width < 0:
+        raise ValueError("Length and width must be positive values")
+    return length * width
+```
+
+### Type Hints
+
+```python
+from typing import Protocol
+
+# X | Y 構文 (Python 3.10+)
+def find_user(user_id: int) -> dict | None: ...
+
+# Generics (PEP 695, Python 3.12+)
+class Container[T]:
+    def __init__(self, value: T) -> None:
+        self.value = value
+
+# Protocol (structural subtyping)
+class Drawable(Protocol):
+    def draw(self) -> None: ...
+```
+
+### Error Handling
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def process_file(file_path: str) -> dict:
+    """
+    :raises FileNotFoundError: If the file doesn't exist
+    :raises PermissionError: If the file cannot be read
+    """
+    logger.info(f"Processing file: {file_path}")
+    with open(file_path, "r", encoding="utf-8") as f:
+        return {"status": "success", "data": f.read()}
+```
+
 ## Decision Guide
 
 ### Type Strategy
@@ -134,13 +205,30 @@ strict = true
 | Config | Pydantic Settings | Env vars + validation |
 | String literals | Literal type | Exhaustive check |
 
-### Error Handling
+### Error Handling Strategy
 
 | Situation | Choice | Rationale |
 |---|---|---|
 | Recoverable error | Custom exception | Explicit error hierarchy |
 | Unexpected error | Let it propagate | Catch at upper level |
 | External input | Pydantic | Unified parsing and validation |
+
+## Security
+
+```bash
+uv add --dev bandit pip-audit
+uv run bandit -r src/                   # コードのセキュリティ脆弱性
+uv run pip-audit                        # 依存関係の脆弱性
+```
+
+## AI Tool Usage Notes
+
+Claude Code や Gemini CLI から Python プロジェクトを操作する際:
+
+- パッケージ管理は `uv add` / `uv sync` / `uv remove` を使用（`pip install` を避ける）
+- `pyproject.toml` と `uv.lock` の両方をコミット
+- 仮想環境外へのインストールは禁止
+- テスト実行前に `uv run ruff format .` を通す
 
 ## Key Principles
 
