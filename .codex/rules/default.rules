@@ -1,0 +1,7 @@
+prefix_rule(
+    pattern = ["uv", "run", "pytest"],
+    decision = "allow",
+    justification = "Allow pytest via uv outside the sandbox",
+)
+prefix_rule(pattern=["git", "commit"], decision="allow")
+prefix_rule(pattern=["git", "add"], decision="allow")
