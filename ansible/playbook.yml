@@ -29,6 +29,7 @@
       - slack
       - iterm2
       - docker
+      - orbstack
       - visual-studio-code
       - cyberduck
       - 1password
