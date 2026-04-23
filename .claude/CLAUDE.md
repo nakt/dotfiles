@@ -8,20 +8,22 @@
 
 ## 構造
 
-- Rules (`~/.claude/rules/`): ファイルパスに基づいて自動的に読み込まれる
+- Rules (`~/.claude/rules/`): 各ルールの質的な定義。下表の「常時参照」列で `@` import されたもののみが実際に読み込まれ、それ以外はスキル呼び出し用のポインタ中間ファイル
 - Skills (`~/.claude/skills/`): YAML frontmatter の description でトリガー判定、`/name` で手動呼び出しも可能
 
 ## 利用可能な Rules
 
-| Rule                 | 対象                    | 説明                                          |
-| -------------------- | ----------------------- | --------------------------------------------- |
-| workspace-management | All files               | .workspace ディレクトリの運用ルール            |
-| git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    |
-| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                |
-| plan-files           | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー                  |
-| python-development   | `**/*.py`               | Python 開発ガイド                              |
-| react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        |
-| typescript-coding    | `**/*.ts`, `**/*.tsx`   | → `/typescript-dev-guide` スキルへのポインタ   |
+常時参照列に `@path` が書かれているルールは、Claude Code の `@` import でグローバルメモリに取り込まれる。専用スキルへのポインタに留めるルールは空欄 (—)。
+
+| Rule                 | 対象                    | 説明                                          | 常時参照                                |
+| -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
+| workspace-management | All files               | .workspace ディレクトリの運用ルール            | @~/.claude/rules/workspace-management.md  |
+| git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | @~/.claude/rules/git-workflow.md          |
+| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | @~/.claude/rules/markdown-style.md        |
+| plan-files           | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー                  | @~/.claude/rules/plan-files.md            |
+| python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
+| react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | —                                         |
+| typescript-coding    | `**/*.ts`, `**/*.tsx`   | → `/typescript-dev-guide` スキルへのポインタ   | —                                         |
 
 ## 利用可能な Skills
 
