@@ -101,7 +101,7 @@
       "Bash(npm publish *)",
       "Bash(gh pr merge *)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "auto"
   },
   "hooks": {
     "PreToolUse": [
@@ -198,5 +198,7 @@
   },
   "alwaysThinkingEnabled": true,
   "plansDirectory": ".claude/plans",
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "skipAutoPermissionPrompt": true,
+  "remoteControlAtStartup": false
 }
