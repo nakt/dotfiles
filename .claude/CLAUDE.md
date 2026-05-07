@@ -41,3 +41,4 @@
 | python-dev-guide     | Python 開発ガイド                                  |
 | update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |
+| humanize             | AI 生成文章から AI らしさを取り除き自然な日本語に書き換える |
