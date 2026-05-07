@@ -199,5 +199,7 @@
   "plansDirectory": ".claude/plans",
   "autoMemoryEnabled": false,
   "skipAutoPermissionPrompt": true,
-  "remoteControlAtStartup": false
+  "remoteControlAtStartup": false,
+  "editorMode": "vim",
+  "verbose": true
 }
