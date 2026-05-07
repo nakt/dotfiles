@@ -24,7 +24,7 @@
       - oven-sh/bun/bun
 
     homebrew_cask_packages:
-      - font-plemol-jp
+      - font-plemol-jp-nf
       - google-chrome
       - slack
       - iterm2
