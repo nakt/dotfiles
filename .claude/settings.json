@@ -205,5 +205,5 @@
   "skipAutoPermissionPrompt": true,
   "remoteControlAtStartup": false,
   "editorMode": "vim",
-  "verbose": true
+  "viewMode": "verbose"
 }
