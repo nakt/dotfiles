@@ -43,3 +43,4 @@
 | update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |
 | humanize             | AI 生成文章から AI らしさを取り除き自然な日本語に書き換える |
+| marp-style           | Marp Markdown 構造スタイル規約 (見出し階層・スライド構成等、変換ツール非依存・文体非干渉) |
