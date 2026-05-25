@@ -119,10 +119,11 @@
         ]
       },
       {
-        "matcher": "Bash(git commit*)",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
+            "if": "Bash(git commit *)",
             "command": "$HOME/.claude/hooks/check-arch-docs.sh",
             "timeout": 10
           }
