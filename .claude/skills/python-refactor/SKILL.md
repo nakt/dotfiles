@@ -6,7 +6,6 @@ effort: high
 allowed-tools:
   - Read
   - Edit
-  - MultiEdit
   - Glob
   - Grep
   - Bash(uv:*)

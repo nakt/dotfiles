@@ -153,7 +153,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
@@ -195,7 +195,7 @@
       }
     }
   },
-  "language": "Japanese",
+  "language": "japanese",
   "sandbox": {
     "enabled": false
   },
