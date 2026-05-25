@@ -1,7 +1,7 @@
 ---
 name: update-readme
 description: プロジェクト構造とコードベースを分析して README.md を自動生成・更新するスキル。ユーザーが README の作成・更新を求めたとき、「README を書いて」「README を更新して」「ドキュメントを整備して」と言ったとき、またはプロジェクトの初期セットアップ後にドキュメント整備が必要なときに使用する。
-allowed-tools: Read(*), Glob(*), LS(*), Grep(*), Write(*), Bash(find:*), Bash(head:*), Bash(ls:*)
+allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Bash(find:*), Bash(head:*), Bash(ls:*)
 ---
 
 # Update README
