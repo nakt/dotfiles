@@ -1,5 +1,4 @@
 ---
-description: Git 操作に関するルール
 paths:
   - "**/*"
 ---

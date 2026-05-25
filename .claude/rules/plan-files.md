@@ -1,5 +1,4 @@
 ---
-description: プランファイル作成時のワークフロー
 paths:
   - "**/.claude/plans/*.md"
 ---

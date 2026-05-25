@@ -1,5 +1,4 @@
 ---
-description: Markdown ファイル作成時のスタイルガイド
 paths:
   - "**/*.md"
 ---

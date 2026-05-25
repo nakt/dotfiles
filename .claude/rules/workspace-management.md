@@ -1,5 +1,4 @@
 ---
-description: .workspace ディレクトリの運用ルール
 paths:
   - "**/*"
 ---
