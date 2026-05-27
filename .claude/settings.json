@@ -113,6 +113,7 @@
         "hooks": [
           {
             "type": "command",
+            "if": "Bash(rm *)",
             "command": "$HOME/.claude/hooks/validate-rm.sh",
             "timeout": 5
           }
