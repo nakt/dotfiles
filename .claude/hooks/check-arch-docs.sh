@@ -14,7 +14,10 @@ if [ -z "$STAGED_CODE" ]; then
 fi
 
 # block して Claude に自動判断を促す
-cat << 'EOF'
+# PreToolUse hook はブロック時に exit 2 + stderr を返す必要がある
+# （exit 1 は non-blocking error として扱われる）
+{
+  cat << 'EOF'
 BLOCK: docs/arch が存在するプロジェクトでコード変更を検出しました。
 
 【自動判断を実行してください】
@@ -31,14 +34,15 @@ BLOCK: docs/arch が存在するプロジェクトでコード変更を検出し
 - 更新不要: バグ修正(フロー変更なし)、リファクタ(振る舞い同一)、テスト追加
 EOF
 
-echo ""
-echo "変更対象のコードファイル:"
-echo "$STAGED_CODE" | sed 's/^/  - /'
-echo ""
-echo "変更の概要:"
-git diff --cached --stat
-echo ""
-echo "変更の詳細:"
-git diff --cached
+  echo ""
+  echo "変更対象のコードファイル:"
+  echo "$STAGED_CODE" | sed 's/^/  - /'
+  echo ""
+  echo "変更の概要:"
+  git diff --cached --stat
+  echo ""
+  echo "変更の詳細:"
+  git diff --cached
+} >&2
 
-exit 1
+exit 2
