@@ -47,12 +47,21 @@ DANGEROUS_PATTERNS=(
   'rm -fr .'
 )
 
+emit_deny() {
+  local reason="$1"
+  jq -n --arg reason "$reason" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: $reason
+    }
+  }'
+}
+
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   # パターン直後が継続パス（./foo 等）にならないよう境界を確認
   if [[ "$COMMAND" == "$pattern" || "$COMMAND" == "$pattern "* || "$COMMAND" == "$pattern;"* || "$COMMAND" == "$pattern&"* || "$COMMAND" == "$pattern|"* ]]; then
-    cat <<EOF
-{"decision": "block", "reason": "危険な rm パターンを検出しました: $pattern"}
-EOF
+    emit_deny "危険な rm パターンを検出しました: $pattern"
     exit 0
   fi
 done
@@ -60,9 +69,7 @@ done
 # 追加チェック: 危険なパスへの再帰削除をブロックする
 # 末尾に $ や [[:space:]] を付けて、/Users/... のような安全なパスを誤検出しない
 if [[ "$COMMAND" =~ rm[[:space:]]+-[rf]+[[:space:]]+(/([[:space:]]|;|$)|\*|/\*|\$HOME|\$\{HOME\}|~|\.\.) ]]; then
-  cat <<EOF
-{"decision": "block", "reason": "危険なパスへの削除をブロックしました: ルート・ホーム・親ディレクトリへの再帰削除は許可されていません"}
-EOF
+  emit_deny "危険なパスへの削除をブロックしました: ルート・ホーム・親ディレクトリへの再帰削除は許可されていません"
   exit 0
 fi
 
