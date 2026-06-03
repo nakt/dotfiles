@@ -13,36 +13,37 @@ if [ -z "$STAGED_CODE" ]; then
   exit 0
 fi
 
-# block して Claude に自動判断を促す
-# PreToolUse hook はブロック時に exit 2 + stderr を返す必要がある
-# （exit 1 は non-blocking error として扱われる）
-{
-  cat << 'EOF'
-BLOCK: docs/arch が存在するプロジェクトでコード変更を検出しました。
+# ブロックはせず、Claude に「アーキテクチャドキュメント更新の要否判断」を促す。
+# PreToolUse の hookSpecificOutput.additionalContext を stdout に出して exit 0 すると、
+# コミットは通したまま additionalContext が Claude のコンテキストに注入される。
+# （exit 2 + stderr はブロック、exit 1 は破棄。ここではどちらも使わない）
+FILE_LIST=$(echo "$STAGED_CODE" | sed 's/^/  - /')
+STAT=$(git diff --cached --stat)
 
-【自動判断を実行してください】
-以下の手順でアーキテクチャドキュメントの更新要否を判断し、必要なら更新してからコミットしてください：
+REMINDER=$(cat << EOF
+docs/arch が存在するプロジェクトでコード変更を検出しました。
+このコミットはブロックしません。コミット後にアーキテクチャドキュメントの更新要否を判断してください。
 
-1. 以下の変更内容を確認
-2. docs/arch/ 内の関連ドキュメントを確認
-3. 処理フローに影響があるか判断
-4. 必要ならドキュメントを更新してステージング
-5. 更新不要と判断した場合はその理由を説明してコミット続行
+変更対象のコードファイル:
+${FILE_LIST}
 
-判断基準：
+変更の概要:
+${STAT}
+
+判断基準:
 - 更新必要: 新規機能追加、処理フロー変更、API変更、依存関係変更
 - 更新不要: バグ修正(フロー変更なし)、リファクタ(振る舞い同一)、テスト追加
+
+更新が必要なら docs/arch/ の関連ドキュメントを更新し、別途コミットしてください。
+（更新が必要かは /update-arch スキルでも判断・反映できます）
 EOF
+)
 
-  echo ""
-  echo "変更対象のコードファイル:"
-  echo "$STAGED_CODE" | sed 's/^/  - /'
-  echo ""
-  echo "変更の概要:"
-  git diff --cached --stat
-  echo ""
-  echo "変更の詳細:"
-  git diff --cached
-} >&2
+jq -n --arg reason "$REMINDER" '{
+  hookSpecificOutput: {
+    hookEventName: "PreToolUse",
+    additionalContext: $reason
+  }
+}'
 
-exit 2
+exit 0
