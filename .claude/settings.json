@@ -114,8 +114,8 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(rm *)",
             "command": "$HOME/.claude/hooks/validate-rm.sh",
+            "if": "Bash(rm *)",
             "timeout": 5
           }
         ]
@@ -125,8 +125,8 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(git commit *)",
             "command": "$HOME/.claude/hooks/check-arch-docs.sh",
+            "if": "Bash(git commit *)",
             "timeout": 10
           }
         ]
@@ -198,6 +198,7 @@
       }
     }
   },
+  "viewMode": "verbose",
   "language": "japanese",
   "sandbox": {
     "enabled": false
@@ -206,5 +207,5 @@
   "plansDirectory": ".claude/plans",
   "autoMemoryEnabled": false,
   "editorMode": "vim",
-  "viewMode": "verbose"
+  "effortLevel": "medium"
 }
