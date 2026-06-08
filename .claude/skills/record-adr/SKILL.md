@@ -35,9 +35,11 @@ allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(ls:*), Bash(gr
 ```text
 docs/adr/
 ├── README.md     # インデックス(番号・タイトル・Status・1行サマリ)
-├── template.md   # 起票テンプレート
 └── 0001-record-architecture-decisions.md   # 決定記録の採用自体を記録
 ```
+
+テンプレートは下記「起票テンプレート」を skill 内蔵の雛形として使う。
+`docs/adr/` 直下に template.md は置かない(ADR 一覧のノイズを避ける)。
 
 引数(`$ARGUMENTS`)でタイトルが渡されている場合は、初期化後そのまま追記モードへ進み
 0002 を起票する。引数がなければ初期化のみで完了報告する。
@@ -65,7 +67,7 @@ docs/adr/
 - 実験の生ログは `.workspace/knowledge/`、確定した決定と根拠はここ
 ```
 
-### template.md(初期テンプレート)
+### 起票テンプレート(skill 内蔵・ファイルとしては生成しない)
 
 ```markdown
 # NNNN: タイトル
@@ -134,7 +136,7 @@ Date: {today}
    - 引数(`$ARGUMENTS`)があればそれを使う
    - なければユーザーに確認する
 2. 採番する: Current state の Existing ADRs で最大番号を確認し +1、4 桁ゼロ埋め
-3. `docs/adr/NNNN-kebab-title.md` を `template.md` の枠で作成する
+3. `docs/adr/NNNN-kebab-title.md` を上記「起票テンプレート」の枠で作成する
    - kebab-title はタイトルを小文字ハイフン区切りにしたもの
    - Date は Current state の Today を使う
    - 対話で Context / Decision / Rationale / Consequences を埋める。検証・実験に基づく
