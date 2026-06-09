@@ -104,8 +104,7 @@
       "Bash(docker rmi *)",
       "Bash(npm publish *)",
       "Bash(gh pr merge *)"
-    ],
-    "defaultMode": "auto"
+    ]
   },
   "hooks": {
     "PreToolUse": [
