@@ -69,6 +69,7 @@ override.tf.json
 
 # Workspace (Claude Code temporary files)
 .workspace/
+.claude/worktrees/
 
 # Gemini (keep directory but ignore contents)
 .gemini/*
