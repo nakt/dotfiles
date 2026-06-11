@@ -107,6 +107,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "claude-opus-4-7",
   "hooks": {
     "PreToolUse": [
       {
@@ -162,11 +163,6 @@
             "type": "command",
             "command": "$HOME/.claude/hooks/lint-markdown.sh",
             "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/open-plan-vscode.sh",
-            "timeout": 10
           }
         ]
       }
@@ -204,8 +200,8 @@
     "enabled": false
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
   "plansDirectory": ".claude/plans",
   "autoMemoryEnabled": false,
-  "editorMode": "vim",
-  "effortLevel": "medium"
+  "editorMode": "vim"
 }
