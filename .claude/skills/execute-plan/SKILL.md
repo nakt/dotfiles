@@ -58,7 +58,7 @@ argument-hint: "[plan-file-path]"
 6. main / master ブランチで実行されている場合は `AskUserQuestion` で続行確認し (`.claude/rules/git-workflow.md` に従う)、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
 7. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)
    - クリーン → 続行
-   - 未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクごとの BASE→HEAD 差分に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
+   - 未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクのレビュー差分 (`PRE_BATCH_BASE` からのパス限定差分) に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
 
 ### Phase 2: タスク抽出と TaskList 作成
 
@@ -71,32 +71,44 @@ argument-hint: "[plan-file-path]"
    - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合)
    - 複雑度ヒント (対象ファイル数 / Context 長さ / criteria の主観性)
 3. `TaskCreate` で抽出した各タスクを登録
+4. バッチ (wave) 算出規則を用意する。Phase 3 はこの規則で残タスクから 1 バッチずつ選んで処理する
+   - 1 バッチ = 「依存が全て完了済み」かつ「対象ファイルが互いに重ならない (disjoint)」タスクの集合。同時実行は最大 N (目安 3-4) 件まで (「モデル選択方針」の同時実行上限に従う)
+   - 同一バッチに入れない (単独バッチ or 後続バッチに回す) もの:
+     - 他の候補とファイルが重なるタスク (共有ツリーで衝突するため)
+     - 依存が未解決のタスク (依存元の完了を待つ)
+     - 対象ファイルが不明 / 列挙されていないタスク (disjoint 判定ができないため安全側で単独実行)
+   - 候補が 1 件しか残らない場合は 1 件だけのバッチ (= 従来の逐次実行と同じ) になる
 
-### Phase 3: タスクループ (per-task)
+### Phase 3: バッチループ (per-wave)
 
-各タスクを順番に処理する。並列実行はしない。
+バッチ (wave) 単位で処理する。バッチ内のタスクは並列、バッチ間は逐次。並列起動は「1 つのアシスタントメッセージ内で複数の `Agent` を呼び出す」ことで行う (同一メッセージ内の複数 Agent は並列実行される)。
 
-1. `TaskUpdate(status=in_progress)`
-2. implementer subagent を起動
-   - `references/implementer-prompt.md` を `Read` してテンプレートとして使用
-   - プレースホルダー (`[FULL TEXT of task]`, `[Context]`, `[Working directory]`) を埋める
-   - `Agent` 呼び出しで `subagent_type=general-purpose`、`model` パラメータをタスク複雑度に応じて切替 (後述の「モデル選択方針」)
-3. implementer 報告のステータス分岐 (後述の「ステータスハンドリング」)
-4. DONE / DONE_WITH_CONCERNS → reviewer subagent を起動
-   - `references/reviewer-prompt.md` を `Read` してテンプレートとして使用
-   - プレースホルダー (`[FULL TEXT of task]`, `[Acceptance criteria]`, `[implementer report]`, `[BASE_SHA]`, `[HEAD_SHA]`) を埋める
-   - `Agent` 呼び出しで `model=opus` 固定
-5. レビュー結果分岐
-   - APPROVED → ステップ 6 へ
-   - NEEDS_CHANGES → 指摘を implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容を `[Context]` に追記)
-     - 再レビュー → 最大 2 ループまで
-     - 3 回目に到達したら「エスカレーション」フローへ
-6. controller が直接タスク単位コミット
+各バッチについて以下を行う。
+
+1. バッチ選定: Phase 2 の算出規則で残タスクから 1 バッチ (最大 N 件、目安 3-4) を選ぶ
+2. `PRE_BATCH_BASE` を記録: `git rev-parse HEAD` の出力を controller メモリに保持する。このバッチのレビュー差分は全てこの BASE を基準にする
+3. バッチ内の各タスクを `TaskUpdate(status=in_progress)`
+4. 並列実装: 1 つのメッセージ内でバッチ内タスク分の implementer `Agent` をまとめて起動する
+   - 各 Agent に `references/implementer-prompt.md` をテンプレートとして使用 (プレースホルダー `[FULL TEXT of task]`, `[Context]`, `[Working directory]` を埋める)
+   - `subagent_type=general-purpose`、`model` はタスク複雑度に応じて切替 (後述の「モデル選択方針」)
+   - 各 implementer は自分の対象ファイル (バッチ内で disjoint) のみ編集し、コミットはしない
+5. 全 implementer の報告を受け、タスクごとにステータス分岐 (後述の「ステータスハンドリング」)。分岐は per-task で行い、あるタスクの BLOCKED / NEEDS_CONTEXT は他のバッチタスクに波及させない
+6. 並列レビュー: DONE / DONE_WITH_CONCERNS のタスクについて、1 つのメッセージ内で reviewer `Agent` をまとめて起動する
+   - 各 Agent に `references/reviewer-prompt.md` をテンプレートとして使用
+   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[implementer report]`, `[BASE_SHA]` (= `PRE_BATCH_BASE`), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
+   - `model=opus` 固定
+   - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う。対象ファイルが disjoint なので、他タスクの未コミット変更や先行コミットがあっても当該タスクの差分は分離される
+7. レビュー結果分岐 (per-task):
+   - APPROVED → ステップ 8 のコミット対象にする
+   - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容を `[Context]` に追記)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ。この再ループでも BASE は `PRE_BATCH_BASE` のまま対象ファイルにパス限定する。他のバッチタスクは影響を受けない
+8. 逐次コミット: APPROVED になったタスクを 1 件ずつコミットする
    - Phase 1 step 6 で既にフィーチャーブランチ上にいることを前提とする
-   - 当該タスクで変更されたファイルを `git add` し、Conventional Commits 形式 (英語) のメッセージで `git commit`。per-task の変更は 1 論理単位なのでカテゴリ分けは不要 (1 タスク = 1 コミット)
+   - 当該タスクの対象ファイルのみを `git add <対象ファイル>` し、Conventional Commits 形式 (英語) のメッセージで `git commit` (1 タスク = 1 コミット)。対象ファイルが disjoint なのでコミット順序は任意
+   - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更してもコミットには入らない
    - `--no-verify` / `--force` push / `reset --hard` は使用しない (`.claude/rules/git-workflow.md` の禁止事項に従う)
-7. `TaskUpdate(status=completed)`
-8. 次タスクへ
+9. 各 APPROVED タスクを `TaskUpdate(status=completed)`
+10. バッチ後チェック: 対象ファイル外の未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する
+11. 残タスクがあれば次バッチへ (ステップ 1 に戻る)
 
 ### Phase 4: 完了報告
 
@@ -141,6 +153,8 @@ implementer subagent は 4 種の status で報告する。
 
 複雑度判定は controller がプランの `対象ファイル` の数、`Context` の長さ、`Acceptance criteria` の主観性で行う。プラン内に明示的な複雑度ヒントがあれば優先する。
 
+同時実行上限: 1 バッチで並列起動する implementer / reviewer は最大 3-4 を目安とする。バッチ候補がこれを超える場合は複数バッチに分割する。各 implementer の `model` 切替規則は上表のまま適用する。
+
 ## Constraints
 
 - main / master ブランチ上で実装開始しない (`AskUserQuestion` で確認)
@@ -148,7 +162,8 @@ implementer subagent は 4 種の status で報告する。
 - reviewer の指摘を未解決のまま次タスクへ進まない
 - implementer に plan ファイルを読ませず、controller が必要な全文を prompt に貼って渡す
 - implementer はコミットしない。コミットは controller が直接 `git add` + `git commit` で行う
-- 並列タスク実行は行わない (conflicts 回避、git worktree 非使用)
+- 並列実行は「依存なし かつ 対象ファイルが互いに disjoint」なタスクに限る。git worktree は使わず共有ツリーで実行するため、対象ファイルの重なりがないことが並列化の前提条件 (重なる / 依存未解決 / 対象ファイル不明のタスクは逐次)
+- コミットは逐次・タスク単位 (1 タスク = 1 コミット、対象ファイルのみ `git add`)
 - `--no-verify`、`--force` push、`reset --hard` などは原典 Red Flags と本リポ `.claude/rules/git-workflow.md` の禁止事項に従う
 - コミットログは英語、その他の会話は日本語 (本リポ既存スキルの規約に従う)
 
