@@ -62,3 +62,4 @@ allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Bash(find:*), Bash(head:*), 
 - 絵文字はできる限り使用しない
 - 強調（太字）の使用を最小限にする
 - トラブルシューティングや FAQ セクションは含めない
+- Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。
