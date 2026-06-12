@@ -14,7 +14,7 @@ If a target path is specified via arguments (`$ARGUMENTS`), scope the refactorin
 
 ## Current state
 
-- Git status: !`git status --short`
+- Git status: !`git status --short 2>/dev/null || true`
 - Project type: !`ls pyproject.toml package.json Cargo.toml go.mod 2>/dev/null || true`
 
 ## Refactoring Procedure

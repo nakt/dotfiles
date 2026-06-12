@@ -31,8 +31,8 @@ argument-hint: "[plan-file-path]"
 
 ## Current state
 
-- Branch: !`git rev-parse --abbrev-ref HEAD`
-- Uncommitted changes: !`git status --porcelain | head -20`
+- Branch: !`git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "(not a git repository)"`
+- Uncommitted changes: !`git status --porcelain 2>/dev/null | head -20`
 - Available plans: !`ls -1t .claude/plans/ 2>/dev/null | head -10 || echo "no plans"`
 
 ## コア原則
