@@ -77,3 +77,4 @@ allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(ls:*), Bash(gr
 5. 実験の生ログ・試行錯誤は `.workspace/knowledge/`、確定した決定と根拠は docs/adr
 6. 採番が衝突した場合(並行ブランチ等)は後から追加した方を繰り上げる
 7. 本文段落はハードラップしない。1 段落を 1 行で書く。エディタの折り返し表示に委ねる
+8. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。

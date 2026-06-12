@@ -20,6 +20,9 @@
     "MD048": { "style": "backtick" },
 
     // Disable table column alignment check for CJK content
-    "MD060": false
+    "MD060": false,
+
+    // Disallow emphasis (**bold** / *italic*) used as a pseudo-heading
+    "MD036": true
   }
 }

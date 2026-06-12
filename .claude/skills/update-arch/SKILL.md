@@ -200,3 +200,4 @@ Claude Code 使用時は自動で更新判断が行われます。
 3. ファイル参照は `file_path:line_number` 形式で記載する
 4. 更新不要と判断した場合は理由を明確に説明する
 5. 過度に詳細な文書化は避け、理解に必要な粒度を維持する
+6. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。
