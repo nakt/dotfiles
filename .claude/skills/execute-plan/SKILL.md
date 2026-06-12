@@ -4,7 +4,7 @@ description: >-
   承認済みプラン (`.claude/plans/*.md`) を、タスクごとに fresh subagent で実装 → レビュー → コミット → 完了マークの連続実行で進めるスキル。
   ユーザーが「プランを実行して」「実装を進めて」「プランの通り実装して」「execute-plan」と言ったとき、
   または Plan モードで ExitPlanMode 承認されたプランを実装フェーズに進めるときに使用する。
-disable-model-invocation: true
+  モデルが自動起動した場合は、最初に AskUserQuestion で実行確認してから進む。
 allowed-tools:
   - Read
   - Glob
@@ -13,19 +13,21 @@ allowed-tools:
   - Bash(git branch:*)
   - Bash(git diff:*)
   - Bash(git rev-parse:*)
+  - Bash(git add:*)
+  - Bash(git commit:*)
+  - Bash(git checkout:*)
   - TaskCreate
   - TaskUpdate
   - TaskList
   - TaskGet
   - AskUserQuestion
   - Agent
-  - Skill
 argument-hint: "[plan-file-path]"
 ---
 
 # Execute Plan
 
-承認済みプランを controller として読み込み、タスクごとに fresh subagent で実装 → レビュー → 既存 `/commit` でコミット、を連続実行するスキル。
+承認済みプランを controller として読み込み、タスクごとに fresh subagent で実装 → レビュー → controller が直接コミット、を連続実行するスキル。
 
 ## Current state
 
@@ -44,18 +46,19 @@ argument-hint: "[plan-file-path]"
 
 ### Phase 1: プラン特定と読み込み
 
-1. 引数でプランパスが渡されていればそれを使う
-2. なければ `.claude/plans/` を `Glob` で列挙
+1. 実行確認 (自動起動時のみ): 本スキルがユーザーの `/execute-plan` スラッシュコマンド以外 (ExitPlanMode 承認後の自動継続、または「実装を進めて」等の自然言語依頼) で起動された場合、`AskUserQuestion` で「execute-plan で実行しますか？ (はい / いいえ)」を提示し、「いいえ」なら中止する。`/execute-plan` のスラッシュコマンド起動と確定できる場合のみこの確認をスキップする (起動経路が判別できないときは安全側に倒して確認する)
+2. 引数でプランパスが渡されていればそれを使う
+3. なければ `.claude/plans/` を `Glob` で列挙
    - 1 件 → それを使う
    - 複数 → `AskUserQuestion` で選択 (最新 4 件を選択肢として提示)
    - 0 件 → 「プランがありません」と報告して終了
-3. `Read` でプラン全文を取得
-4. プラン本文に `## 実装タスク` セクションがあるか確認
+4. `Read` でプラン全文を取得
+5. プラン本文に `## 実装タスク` セクションがあるか確認
    - ない場合: `AskUserQuestion` で「実装タスクを追記してから再実行する」「このまま見出し / 番号付きリストから抽出を試みる」「中止」の 3 択を提示
-5. main / master ブランチで実行されている場合は `AskUserQuestion` で続行確認 (`.claude/rules/git-workflow.md` に従う)
-6. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)
+6. main / master ブランチで実行されている場合は `AskUserQuestion` で続行確認し (`.claude/rules/git-workflow.md` に従う)、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
+7. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)
    - クリーン → 続行
-   - 未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクごとの BASE→HEAD 差分に無関係な変更が混ざると reviewer が誤検出する / `/commit` で意図しないファイルを巻き込むリスクがある
+   - 未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクごとの BASE→HEAD 差分に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
 
 ### Phase 2: タスク抽出と TaskList 作成
 
@@ -88,8 +91,10 @@ argument-hint: "[plan-file-path]"
    - NEEDS_CHANGES → 指摘を implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容を `[Context]` に追記)
      - 再レビュー → 最大 2 ループまで
      - 3 回目に到達したら「エスカレーション」フローへ
-6. `Skill` ツールで `commit` スキルを起動してタスク単位コミット
-   - 既存 `/commit` のフロー (ブランチ切替 / カテゴリ分け / コミット) に従う
+6. controller が直接タスク単位コミット
+   - Phase 1 step 6 で既にフィーチャーブランチ上にいることを前提とする
+   - 当該タスクで変更されたファイルを `git add` し、Conventional Commits 形式 (英語) のメッセージで `git commit`。per-task の変更は 1 論理単位なのでカテゴリ分けは不要 (1 タスク = 1 コミット)
+   - `--no-verify` / `--force` push / `reset --hard` は使用しない (`.claude/rules/git-workflow.md` の禁止事項に従う)
 7. `TaskUpdate(status=completed)`
 8. 次タスクへ
 
@@ -142,7 +147,7 @@ implementer subagent は 4 種の status で報告する。
 - 作業ツリーが dirty な状態で実装開始しない (中止してユーザーに案内)
 - reviewer の指摘を未解決のまま次タスクへ進まない
 - implementer に plan ファイルを読ませず、controller が必要な全文を prompt に貼って渡す
-- implementer はコミットしない。コミットは controller が `/commit` スキル経由で行う
+- implementer はコミットしない。コミットは controller が直接 `git add` + `git commit` で行う
 - 並列タスク実行は行わない (conflicts 回避、git worktree 非使用)
 - `--no-verify`、`--force` push、`reset --hard` などは原典 Red Flags と本リポ `.claude/rules/git-workflow.md` の禁止事項に従う
 - コミットログは英語、その他の会話は日本語 (本リポ既存スキルの規約に従う)
