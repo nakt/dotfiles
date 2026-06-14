@@ -189,8 +189,22 @@ Joined with [customers](/tables/customers.md) on `customer_id`.
 - markdownlint は PostToolUse hook が自動実行するため自分で実行しない。lint フィードバックが来たら Edit で従う
 - 出力はデフォルトで新規ファイル/ディレクトリ。元ファイルの上書きは明示指示があるときのみ
 
-## 参考
+## リファレンスと更新追従
+
+OKF は発展中の仕様。このスキルは下記を一次情報源とし、定期的に追従する。仕様が更新されていたらこのスキルの該当箇所（frontmatter フィールド・慣例見出し・index.md / log.md の書式・適合性条件）を見直す。
+
+- **準拠している版**: OKF v0.1（このドラフト作成時点）
+- **最終確認日**: 2026-06-14
+
+参照 URL（人間が読む用 / 追従チェックの起点）:
 
 - SPEC: <https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md>
 - OKF README（設計思想・enrichment agent・visualizer）: <https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf>
 - 公式サンプルバンドル（ga4 / stackoverflow / crypto_bitcoin）: <https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf/bundles>
+
+再取得用 URL（WebFetch / 差分確認用の raw）:
+
+- SPEC (raw): <https://raw.githubusercontent.com/GoogleCloudPlatform/knowledge-catalog/main/okf/SPEC.md>
+- README (raw): <https://raw.githubusercontent.com/GoogleCloudPlatform/knowledge-catalog/main/okf/README.md>
+
+追従のやり方: 上記 raw URL を取得し、「準拠している版」と本スキルの規約に差分がないか確認する。差分があれば該当セクションと「準拠している版」「最終確認日」を更新する。
