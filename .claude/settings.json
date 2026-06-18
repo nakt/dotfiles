@@ -175,7 +175,8 @@
     "frontend-design@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
-    "codex@openai-codex": false
+    "codex@openai-codex": false,
+    "modern-web-guidance@googlechrome": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
@@ -189,6 +190,12 @@
         "source": "github",
         "repo": "openai/codex-plugin-cc"
       }
+    },
+    "googlechrome": {
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance"
+      }
     }
   },
   "viewMode": "verbose",
@@ -200,5 +207,7 @@
   "effortLevel": "xhigh",
   "plansDirectory": ".claude/plans",
   "autoMemoryEnabled": false,
-  "editorMode": "vim"
+  "skipWorkflowUsageWarning": true,
+  "editorMode": "vim",
+  "model": "claude-opus-4-7"
 }
