@@ -2,10 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1",
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000",
-    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1"
   },
   "attribution": {
     "commit": "",
@@ -197,13 +194,12 @@
       }
     }
   },
-  "viewMode": "verbose",
   "language": "japanese",
   "sandbox": {
     "enabled": false
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "plansDirectory": ".claude/plans",
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
