@@ -203,5 +203,6 @@
   "plansDirectory": ".claude/plans",
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "tui": "fullscreen"
 }
