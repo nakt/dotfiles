@@ -45,6 +45,6 @@
 | record-adr           | 設計・ロジック判断の決定記録(docs/adr)を起票       |
 | update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |
-| wrapup-dispatch      | セッション会話から「やったこと・学び・決定・残課題」と反省・摩擦点(同じ修正の繰り返し / ルール違反)を蒸留し、issue-tracker / record-adr / update-arch / update-readme へ振り分け提案する純粋ルーター |
+| wrapup-dispatch      | セッション会話から「やったこと・学び・決定・残課題」と反省・摩擦点(同じ修正の繰り返し / ルール違反)を抽出・整理し、issue-tracker / record-adr / update-arch / update-readme へ振り分け提案する純粋ルーター |
 | humanize             | AI 生成文章から AI らしさを取り除き自然な日本語に書き換える |
 | marp-style           | Marp Markdown 構造スタイル規約 (見出し階層・スライド構成等、変換ツール非依存・文体非干渉) |
