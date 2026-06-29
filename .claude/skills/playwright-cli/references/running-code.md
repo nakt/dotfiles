@@ -2,21 +2,6 @@
 
 Use `run-code` to execute arbitrary Playwright code for advanced scenarios not covered by CLI commands.
 
-## Table of Contents
-
-- [Syntax](#syntax)
-- [Geolocation](#geolocation)
-- [Permissions](#permissions)
-- [Media Emulation](#media-emulation)
-- [Wait Strategies](#wait-strategies)
-- [Frames and Iframes](#frames-and-iframes)
-- [File Downloads](#file-downloads)
-- [Clipboard](#clipboard)
-- [Page Information](#page-information)
-- [JavaScript Execution](#javascript-execution)
-- [Error Handling](#error-handling)
-- [Complex Workflows](#complex-workflows)
-
 ## Syntax
 
 ```bash
@@ -25,6 +10,15 @@ playwright-cli run-code "async page => {
   // Access page.context() for browser context operations
 }"
 ```
+
+You can also load the function from a file:
+
+```bash
+playwright-cli run-code --filename=./my-script.js
+```
+
+The code must be a single function expression, it is wrapped in `(...)` and evaluated.
+import/export/require syntax is not supported.
 
 ## Geolocation
 
@@ -102,7 +96,7 @@ playwright-cli run-code "async page => {
 
 # Wait for specific element
 playwright-cli run-code "async page => {
-  await page.waitForSelector('.loading', { state: 'hidden' });
+  await page.locator('.loading').waitFor({ state: 'hidden' });
 }"
 
 # Wait for function to return true
@@ -112,7 +106,7 @@ playwright-cli run-code "async page => {
 
 # Wait with timeout
 playwright-cli run-code "async page => {
-  await page.waitForSelector('.result', { timeout: 10000 });
+  await page.locator('.result').waitFor({ timeout: 10000 });
 }"
 ```
 
@@ -137,10 +131,9 @@ playwright-cli run-code "async page => {
 ```bash
 # Handle file download
 playwright-cli run-code "async page => {
-  const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.click('a.download-link')
-  ]);
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Download' }).click();
+  const download = await downloadPromise;
   await download.saveAs('./downloaded-file.pdf');
   return download.suggestedFilename();
 }"
@@ -212,7 +205,7 @@ playwright-cli run-code "async page => {
 # Try-catch in run-code
 playwright-cli run-code "async page => {
   try {
-    await page.click('.maybe-missing', { timeout: 1000 });
+    await page.getByRole('button', { name: 'Submit' }).click({ timeout: 1000 });
     return 'clicked';
   } catch (e) {
     return 'element not found';
@@ -226,9 +219,9 @@ playwright-cli run-code "async page => {
 # Login and save state
 playwright-cli run-code "async page => {
   await page.goto('https://example.com/login');
-  await page.fill('input[name=email]', 'user@example.com');
-  await page.fill('input[name=password]', 'secret');
-  await page.click('button[type=submit]');
+  await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('secret');
+  await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('**/dashboard');
   await page.context().storageState({ path: 'auth.json' });
   return 'Login successful';
