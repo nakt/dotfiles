@@ -41,7 +41,7 @@
 | typescript-dev-guide | TypeScript 開発ガイド                              |
 | python-dev-guide     | Python 開発ガイド                                  |
 | python-refactor      | Python の計測駆動リファクタリング（複雑性削減・コード健全性・共通化・マジックナンバー定数化） |
-| issue-tracker        | 調査・検討結果を Markdown issue として起票し、棚卸し(優先度推定・ピックアップ)と done 化を行う(手動) |
+| issue-tracker        | 調査・検討結果や作業中に見つけた不具合・課題を Markdown issue として起票し、棚卸し(優先度推定・ピックアップ)と done 化を行う(手動 / モデルからの呼び出しも可) |
 | record-adr           | 設計・ロジック判断の決定記録(docs/adr)を起票       |
 | update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |

@@ -1,7 +1,6 @@
 ---
 name: issue-tracker
-description: 調査・検討の結果を 1 ファイル 1 件の Markdown issue として起票し、未完了 issue の棚卸し（一覧・優先度づけ・ピックアップ）と done 化を行うスキル。1 issue = 1 ファイル、ステータスは inbox / done のディレクトリ 2 値のみで表現する。手動 `/issue-tracker` 専用。「この調査結果を issue で起票して」「未完了の issue を棚卸しして優先度が高そうなものをピックアップ」「issue-xxxx を done にして」のように明示的に呼ばれたときだけ動く。GitHub issue の操作（gh issue / API）には使わない。
-disable-model-invocation: true
+description: 調査・検討の結果や、作業中に見つけた不具合・課題・TODO を、1 ファイル 1 件の Markdown issue として `issues/` に起票し、未完了 issue の棚卸し（一覧・優先度づけ・ピックアップ）と done 化を行うスキル。1 issue = 1 ファイル、ステータスは inbox / done のディレクトリ 2 値のみで表現する。「この調査結果を issue で起票して」「未完了の issue を棚卸しして優先度が高そうなものをピックアップ」「issue-xxxx を done にして」のような明示的な依頼のほか、レビューや実装の最中に後回しにすべき不具合・課題を見つけて記録に残したいときにも使う。手動 `/issue-tracker` でも呼べる。GitHub issue の操作（gh issue / API）には使わない。
 argument-hint: "[create|triage|done <id>] または自然文の依頼"
 allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(ls:*), Bash(cat:*), Bash(test:*), Bash(date:*), Bash(mkdir:*), Bash(git mv:*), Bash(git rev-parse:*), Bash(mv:*)
 ---
