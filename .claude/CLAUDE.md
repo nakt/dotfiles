@@ -36,6 +36,7 @@
 | cleanup-files        | 実験ワークスペースとプロジェクト全体の不要ファイル整理 |
 | gemini-research      | Gemini CLI を活用した意見取得・リサーチ             |
 | gpt5-prompting       | GPT-5系モデル向けプロンプト設計のベストプラクティス |
+| fable5-prompting     | Claude Fable 5 / Mythos 5 向けプロンプト設計のベストプラクティス |
 | react-dev-guide      | React 開発ガイド                                   |
 | refactor-code        | コード品質改善のためのリファクタリング             |
 | typescript-dev-guide | TypeScript 開発ガイド                              |
