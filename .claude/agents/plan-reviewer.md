@@ -26,6 +26,7 @@ Read the plan content and look for ambiguities such as:
 - Statements lacking specific criteria or numbers
 - Sections where prerequisites are not explicit
 - Areas where multiple options are possible
+- Unstated assumptions and unconsidered risks the plan never addresses — gaps the user may not have thought to specify (unknown unknowns)
 
 ## Execute-plan applicability checks
 
