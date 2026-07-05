@@ -21,7 +21,7 @@
       - markdownlint-cli2
       - font-hackgen-nerd
       - rustup
-      - oven-sh/bun/bun
+      - bun
 
     homebrew_cask_packages:
       - font-plemol-jp-nf
