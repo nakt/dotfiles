@@ -28,7 +28,6 @@
       - google-chrome
       - slack
       - iterm2
-      - docker
       - orbstack
       - visual-studio-code
       - cyberduck
@@ -38,8 +37,7 @@
       - chatgpt
       - claude
       - lm-studio
-      - gemini-cli
-      - ghostty
+
 
   tasks:
     - name: Install and update Homebrew packages
