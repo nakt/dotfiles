@@ -41,6 +41,7 @@ argument-hint: "[plan-file-path]"
 - post-implementation review: 実装完了後に別の fresh subagent でレビュー (仕様適合 + 品質を 1 段で統合)
 - continuous execution: タスク間で人に確認しない。停止は BLOCKED / 解消不能な ambiguity / 全タスク完了の 3 つに限る
 - controller がコンテキストを curate: implementer に plan ファイルを読ませず、controller が必要な全文を prompt に貼って渡す
+- 委譲の切り分けは `.claude/rules/subagent-delegation.md` に従う: 実装は fresh subagent に散らすが、implementer / reviewer は判断寄りロールなので物差し (Acceptance criteria・レビュー観点) を必ず渡す。設計採否など複数の妥当な選択肢がある判断は subagent に決めさせず controller / ユーザーへエスカレーションさせる (判断は親が握る)
 
 ## ワークフロー
 
@@ -169,5 +170,6 @@ implementer subagent は 4 種の status で報告する。
 
 ## References
 
+- `.claude/rules/subagent-delegation.md`: 委譲の切り分け原則 (探索は散らす / 判断は親が握る / 切るなら物差しは残す)
 - `references/implementer-prompt.md`: implementer subagent 用テンプレート
 - `references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
