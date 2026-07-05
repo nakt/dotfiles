@@ -19,6 +19,7 @@
 | -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
 | workspace-management | All files               | .workspace ディレクトリの運用ルール            | @~/.claude/rules/workspace-management.md  |
 | git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | @~/.claude/rules/git-workflow.md          |
+| subagent-delegation  | All files               | サブエージェント委譲の切り分け（探索は散らす・判断は親が握る） | @~/.claude/rules/subagent-delegation.md   |
 | markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | @~/.claude/rules/markdown-style.md        |
 | plan-files           | `**/.claude/plans/*.md` | プラン作成後の検証ワークフロー                  | @~/.claude/rules/plan-files.md            |
 | python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
