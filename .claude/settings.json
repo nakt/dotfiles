@@ -103,6 +103,7 @@
       "Bash(gh pr merge *)"
     ]
   },
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -203,8 +204,8 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "plansDirectory": ".claude/plans",
+  "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
-  "editorMode": "vim",
-  "tui": "fullscreen"
+  "editorMode": "vim"
 }
