@@ -10,6 +10,8 @@
 !nvim/**
 !zsh/
 !zsh/*.zsh
+!zsh/completion/
+!zsh/completion/.gitkeep
 !.gitignore
 !ccstatusline/
 !ccstatusline/settings.json
