@@ -54,14 +54,12 @@ the home directory. The Prezto clone at `~/.zprezto` is kept pristine and only
 sourced via `init.zsh`, so `make update` can pull upstream changes without
 conflicts.
 
-<!-- START makefile-doc -->
-```text
-$ make help
-clean                          Cleanup all configuration and tools
-deploy                         Create symbolic link to home directory
-install                        Execute prep, deploy, setting
-prep                           Prepare tools before setup
-setting                        Execute optional setup script
-update                         Update all tools
-```
-<!-- END makefile-doc -->
+## Make Targets
+
+Run `make help` to list the available targets.
+
+- `prep` - Clone Prezto, tpm, and Nord modules
+- `deploy` - Symlink the repo's dotfiles into the home directory
+- `install` - Run `prep` and `deploy`
+- `update` - Pull updates for the repo and cloned tools
+- `clean` - Remove the deployed dotfiles and cloned tools
