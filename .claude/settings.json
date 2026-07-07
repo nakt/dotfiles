@@ -103,7 +103,7 @@
       "Bash(gh pr merge *)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-opus-4-7",
   "hooks": {
     "PreToolUse": [
       {
