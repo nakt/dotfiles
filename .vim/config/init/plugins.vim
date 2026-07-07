@@ -23,3 +23,8 @@ Plug 'preservim/nerdtree'
 Plug 'mechatroner/rainbow_csv'
 Plug 'easymotion/vim-easymotion'
 call plug#end()
+
+" 未インストールのプラグインがあれば初回起動時に自動インストールする
+if !empty(filter(copy(g:plugs), '!isdirectory(v:val.dir)'))
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
