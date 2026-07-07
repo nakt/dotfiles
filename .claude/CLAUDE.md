@@ -9,11 +9,9 @@
 ## 構造
 
 - Rules (`~/.claude/rules/`): 各ルールの質的な定義。下表の「常時参照」列で `@` import されたもののみが実際に読み込まれ、それ以外はスキル呼び出し用のポインタ中間ファイル
-- Skills (`~/.claude/skills/`): YAML frontmatter の description でトリガー判定、`/name` で手動呼び出しも可能
+- Skills (`~/.claude/skills/`): YAML frontmatter の description でトリガー判定、`/name` で手動呼び出しも可能。一覧は `~/.claude/skills/` の実体を正典とし、CLAUDE.md 側に台帳は置かない
 
 ## 利用可能な Rules
-
-常時参照列に `@path` が書かれているルールは、Claude Code の `@` import でグローバルメモリに取り込まれる。専用スキルへのポインタに留めるルールは空欄 (—)。
 
 | Rule                 | 対象                    | 説明                                          | 常時参照                                |
 | -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
@@ -24,28 +22,3 @@
 | python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
 | react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | —                                         |
 | typescript-coding    | `**/*.ts`, `**/*.tsx`   | → `/typescript-dev-guide` スキルへのポインタ   | —                                         |
-
-## 利用可能な Skills
-
-| Skill                | 用途                                               |
-| -------------------- | -------------------------------------------------- |
-| commit               | 変更を分析し適切な粒度でコミット                   |
-| execute-plan         | 承認済みプランを fresh subagent で実装 → レビュー → コミットの per-task 連続実行 |
-| github-repo-create   | GitHub リポジトリの新規作成（ヒアリング→作成→検証） |
-| pr-merge             | PR 作成・マージ（push→PR→マージ→ブランチ掃除）     |
-| cleanup-files        | 実験ワークスペースとプロジェクト全体の不要ファイル整理 |
-| gemini-research      | Gemini CLI を活用した意見取得・リサーチ             |
-| gpt5-prompting       | GPT-5系モデル向けプロンプト設計のベストプラクティス |
-| fable5-prompting     | Claude Fable 5 / Mythos 5 向けプロンプト設計のベストプラクティス |
-| react-dev-guide      | React 開発ガイド                                   |
-| refactor-code        | コード品質改善のためのリファクタリング             |
-| typescript-dev-guide | TypeScript 開発ガイド                              |
-| python-dev-guide     | Python 開発ガイド                                  |
-| python-refactor      | Python の計測駆動リファクタリング（複雑性削減・コード健全性・共通化・マジックナンバー定数化） |
-| issue-tracker        | 調査・検討結果や作業中に見つけた不具合・課題を Markdown issue として起票し、棚卸し(優先度推定・ピックアップ)と done 化を行う(手動 / モデルからの呼び出しも可) |
-| record-adr           | 設計・ロジック判断の決定記録(docs/adr)を起票       |
-| update-arch          | アーキテクチャドキュメント(docs/arch)の更新・初期化 |
-| update-readme        | プロジェクト構造分析による README.md 生成・更新     |
-| wrapup-dispatch      | セッション会話から「やったこと・学び・決定・残課題」と反省・摩擦点(同じ修正の繰り返し / ルール違反)を抽出・整理し、issue-tracker / record-adr / update-arch / update-readme へ振り分け提案する純粋ルーター |
-| humanize             | AI 生成文章から AI らしさを取り除き自然な日本語に書き換える |
-| marp-style           | Marp Markdown 構造スタイル規約 (見出し階層・スライド構成等、変換ツール非依存・文体非干渉) |
