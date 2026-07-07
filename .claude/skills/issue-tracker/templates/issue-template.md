@@ -4,7 +4,7 @@ title: {title}
 created: {created}
 updated: {updated}
 priority:            # high|med|low、任意。無ければ棚卸し時に推定される
-tags: []
+tags: []             # 自由。特殊タグ `hold` は「今はやらない」表明で triage 候補から外れる
 related: []          # 関連 issue の id（パスではなく id で参照する）
 sources: []          # 調査で参照した URL / ファイルパス
 ---
