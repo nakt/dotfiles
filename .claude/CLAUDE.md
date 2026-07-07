@@ -48,4 +48,5 @@
 | update-readme        | プロジェクト構造分析による README.md 生成・更新     |
 | wrapup-dispatch      | セッション会話から「やったこと・学び・決定・残課題」と反省・摩擦点(同じ修正の繰り返し / ルール違反)を抽出・整理し、issue-tracker / record-adr / update-arch / update-readme へ振り分け提案する純粋ルーター |
 | humanize             | AI 生成文章から AI らしさを取り除き自然な日本語に書き換える |
+| claude-config-audit  | Claude Code 設定群(CLAUDE.md / rules / skills / agents)の棚卸しと是正。継ぎ足しで蓄積した重複・矛盾・競合・陳腐化・死蔵を検出し、証拠付き報告→承認→是正→検証の順で実行 |
 | marp-style           | Marp Markdown 構造スタイル規約 (見出し階層・スライド構成等、変換ツール非依存・文体非干渉) |
