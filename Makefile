@@ -8,9 +8,10 @@ DOTFILES   := $(filter-out $(EXCLUSIONS), $(CANDIDATES))
 BACKUP_DIR := $(HOME)/.dotfiles_backup
 
 # prezto Settings
-# runcoms (.zshrc etc.) are repo-owned top-level dotfiles linked via DOTFILES.
-# The clone is kept pristine and only sourced through init.zsh.
+# .zshrc is repo-owned (linked via DOTFILES); the other runcoms are symlinked
+# from the pristine Prezto clone by the deploy target.
 PREZTO_PATH := ~/.zprezto
+PREZTO_RUNCOMS := zlogin zlogout zpreztorc zprofile zshenv
 
 # Nord
 NORD_DIRCOLORS_PATH := $(DOTPATH)/modules/nord-dircolors
@@ -37,7 +38,7 @@ update: ## Update all tools
 	@ git -C $(PREZTO_PATH) submodule update --init --recursive
 
 deploy: ## Create symbolic link to home directory
-	@ for val in $(DOTFILES) .dir_colors; do \
+	@ for val in $(DOTFILES) .dir_colors $(addprefix .,$(PREZTO_RUNCOMS)); do \
 	    dst=$(HOME)/$$val; \
 	    if [ -e "$$dst" ] && [ ! -L "$$dst" ]; then \
 	      mkdir -p $(BACKUP_DIR); \
@@ -47,6 +48,7 @@ deploy: ## Create symbolic link to home directory
 	  done
 	@ $(foreach val, $(DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/$(val);)
 	@ ln -sfnv $(NORD_DIRCOLORS_PATH)/src/dir_colors $(HOME)/.dir_colors
+	@ $(foreach val, $(PREZTO_RUNCOMS), ln -sfnv $(PREZTO_PATH)/runcoms/$(val) $(HOME)/.$(val);)
 
 install: prep deploy ## Execute prep, deploy
 	@ exec $$SHELL
@@ -54,5 +56,6 @@ install: prep deploy ## Execute prep, deploy
 clean: ## Cleanup all configuration and tools
 	@ echo 'Remove dot files...'
 	@ $(foreach val, $(DOTFILES), rm -vrf $(HOME)/$(val);)
+	@ $(foreach val, $(PREZTO_RUNCOMS), rm -vf $(HOME)/.$(val);)
 	rm -rf $(PREZTO_PATH)
 	rm -f ${HOME}/.dir_colors

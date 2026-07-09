@@ -12,7 +12,7 @@ Personal dotfiles repository for managing shell, editor, and development tool co
 - `.tmux.conf` - tmux configuration
 - `.vim/` - Vim configuration directory
 - `.vimrc` - Vim configuration file
-- `.zshrc`, `.zpreztorc`, `.zprofile`, `.zshenv`, `.zlogin`, `.zlogout` - zsh (Prezto) runcoms
+- `.zshrc` - zsh runcom (sources Prezto and `~/.config/zsh/*.zsh`)
 
 ## Setup Instructions
 
@@ -48,11 +48,6 @@ make install
 When `deploy` finds a pre-existing real file where a symlink should go, it moves
 that file to `~/.dotfiles_backup/` before linking, so nothing is overwritten
 silently.
-
-The zsh runcoms (`.zshrc` etc.) are owned by this repository and symlinked into
-the home directory. The Prezto clone at `~/.zprezto` is kept pristine and only
-sourced via `init.zsh`, so `make update` can pull upstream changes without
-conflicts.
 
 ## Make Targets
 
