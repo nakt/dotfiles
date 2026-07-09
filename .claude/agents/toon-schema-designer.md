@@ -1,5 +1,5 @@
 ---
-name: toon-encoder
+name: toon-schema-designer
 description: Designs optimal TOON schemas for LLM input data. Use when implementing data-to-TOON conversion pipelines, designing token-efficient data formats for prompts, or need advice on structuring data for LLM consumption.
 tools: Read, Write, Edit, Glob, Grep
 model: inherit

@@ -18,7 +18,7 @@
 | workspace-management | All files               | .workspace ディレクトリの運用ルール            | @~/.claude/rules/workspace-management.md  |
 | git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | @~/.claude/rules/git-workflow.md          |
 | markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | @~/.claude/rules/markdown-style.md        |
-| plan-files           | `**/.claude/plans/*.md` | プランの記述形式と検証ワークフロー              | @~/.claude/rules/plan-files.md            |
+| plan-files           | `**/.claude/plans/*.md` | プランの承認用構成と検証ワークフロー            | @~/.claude/rules/plan-files.md            |
 | python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
 | react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | —                                         |
 | typescript-coding    | `**/*.ts`, `**/*.tsx`   | → `/typescript-dev-guide` スキルへのポインタ   | —                                         |

@@ -63,12 +63,12 @@ argument-hint: "[plan-file-path]"
 ### Phase 2: タスク抽出と TaskList 作成
 
 1. 抽出規則 (優先度順):
-   - `## 実装タスク` 配下の `### Task N: ...` 見出し (推奨形式)
+   - `## 実装タスク` 配下の `### Task N: ...` 見出し (推奨形式。詳細は references/task-format.md を参照)
    - `- [ ]` 形式の TaskList
    - 番号付きリスト (`1.`, `2.`, ...)
 2. 各タスクから以下を controller のメモリに保持:
    - タスク全文 (本文をそのまま)
-   - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合)
+   - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は references/task-format.md を参照)
    - 複雑度ヒント (対象ファイル数 / Context 長さ / criteria の主観性)
 3. `TaskCreate` で抽出した各タスクを登録
 4. バッチ算出規則を用意する。Phase 3 はこの規則で残タスクから 1 バッチずつ選んで処理する
@@ -171,3 +171,4 @@ implementer subagent は 4 種の status で報告する。
 
 - `references/implementer-prompt.md`: implementer subagent 用テンプレート
 - `references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
+- `references/task-format.md`: 実装タスクの記述形式と controller 側の抽出規則
