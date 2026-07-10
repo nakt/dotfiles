@@ -24,7 +24,7 @@ Analyze uncommitted files and commit logically related changes with appropriate 
    - If Branch is `main`:
      a. Analyze the status and diff summary above
      b. Infer branch name: `type/short-description` format
-        - Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
+        - Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`
         - Description: lowercase, hyphen-separated
         - Examples: `feat/add-login-page`, `fix/null-pointer-error`
      c. Create and switch: `git checkout -b {branch-name}`
@@ -32,6 +32,8 @@ Analyze uncommitted files and commit logically related changes with appropriate 
    - If not on `main`: proceed without changes
 3. Categorize changes into logical groups
 4. Commit with appropriate granularity
+   - Message format: `<type>: <description>` (same types as above)
+   - Explain why the change was made, not what was changed
 5. Check pre-commit hook updates (if `.pre-commit-config.yaml` exists in the project root)
    - Run `pre-commit autoupdate`
    - If the config was updated, commit the change separately:
