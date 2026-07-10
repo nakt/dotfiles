@@ -99,7 +99,7 @@ disable-model-invocation: true
 - 手順の列挙は、結果が仕様として固定されている場合（外部規格の出力フォーマット、固定されたツール連携順序）に限られているか
 - 要約や Key Principles の類のセクションが本文の再掲になっていないか
 - frontmatter が用途と整合しているか:
-  - `allowed-tools` と本文要求の突き合わせ。不足（本文の手順や Current state の `` !`cmd` `` が要求する操作の未宣言 = 実行時権限プロンプトの原因）/ 過剰（本文に使い道のない宣言）/ 書式（Bash は `Bash(cmd:*)` のコロン式、非 Bash ツールは素の形式、エントリのスペース区切りは排除）
+  - `allowed-tools` と本文要求の突き合わせ。不足（本文の手順や Current state 記法（感嘆符 + バッククォート囲みコマンド）が要求する操作の未宣言 = 実行時権限プロンプトの原因）/ 過剰（本文に使い道のない宣言）/ 書式（Bash は `Bash(cmd:*)` のコロン式、非 Bash ツールは素の形式、エントリのスペース区切りは排除）
   - `disable-model-invocation` と description の整合。自動発火を促す description の文面と手動専用フラグ（`disable-model-invocation: true`）の矛盾を検出する
 
 ### agents/
