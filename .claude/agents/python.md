@@ -1,7 +1,7 @@
 ---
 name: python
 description: Python architect providing design decisions, pattern selection, and trade-off analysis
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Glob, Grep
 color: blue
 ---
 
