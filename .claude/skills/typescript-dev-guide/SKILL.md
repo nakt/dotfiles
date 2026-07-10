@@ -14,7 +14,8 @@ bun + Biome を標準とする。
 
 ```bash
 bun init
-bun add -d @biomejs/biome
+# package.json の devDependencies に @biomejs/biome を追記してから
+bun install
 bun run biome init
 ```
 
@@ -68,6 +69,11 @@ bun run test                   # テスト実行
 ```
 
 ## Rules
+
+### パッケージ追加
+
+- `bun add xxx` でパッケージを追加しない
+- `package.json` を直接編集し、`bun install` で反映する
 
 ### サプライチェーン対策
 
