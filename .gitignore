@@ -71,6 +71,9 @@ override.tf.json
 .workspace/
 .claude/worktrees/
 
+# Local issue tracker (issue-tracker skill)
+issues/
+
 # Gemini (keep directory but ignore contents)
 .gemini/*
 !.gemini/.gitkeep
