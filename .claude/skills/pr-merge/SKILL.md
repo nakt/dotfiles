@@ -10,6 +10,7 @@ effort: low
 allowed-tools:
   - Bash(git:*)
   - Bash(gh:*)
+  - Bash(cat:*)
   - AskUserQuestion
 ---
 

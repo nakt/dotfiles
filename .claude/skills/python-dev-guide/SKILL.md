@@ -8,7 +8,6 @@ allowed-tools:
   - Bash(uv:*)
   - Bash(git:*)
   - Bash(mkdir:*)
-  - Bash(ls:*)
 ---
 
 # Python Development Guide

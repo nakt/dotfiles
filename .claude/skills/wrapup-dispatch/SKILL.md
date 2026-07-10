@@ -2,7 +2,7 @@
 name: wrapup-dispatch
 description: 長いセッションの終わりに、会話履歴から「やったこと・学び・決定・残すべき課題」と「反省・摩擦点(同じ修正の繰り返し / CLAUDE.md・rules を守れなかった場面)」を抽出・構造化し、既存のドキュメント化スキル(issue-tracker / record-adr / update-arch / update-readme)へ振り分け提案するルーター。自身は保存先を持たず、実体は各スキルに委譲する。「セッションをまとめて」「ラップアップして」「今日のセッションを振り返って記録に残して」「wrapup-dispatch」のような依頼、または長いセッションの区切りで使う。GitHub PR/issue の操作には使わない。
 argument-hint: "[なし] または振り返り範囲のヒント"
-allowed-tools: Read(*), Glob(*), Grep(*), Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git status:*), Bash(git log:*), Bash(git diff:*)
+allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(echo:*)
 ---
 
 # Wrapup Dispatch

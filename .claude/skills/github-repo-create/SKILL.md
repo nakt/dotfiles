@@ -11,6 +11,8 @@ allowed-tools:
   - Bash(git:*)
   - Bash(bash:*)
   - Bash(ls:*)
+  - Bash(jq:*)
+  - Bash(grep:*)
   - Read
 ---
 

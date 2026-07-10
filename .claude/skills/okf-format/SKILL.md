@@ -1,7 +1,7 @@
 ---
 name: okf-format
 description: 渡された Markdown を Google の OKF (Open Knowledge Format) の構造・フォーマットに整理するスキル。単一の .md ファイルを OKF concept document（YAML frontmatter + 慣例見出し）に整形するモードと、ディレクトリ全体を OKF バンドル（index.md / log.md / 概念ドキュメント群 + バンドル相対リンク）に整理するモードを持つ。ユーザーが「この .md を OKF にして」「OKF 形式で整理して」「OKF バンドルにまとめて」「Open Knowledge Format に変換して」と言ったとき、または知識を frontmatter 付きの可搬な Markdown 知識カタログとして構造化したいときに使用する。既存の内容を再構成・メタデータ付与するのみで、事実の捏造はしない。
-allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Bash(ls:*), Bash(find:*), Bash(head:*)
+allowed-tools: Read, Glob, Grep, Write, Edit
 ---
 
 # OKF Format
