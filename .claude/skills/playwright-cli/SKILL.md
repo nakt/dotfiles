@@ -1,7 +1,7 @@
 ---
 name: playwright-cli
-description: Automate browser interactions, test web pages and work with Playwright tests.
-allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
+description: playwright-cli を使ってブラウザを自動操作し、Web ページの動作確認や Playwright テストの実行・デバッグを行うスキル。ユーザーが「ブラウザを自動操作して」「Web ページをテストして」「Playwright テストを実行して」「E2E テストを書いて/実行して」のように言ったときに使用する。
+allowed-tools: Bash(playwright-cli:*), Bash(npx:*), Bash(npm:*), Bash(jq:*), Bash(diff:*)
 ---
 
 # Browser Automation with playwright-cli
