@@ -1,10 +1,12 @@
 ---
 name: react-dev-guide
 description: bun + Vite + Biome を使った React 開発の支援スキル。プロジェクト固有の構成、コーディング規約、推奨ツールのガイドラインを提供する。React プロジェクトの新規作成、コンポーネント設計方針の確認、状態管理・スタイリング・テスト等の技術選定、Biome 設定やプロジェクト構成の整備に使用する。
-allowed-tools: Write(*), Read(*), Glob(*), Edit(*), Bash(bun:*), Bash(git:*), Bash(mkdir:*), Bash(ls:*)
+allowed-tools: Write, Read, Glob, Edit, Bash(bun:*), Bash(npx:*)
 ---
 
 # React Development Guide
+
+.tsx では typescript-dev-guide と react-dev-guide の両方が適用され、矛盾する場合は react-dev-guide を優先する。
 
 ## Tech Stack
 

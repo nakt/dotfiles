@@ -3,8 +3,7 @@ name: github-repo-create
 description: >-
   GitHub リポジトリの新規作成スキル。プロジェクト内容をヒアリングしてリポジトリ名・description を提案し、
   gitignore を選択して gh repo create で作成する。作成後に verify-repo.sh で visibility と default branch の検証を行う。
-  ユーザーが「リポジトリを作って」「GitHub リポ作成」「gh repo create」「新しいプロジェクトを始めたい」
-  「リポを作りたい」と言ったときに使用する。プロジェクト新規作成の文脈でも積極的に使用すること。
+  `/github-repo-create` で手動起動する。
 disable-model-invocation: true
 allowed-tools:
   - Bash(gh:*)
@@ -12,6 +11,8 @@ allowed-tools:
   - Bash(git:*)
   - Bash(bash:*)
   - Bash(ls:*)
+  - Bash(jq:*)
+  - Bash(grep:*)
   - Read
 ---
 
@@ -135,7 +136,7 @@ local directory FAIL: `ghq get {owner}/{repo_name}` をリトライする。
 
 | 言語 | スキル |
 |------|--------|
-| Python | `/python-init` で初期セットアップ可能 |
+| Python | `/python-dev-guide` でガイド参照可能 |
 | React | `/react-dev-guide` でガイド参照可能 |
 | TypeScript | `/typescript-dev-guide` でガイド参照可能 |
 

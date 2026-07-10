@@ -1,7 +1,7 @@
 ---
 name: gpt5-prompting
 description: GPT-5/GPT-5.1/GPT-5.2/GPT-5.3 Codex/GPT-5.4/GPT-5.5 向けプロンプト設計の支援スキル。references/ 内のバージョン別ガイド（common.md / gpt-5-series.md / gpt-5-3-codex.md / gpt-5-4.md / gpt-5-5.md）をリファレンスとして参照し、レビュー・ドラフティング・アドバイスを行う。GPT-5 系モデル向けプロンプトの新規作成、既存プロンプトの最適化・移行、reasoning_effort/verbosity/phase 等のパラメータ設定検討、エージェント的ワークフローの積極性調整、outcome-first 構造への移行、ツール多用フローでの phase 設計、プロンプトが期待通りに動かない場合の原因特定に使用する。
-allowed-tools: Read(*)
+allowed-tools: Read
 ---
 
 # GPT-5 系プロンプティングガイド

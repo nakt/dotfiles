@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Use this agent PROACTIVELY after creating or updating any plan file under .claude/plans/. Validates plan completeness and clarifies ambiguities with the user via AskUserQuestion.
+description: Use this agent PROACTIVELY after creating or updating any plan file under .claude/plans/. Validates plan completeness and clarifies ambiguities with the user via AskUserQuestion. For adversarial, independent plan audits, use the /plan-audit skill (manual invocation only).
 tools: Read, Glob, Grep, AskUserQuestion
 color: blue
 ---
@@ -14,7 +14,7 @@ Read the plan content and extract ambiguous sections to clarify with the user.
 3. Extract ambiguous sections from the content
 4. Clarify with AskUserQuestion (provide concrete options + pros/cons)
 5. Record decisions
-6. Update the plan
+6. Return the decisions to the caller — the caller updates the plan file
 7. Re-check for new ambiguities (repeat until all are resolved)
 
 ## Extracting Ambiguities
@@ -69,4 +69,4 @@ Plan review complete
 - Concrete options: Avoid open-ended questions, provide 2-4 options
 - Include pros/cons: Show advantages/disadvantages for each option
 - Iterative checking: Re-check for new ambiguities after each decision
-- Update the plan: Reflect decisions in the plan file
+- Return decisions to the caller: This agent does not edit the plan file itself; the caller reflects decisions in the plan file

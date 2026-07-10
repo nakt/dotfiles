@@ -1,10 +1,12 @@
 ---
 name: typescript-dev-guide
 description: bun + Biome を使った TypeScript 開発の支援スキル。プロジェクト固有の構成、型設計方針、コーディング規約のガイドラインを提供する。TypeScript プロジェクトの新規作成、tsconfig.json の設定、型設計パターン（Result 型、Zod バリデーション等）の確認、Biome 設定やプロジェクト構成の整備に使用する。
-allowed-tools: Write(*), Read(*), Glob(*), Edit(*), Bash(bun:*), Bash(git:*), Bash(mkdir:*), Bash(ls:*)
+allowed-tools: Write, Read, Glob, Edit, Bash(bun:*)
 ---
 
 # TypeScript Development Guide
+
+.tsx では typescript-dev-guide と react-dev-guide の両方が適用され、矛盾する場合は react-dev-guide を優先する。
 
 ## Tech Stack
 
@@ -14,7 +16,8 @@ bun + Biome を標準とする。
 
 ```bash
 bun init
-bun add -d @biomejs/biome
+# package.json の devDependencies に @biomejs/biome を追記してから
+bun install
 bun run biome init
 ```
 
@@ -68,6 +71,11 @@ bun run test                   # テスト実行
 ```
 
 ## Rules
+
+### パッケージ追加
+
+- `bun add xxx` でパッケージを追加しない
+- `package.json` を直接編集し、`bun install` で反映する
 
 ### サプライチェーン対策
 

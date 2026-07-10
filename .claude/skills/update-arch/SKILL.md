@@ -2,7 +2,7 @@
 name: update-arch
 description: アーキテクチャドキュメント(docs/arch)の更新・初期化スキル。コード変更時に処理概要・処理フロー・データフローのドキュメント更新要否を判断し、必要に応じて更新する。docs/arch が存在しないプロジェクトでは初期化を行う。ユーザーがアーキテクチャドキュメントの作成・更新を求めたとき、または git commit 時の Hook から呼び出されたときに使用する。
 argument-hint: "[target directory]"
-allowed-tools: Read(*), Glob(*), Grep(*), Write(*), Edit(*), Bash(git:*), Bash(ls:*), Bash(test:*)
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash(git:*), Bash(test:*), Bash(echo:*)
 ---
 
 # Update Architecture Docs

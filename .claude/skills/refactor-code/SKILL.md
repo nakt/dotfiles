@@ -3,7 +3,7 @@ name: refactor-code
 description: コード品質を改善するリファクタリングスキル。コメント整理、構造改善、未使用コード削除、テスト実行を6フェーズで実施する。ユーザーが「リファクタリングして」「コードを整理して」「コード品質を改善して」と言ったとき、またはコードレビュー後の改善作業に使用する。
 argument-hint: "[file or directory]"
 effort: high
-allowed-tools: Read(*), Glob(*), Grep(*), Edit(*), Bash(find:*), Bash(grep:*), Bash(git:*), Bash(ls:*), Bash(pytest:*), Bash(npm:*), Bash(cargo:*)
+allowed-tools: Read, Glob, Grep, Edit, Bash(find:*), Bash(grep:*), Bash(git:*), Bash(ls:*), Bash(pytest:*), Bash(npm:*), Bash(cargo:*), Bash(go:*)
 ---
 
 # Refactor Code

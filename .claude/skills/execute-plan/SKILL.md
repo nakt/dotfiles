@@ -16,6 +16,9 @@ allowed-tools:
   - Bash(git add:*)
   - Bash(git commit:*)
   - Bash(git checkout:*)
+  - Bash(ls:*)
+  - Bash(head:*)
+  - Bash(echo:*)
   - TaskCreate
   - TaskUpdate
   - TaskList

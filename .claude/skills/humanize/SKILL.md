@@ -3,7 +3,7 @@ name: humanize
 description: AI が生成した日本語文章から「AI らしさ」を取り除き、人間が落ち着いて書いたような自然な日本語に書き直すスキル。手動でのみ呼び出すことを想定（disable-model-invocation）。会話に貼り付けたテキスト本文を対象にするか、ファイルパスを `$ARGUMENTS` で渡す。
 disable-model-invocation: true
 argument-hint: "[file path] (省略時は会話に貼られた文章を対象にする)"
-allowed-tools: Read(*), Write(*), Edit(*)
+allowed-tools: Read, Write, Edit
 ---
 
 # Humanize

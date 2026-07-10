@@ -1,7 +1,7 @@
 ---
 name: fable5-prompting
 description: Claude Fable 5 / Mythos 5 向けプロンプト設計の支援スキル。references/ 内のガイド（common.md / fable-5.md / parameters.md）をリファレンスとして参照し、レビュー・ドラフティング・アドバイスを行う。Claude Fable 5 / Mythos 5 向けプロンプトの新規作成、既存プロンプト（他モデル・GPT 系含む）からの移行・最適化、effort/adaptive thinking/max_tokens 等のパラメータ設定検討、長時間 autonomous run のスキャフォールディング設計、サブエージェント委譲・メモリシステム・send-to-user ツールの設計、refusal/fallback 対応、reasoning_extraction を避けるプロンプト監査、プロンプトが期待通りに動かない場合の原因特定に使用する。
-allowed-tools: Read(*)
+allowed-tools: Read
 ---
 
 # Claude Fable 5 / Mythos 5 プロンプティングガイド
