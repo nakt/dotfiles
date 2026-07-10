@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: Gemini CLI を活用してプラン、コード、設計、アイデアなどに対するセカンドオピニオンを取得するエージェント
+description: Gemini CLI を活用してプラン、コード、設計、アイデアなどに対するセカンドオピニオンを取得するエージェント。軽量な意見取得・ウェブ調査は gemini-research スキルを使う。
 tools: Bash, Read, Glob, Grep
 color: green
 ---

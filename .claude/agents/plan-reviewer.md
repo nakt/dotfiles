@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Use this agent PROACTIVELY after creating or updating any plan file under .claude/plans/. Validates plan completeness and clarifies ambiguities with the user via AskUserQuestion.
+description: Use this agent PROACTIVELY after creating or updating any plan file under .claude/plans/. Validates plan completeness and clarifies ambiguities with the user via AskUserQuestion. For adversarial, independent plan audits, use the /plan-audit skill (manual invocation only).
 tools: Read, Glob, Grep, AskUserQuestion
 color: blue
 ---
