@@ -6,6 +6,8 @@ allowed-tools: Write(*), Read(*), Glob(*), Edit(*), Bash(bun:*), Bash(git:*), Ba
 
 # TypeScript Development Guide
 
+.tsx では typescript-dev-guide と react-dev-guide の両方が適用され、矛盾する場合は react-dev-guide を優先する。
+
 ## Tech Stack
 
 bun + Biome を標準とする。
