@@ -39,9 +39,6 @@ Analyze uncommitted files and commit logically related changes with appropriate 
    - If the config was updated, commit the change separately:
      `git add .pre-commit-config.yaml && git commit -m "chore: update pre-commit hooks"`
    - If no updates were made, skip silently
-6. Consider updating project memory
-   - Consider adding important policy changes, technical challenges, and solutions to `.workspace/knowledge/`
-   - Accumulate knowledge that leads to improved implementation quality and development efficiency in the future
 
 ## Constraints
 

@@ -62,6 +62,7 @@ argument-hint: "[plan-file-path]"
 7. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)
    - クリーン → 続行
    - 未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクのレビュー差分 (`PRE_BATCH_BASE` からのパス限定差分) に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
+8. 権限モードの案内: 実装開始前に、acceptEdits モード (`shift+tab` で切替) への切り替えをユーザーに 1 度だけ案内する。理由: implementer subagent の Edit / Write が権限プロンプトで拒否されると自律実行が中断し、連続実行というスキルの狙いが崩れるため。案内後は返答を待たずに続行してよい (切り替えなくても実行は可能だが、Edit ごとに確認が発生しうる)
 
 ### Phase 2: タスク抽出と TaskList 作成
 

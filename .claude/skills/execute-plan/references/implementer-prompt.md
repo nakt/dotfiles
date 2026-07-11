@@ -32,7 +32,7 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 3. 自己レビュー (下記観点)
 4. controller に報告する
 
-コミットはしないでください。 コミットは controller 側が `/commit` スキル経由で行います。あなたが `git add` / `git commit` を実行する必要はありません。
+コミットはしないでください。 コミットは controller 側が直接 `git add` + `git commit` で行います。あなたが `git add` / `git commit` を実行する必要はありません。
 
 ## Code Organization
 
