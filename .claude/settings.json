@@ -103,7 +103,7 @@
       "Bash(gh pr merge *)"
     ]
   },
-  "model": "claude-opus-4-7",
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
