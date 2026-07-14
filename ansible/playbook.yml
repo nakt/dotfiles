@@ -22,6 +22,7 @@
       - font-hackgen-nerd
       - rustup
       - bun
+      - glow
 
     homebrew_cask_packages:
       - font-plemol-jp-nf
