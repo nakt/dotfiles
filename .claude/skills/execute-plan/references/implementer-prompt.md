@@ -29,10 +29,22 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 
 1. タスク仕様に従って実装する
 2. テスト (タスクで要求されていれば、または該当箇所のテストが存在すれば) を書く / 実行する
-3. 自己レビュー (下記観点)
-4. controller に報告する
+3. 対象ファイルに対する lint / hook を対象ファイル明示で実行する (下記「lint / hook self-check」)
+4. 自己レビュー (下記観点)
+5. controller に報告する
 
 コミットはしないでください。 コミットは controller 側が直接 `git add` + `git commit` で行います。あなたが `git add` / `git commit` を実行する必要はありません。
+
+### lint / hook self-check
+
+以下の原則に従って対象ファイルに対する lint / formatter / hook を回す。言語別の具体的な検出コマンド・実行コマンドは `references/lint-per-language.md` を参照する (Python と TypeScript / JavaScript の 2 系統を収録)。
+
+1. 対象リポの言語系統を判定する (系統検出ファイルの存在確認)
+2. 対象言語のフォーマッタ / linter / hook 設定ファイルが存在するかを検出する
+3. 設定がある場合のみ、対象ファイル明示で fix → check の 2 段 (例: format → format --check) と linter を実行する。パッケージマネージャの run 前置が必要ならそれに従う
+4. リポ全体に対する `--check` (例: `format --check .`) だけで判断しない。他ファイルの pass に紛れて自分の編集ファイルの fail を見落とす摩擦の再発防止
+5. 検出条件がすべて偽なら本ステップは省略する。省略した旨は報告フォーマットに含める
+6. 具体的な検出・実行コマンドは言語ごとに `references/lint-per-language.md` に定義されているので、そちらを参照して実行する
 
 ## Code Organization
 
@@ -60,8 +72,18 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 - 品質: 命名は何をするかを表しているか / 既存パターンと整合するか
 - 規律: 要求外の機能を追加していないか (YAGNI) / 計画外のリファクタを混ぜていないか
 - テスト: テストが実際の振る舞いを検証しているか (モックの振る舞いだけ確認していないか)
+- lint / hook: 対象リポの lint / hook がある場合、対象ファイル明示で `--check` が pass することを確認済みか (実行手順 3 参照)
 
 問題を見つけたら、報告前に修正してください。
+
+## プロジェクト固有規約
+
+Context として controller から渡されたプロジェクト固有規約 (`CLAUDE.md` 抜粋、Structured Output の実 API smoke 規約、独自命名規約、リポジトリ独自のセキュリティルールなど) は、規約が示す検証を self-check に含めてください。例:
+
+- 「Structured Output モデルを変更したら実 API 1 コール smoke で strict スキーマ互換を確認」 → 該当タスクなら smoke を 1 回走らせて strict 互換を確認する
+- 「特定ディレクトリ配下のファイルには X の命名規則を適用」 → 生成物が規則に沿っているか確認する
+
+規約に反する構造 / 命名 / 実装を発見し、修正するとタスク仕様との整合が崩れる場合は、`NEEDS_CHANGES` ではなく `BLOCKED` として controller にエスカレーションしてください (規約 vs 仕様の判断は controller が行う)。
 
 ## 報告フォーマット
 

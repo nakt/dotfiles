@@ -83,6 +83,14 @@ argument-hint: "[plan-file-path]"
      - 対象ファイルが不明 / 列挙されていないタスク (disjoint 判定ができないため安全側で単独実行)
    - 候補が 1 件しか残らない場合は 1 件だけのバッチ (= 従来の逐次実行と同じ) になる
 
+#### controller チェックリスト (Phase 3 へ渡す前)
+
+各タスクの implementer / reviewer prompt を組み立てる前に、以下 3 点を controller のメモリに揃えておく (Phase 3 step 4 / step 6 で prompt に埋め込むため)。3 点とも欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
+
+- プランの `## この計画で確定する判断` (D 番号) を抜粋し、implementer prompt の `[Context]` と reviewer prompt の `[プラン D / Q 抜粋]` に転記する準備をする
+- プランの `## AskUserQuestion 合意事項` (Q 番号) を抜粋し、implementer prompt の `[Context]` と reviewer prompt の `[プラン D / Q 抜粋]` に転記する準備をする
+- 対象リポの `CLAUDE.md` を「リポルート → 対象ファイルの各先祖ディレクトリ」の順に読む (`.claude/CLAUDE.md` があれば併せて確認)。monorepo の `packages/*/CLAUDE.md` などサブ階層に個別規約があれば、当該タスクに関係する検証項目 (例: Structured Output 実 API smoke 規約、独自命名規約) を抜粋し、implementer prompt の `[Context]` に含める。階層に CLAUDE.md が一つも無ければスキップしてよい
+
 ### Phase 3: バッチループ
 
 バッチ単位で処理する。バッチ内のタスクは並列、バッチ間は逐次。並列起動は「1 つのアシスタントメッセージ内で複数の `Agent` を呼び出す」ことで行う (同一メッセージ内の複数 Agent は並列実行される)。
@@ -94,12 +102,14 @@ argument-hint: "[plan-file-path]"
 3. バッチ内の各タスクを `TaskUpdate(status=in_progress)`
 4. 並列実装: 1 つのメッセージ内でバッチ内タスク分の implementer `Agent` をまとめて起動する
    - 各 Agent に `references/implementer-prompt.md` をテンプレートとして使用 (プレースホルダー `[FULL TEXT of task]`, `[Context]`, `[Working directory]` を埋める)
+   - `[Context]` には Phase 2 「controller チェックリスト」で用意した (a) プラン D 抜粋、(b) プラン Q 抜粋、(c) 対象リポ CLAUDE.md 由来の検証項目 を必ず含める
    - `subagent_type=general-purpose`、`model` はタスク複雑度に応じて切替 (後述の「モデル選択方針」)
    - 各 implementer は自分の対象ファイル (バッチ内で disjoint) のみ編集し、コミットはしない
 5. 全 implementer の報告を受け、タスクごとにステータス分岐 (後述の「ステータスハンドリング」)。分岐は per-task で行い、あるタスクの BLOCKED / NEEDS_CONTEXT は他のバッチタスクに波及させない
 6. 並列レビュー: DONE / DONE_WITH_CONCERNS のタスクについて、1 つのメッセージ内で reviewer `Agent` をまとめて起動する
    - 各 Agent に `references/reviewer-prompt.md` をテンプレートとして使用
-   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[implementer report]`, `[BASE_SHA]` (= `PRE_BATCH_BASE`), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
+   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[プラン D / Q 抜粋]`, `[implementer report]`, `[BASE_SHA]` (= `PRE_BATCH_BASE`), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
+   - `[プラン D / Q 抜粋]` にはプランの `## この計画で確定する判断` と `## AskUserQuestion 合意事項` の 2 セクションを丸ごと転記する (Phase 2 チェックリストで抜粋済みのもの)。これが埋まらないと reviewer が「プラン合意事項との整合性」観点をレビューできない
    - `model=opus` 固定
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う。対象ファイルが disjoint なので、他タスクの未コミット変更や先行コミットがあっても当該タスクの差分は分離される
 7. レビュー結果分岐 (per-task):
@@ -110,6 +120,18 @@ argument-hint: "[plan-file-path]"
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` し、Conventional Commits 形式 (英語) のメッセージで `git commit` (1 タスク = 1 コミット)。対象ファイルが disjoint なのでコミット順序は任意
    - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更してもコミットには入らない
    - `--no-verify` / `--force` push / `reset --hard` は使用しない (`.claude/rules/git-workflow.md` の禁止事項に従う)
+
+##### pre-commit hook fail 時の扱い
+
+`git commit` で pre-commit hook (`.pre-commit-config.yaml` / husky / lint-staged 等) が fail した場合は、その commit を諦めて `NEEDS_CHANGES` 相当の扱いに切り替える。具体的には:
+
+- hook の stderr / stdout を Context として抜粋する (どのファイルの何が引っ掛かったか)
+- 当該タスクを fresh implementer に再委譲する (Phase 3 step 7 の NEEDS_CHANGES 再委譲と同じフローに乗せる)
+- 抜粋した hook エラーは implementer prompt の `[Context]` に追記する
+- `--no-verify` で hook を skip して commit を通さないこと (禁止事項)。hook が示している問題は必ず implementer に fix させる
+- hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
+
+hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。`references/implementer-prompt.md` の「lint / hook self-check」で `references/lint-per-language.md` に沿った検出・実行が徹底されていれば、この分岐に来る頻度は下がる。
 9. 各 APPROVED タスクを `TaskUpdate(status=completed)`
 10. バッチ後チェック: 対象ファイル外の未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する
 11. 残タスクがあれば次バッチへ (ステップ 1 に戻る)
@@ -176,3 +198,4 @@ implementer subagent は 4 種の status で報告する。
 - `references/implementer-prompt.md`: implementer subagent 用テンプレート
 - `references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
 - `references/task-format.md`: 実装タスクの記述形式と controller 側の抽出規則
+- `references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)
