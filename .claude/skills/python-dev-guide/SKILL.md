@@ -36,79 +36,6 @@ uv run ruff format .             # フォーマット
 uv run mypy src/                 # 型チェック
 ```
 
-## TDD Workflow
-
-```bash
-# 1. テストを先に書く
-uv run pytest tests/test_feature.py -v
-
-# 2. 最小実装
-uv run pytest tests/test_feature.py
-
-# 3. リファクタリング
-uv run ruff format . && uv run ruff check --fix .
-
-# 4. カバレッジ確認
-uv run pytest --cov=src/
-```
-
-## Project Structure
-
-```text
-{project_name}/
-├── src/
-│   └── {package_name}/
-│       └── __init__.py
-├── tests/
-│   ├── __init__.py
-│   └── conftest.py
-├── .gitignore
-├── .pre-commit-config.yaml
-├── pyproject.toml
-└── README.md
-```
-
-- `package_name` は `project_name` のハイフンをアンダースコアに変換したもの
-
-## Project Init Workflow
-
-新規プロジェクト作成時は以下のワークフローに従う。
-
-### 1. プロジェクト情報の確認
-
-ユーザーに以下を確認する:
-
-- プロジェクト名（ディレクトリ名・パッケージ名に使用）
-- プロジェクトの簡単な説明（pyproject.toml の description に使用）
-- 作成先ディレクトリ（デフォルト: カレントディレクトリ配下）
-
-### 2. テンプレートからファイル生成
-
-各テンプレートは `references/` ディレクトリを参照:
-
-- `.gitignore` → [references/gitignore.md](references/gitignore.md)
-- `pyproject.toml` → [references/pyproject-toml.md](references/pyproject-toml.md)
-- `.pre-commit-config.yaml` → [references/pre-commit-config.md](references/pre-commit-config.md)
-
-テンプレート内のプレースホルダを置換:
-
-- `{project_name}`: プロジェクト名
-- `{package_name}`: パッケージ名（ハイフン → アンダースコア）
-- `{description}`: プロジェクトの説明
-
-### 3. 環境セットアップ
-
-```bash
-cd {project_name}
-git init
-uv venv
-uv sync
-uv run pre-commit autoupdate
-uv run pre-commit install
-```
-
-テンプレートの `rev` はプレースホルダなので、`pre-commit autoupdate` で必ず最新バージョンに更新する。
-
 ## Recommended pyproject.toml
 
 ```toml
@@ -129,6 +56,24 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.12"
 strict = true
 ```
+
+## Project Structure
+
+```text
+{project_name}/
+├── src/
+│   └── {package_name}/
+│       └── __init__.py
+├── tests/
+│   ├── __init__.py
+│   └── conftest.py
+├── .gitignore
+├── .pre-commit-config.yaml
+├── pyproject.toml
+└── README.md
+```
+
+- `package_name` は `project_name` のハイフンをアンダースコアに変換したもの
 
 ## Coding Conventions
 
@@ -211,6 +156,61 @@ def process_file(file_path: str) -> dict:
 | Recoverable error | Custom exception | Explicit error hierarchy |
 | Unexpected error | Let it propagate | Catch at upper level |
 | External input | Pydantic | Unified parsing and validation |
+
+## TDD Workflow
+
+```bash
+# 1. テストを先に書く
+uv run pytest tests/test_feature.py -v
+
+# 2. 最小実装
+uv run pytest tests/test_feature.py
+
+# 3. リファクタリング
+uv run ruff format . && uv run ruff check --fix .
+
+# 4. カバレッジ確認
+uv run pytest --cov=src/
+```
+
+## Project Init Workflow
+
+新規プロジェクト作成時は以下のワークフローに従う。
+
+### 1. プロジェクト情報の確認
+
+ユーザーに以下を確認する:
+
+- プロジェクト名（ディレクトリ名・パッケージ名に使用）
+- プロジェクトの簡単な説明（pyproject.toml の description に使用）
+- 作成先ディレクトリ（デフォルト: カレントディレクトリ配下）
+
+### 2. テンプレートからファイル生成
+
+各テンプレートは `references/` ディレクトリを参照:
+
+- `.gitignore` → [references/gitignore.md](references/gitignore.md)
+- `pyproject.toml` → [references/pyproject-toml.md](references/pyproject-toml.md)
+- `.pre-commit-config.yaml` → [references/pre-commit-config.md](references/pre-commit-config.md)
+
+テンプレート内のプレースホルダを置換:
+
+- `{project_name}`: プロジェクト名
+- `{package_name}`: パッケージ名（ハイフン → アンダースコア）
+- `{description}`: プロジェクトの説明
+
+### 3. 環境セットアップ
+
+```bash
+cd {project_name}
+git init
+uv venv
+uv sync
+uv run pre-commit autoupdate
+uv run pre-commit install
+```
+
+テンプレートの `rev` はプレースホルダなので、`pre-commit autoupdate` で必ず最新バージョンに更新する。
 
 ## Security
 
