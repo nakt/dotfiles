@@ -175,14 +175,16 @@
     "code-simplifier@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
     "codex@openai-codex": false,
-    "modern-web-guidance@googlechrome": true
+    "modern-web-guidance@googlechrome": true,
+    "document-tools@nakt-tools": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
       "source": {
         "source": "github",
         "repo": "anthropics/claude-code"
-      }
+      },
+      "autoUpdate": true
     },
     "openai-codex": {
       "source": {
@@ -195,6 +197,13 @@
         "source": "github",
         "repo": "GoogleChrome/modern-web-guidance"
       }
+    },
+    "nakt-tools": {
+      "source": {
+        "source": "github",
+        "repo": "nakt/agent-plugins"
+      },
+      "autoUpdate": true
     }
   },
   "language": "japanese",
