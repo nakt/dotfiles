@@ -14,8 +14,8 @@ Analyze uncommitted files and commit logically related changes with appropriate 
 
 - Branch: !`git branch --show-current`
 - Status: !`git status --short`
-- Diff summary: !`git diff HEAD --stat`
-- Recent commits: !`git log --oneline -10`
+- Diff summary: !`git diff HEAD --stat 2>/dev/null || echo '(no commits yet)'`
+- Recent commits: !`git log --oneline -10 2>/dev/null || echo '(no commits yet)'`
 
 ## Your Tasks
 
