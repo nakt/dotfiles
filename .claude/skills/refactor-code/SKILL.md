@@ -8,125 +8,114 @@ allowed-tools: Read, Glob, Grep, Edit, Bash(find:*), Bash(grep:*), Bash(git:*), 
 
 # Refactor Code
 
-Improve code quality by refactoring code structure, cleaning up comments, removing unused code, and ensuring tests pass.
+コード構造の改善、コメントの整理、未使用コードの削除、テストの通過を通じてコード品質を向上させる。
 
-If a target path is specified via arguments (`$ARGUMENTS`), scope the refactoring to that path.
+引数 (`$ARGUMENTS`) で対象パスが指定された場合、リファクタリング範囲をそのパスに限定する。
 
-## Current state
+## 現在の状態
 
 - Git status: !`git status --short 2>/dev/null || true`
 - Project type: !`ls pyproject.toml package.json Cargo.toml go.mod 2>/dev/null || true`
 
-## Refactoring Procedure
+## リファクタリング手順
 
-### Phase 1: Pre-refactoring Preparation
+### Phase 1: 事前準備
 
-1. Review the current state above to ensure working directory is clean
-2. Create backup branch if performing major refactoring
-3. Identify project type from the detected config files above and determine test framework
-4. Run existing tests to establish baseline
+1. 上記の現在の状態を確認し、作業ディレクトリがクリーンであることを確認する
+2. 大規模なリファクタリングを行う場合はバックアップブランチを作成する
+3. 検出された設定ファイルからプロジェクト種別を判定し、テストフレームワークを特定する
+4. ベースライン確立のため既存テストを実行する
 
-### Phase 2: Comment Quality Improvement
+### Phase 2: コメント品質の改善
 
-1. Scan code files for comment types:
-   - Update history comments ("2024/01/15 modified", "v1.2 changes")
-   - Ad-hoc temporary comments ("TODO:", "FIXME:", "HACK:", "quick fix")
-   - Commented-out old code blocks
-2. Identify permanent comments to preserve:
-   - Design intent and architectural decisions
-   - Algorithm explanations and business logic
-   - Important constraints and gotchas
-3. Refactor comments:
-   - Remove or convert update history to git commits
-   - Clean up ad-hoc comments or convert to proper documentation
-   - Remove commented-out dead code
-   - Improve clarity of preserved comments
+1. コードファイルをスキャンし、次の種類のコメントを検出する:
+   - 更新履歴コメント("2024/01/15 modified", "v1.2 changes" 等)
+   - 場当たり的な一時コメント(`TODO:`, `FIXME:`, `HACK:`, `quick fix` 等)
+   - コメントアウトされた古いコードブロック
+2. 保持すべき恒久的なコメントを識別する:
+   - 設計意図やアーキテクチャ判断
+   - アルゴリズム解説やビジネスロジック
+   - 重要な制約や落とし穴
+3. コメントをリファクタリングする:
+   - 更新履歴は削除するか git コミットに変換する
+   - 場当たり的なコメントを整理するか、適切なドキュメントに変換する
+   - コメントアウトされた不要コードを削除する
+   - 残すコメントの明瞭さを改善する
 
-### Phase 3: Code Structure Refactoring
+### Phase 3: コード構造のリファクタリング
 
-1. Identify refactoring opportunities:
-   - Long functions/methods that should be split
-   - Duplicated code that can be extracted
-   - Poor naming that can be improved
-   - Complex conditional logic that can be simplified
-2. Apply refactoring techniques:
-   - Extract functions/methods
-   - Rename variables, functions, classes for clarity
-   - Simplify complex expressions
-   - Remove code duplication
-3. Maintain functionality:
-   - Run tests after each significant refactoring
-   - Ensure behavior remains unchanged
+1. リファクタリング機会を特定する:
+   - 分割すべき長い関数・メソッド
+   - 抽出可能な重複コード
+   - 改善できる不適切な命名
+   - 簡素化できる複雑な条件ロジック
+2. リファクタリング手法を適用する:
+   - 関数・メソッドの抽出
+   - 変数、関数、クラス名の明確化のためのリネーム
+   - 複雑な式の簡素化
+   - コード重複の除去
+3. 機能を維持する:
+   - 重要なリファクタリングごとにテストを実行する
+   - 挙動が変わっていないことを確認する
 
-### Phase 4: Unused Code Elimination
+### Phase 4: 未使用コードの削除
 
-1. Static analysis for unused elements:
-   - Unused functions, classes, variables
-   - Unused import statements
-   - Dead code (unreachable code paths)
-   - Obsolete configuration or utility files
-2. Cross-reference analysis:
-   - Check actual usage across codebase
-   - Identify dependencies and references
-   - Consider dynamic usage (reflection, string-based calls)
-3. Safe removal with verification:
-   - Present findings to user
-   - Remove confirmed unused code
-   - Verify no functionality is broken
+1. 未使用要素の静的解析:
+   - 未使用の関数、クラス、変数
+   - 未使用の import 文
+   - デッドコード(到達不能な経路)
+   - 陳腐化した設定・ユーティリティファイル
+2. 相互参照の分析:
+   - コードベース全体での実際の使用状況を確認する
+   - 依存関係と参照を特定する
+   - 動的な使用(reflection や文字列ベースの呼び出し)を考慮する
+3. 検証を伴う安全な削除:
+   - 検出結果をユーザーに提示する
+   - 確認済みの未使用コードを削除する
+   - 機能が壊れていないことを検証する
 
-### Phase 5: Test Execution and Improvement
+### Phase 5: テストの実行と改善
 
-1. Check for test existence:
-   - Scan for test directories (`test/`, `tests/`, `spec/`)
-   - Identify test files and test frameworks
-   - Check for test configuration files (`pytest.ini`, `jest.config.js`, etc.)
-2. Run existing tests:
-   - Execute test suite using appropriate test runner
-   - Identify failing tests caused by refactoring changes
-3. Fix test failures:
-   - Analyze test failures and root causes
-   - Update tests to reflect code changes from refactoring
-   - Fix broken imports or references
-   - Remove tests for deleted code/functions
-   - Update test data or mocks if needed
-4. Improve test coverage (optional):
-   - Identify areas where refactoring revealed missing test coverage
-   - Suggest additional tests for critical functionality
+1. テストの存在を確認する:
+   - テストディレクトリ(`test/`, `tests/`, `spec/`)をスキャンする
+   - テストファイルとテストフレームワークを特定する
+   - テスト設定ファイル(`pytest.ini`, `jest.config.js` 等)を確認する
+2. 既存テストを実行する:
+   - 適切なテストランナーでテストスイートを実行する
+   - リファクタリングにより失敗したテストを特定する
+3. テスト失敗を修正する:
+   - テスト失敗と根本原因を分析する
+   - リファクタリングによるコード変更に合わせてテストを更新する
+   - 壊れた import や参照を修正する
+   - 削除されたコード・関数に対応するテストを削除する
+   - 必要に応じてテストデータやモックを更新する
+4. テストカバレッジの改善(任意):
+   - リファクタリングで浮かび上がったカバレッジの穴を特定する
+   - 重要機能への追加テストを提案する
 
-### Phase 6: Final Verification
+### Phase 6: 最終検証
 
-1. Ensure all tests pass after refactoring and fixes
-2. Check that application still runs correctly
-3. Review git diff to confirm all changes improve code quality
-4. Verify no functionality regression occurred
-5. Run linting/formatting tools if available
+1. リファクタリングと修正後、全てのテストが通過することを確認する
+2. アプリケーションが依然として正常に動作することを確認する
+3. git diff をレビューし、全変更がコード品質を改善していることを確認する
+4. 機能のリグレッションが発生していないことを確認する
+5. 利用可能な場合は Lint/フォーマットツールを実行する
 
-## Constraints
+## 制約
 
-### Safety and Quality
-
-- Always run tests after significant refactoring changes
-- Preserve existing functionality while improving code structure
-- Ask for user confirmation before major structural changes
-- Ensure refactoring improves readability and maintainability
-
-### Code Quality Standards
-
-- Only remove comments that are clearly outdated or temporary
-- Preserve comments that explain complex logic, design decisions, or important constraints
-- When in doubt about code usage, ask user for confirmation rather than assuming it's unused
-- Follow established coding conventions and style guides
-
-### Test Requirements
-
-- Always run tests after refactoring if test suite exists
-- Fix all test failures before completing refactoring process
-- Do not consider refactoring complete until all tests pass
-- Update or remove tests that are no longer relevant after code changes
-
-### Communication
-
-- .mdファイルなどのアウトプット、その他のコミュニケーションも全て日本語で出力してください
-- Provide clear rationale for each refactoring recommendation
-- Explain the benefits of proposed changes
-- Present organized lists of refactoring candidates for user review
+- 重要なリファクタリング変更後は必ずテストを実行する
+- コード構造を改善しつつ既存機能を保持する
+- 大規模な構造変更前にはユーザーに確認を求める
+- リファクタリングは可読性と保守性を改善するものであること
+- 明らかに陳腐化している、または一時的なコメントのみを削除する
+- 複雑なロジック、設計判断、重要な制約を説明するコメントは保持する
+- コードの使用状況に迷いがある場合は、未使用と決めつけずユーザーに確認する
+- 確立されたコーディング規約とスタイルガイドに従う
+- テストスイートが存在する場合はリファクタリング後に必ずテストを実行する
+- リファクタリング完了前に全てのテスト失敗を修正する
+- 全てのテストが通過するまでリファクタリング完了とみなさない
+- コード変更後に関連しなくなったテストは更新または削除する
+- 各リファクタリング推奨事項について明確な根拠を提示する
+- 提案する変更のメリットを説明する
+- リファクタリング候補は整理された一覧としてユーザーに提示する
+- .md ファイルなどの出力および会話は日本語で行う
