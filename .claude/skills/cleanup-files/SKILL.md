@@ -7,82 +7,74 @@ allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cp:*), Bash(mkdir:*), Ba
 
 # Cleanup Files
 
-Clean up experiment workspace and scan/remove unnecessary files project-wide based on content analysis, usage patterns, and git activity.
+内容分析、使用パターン、git 活動履歴に基づいて、実験ワークスペースをクリーンアップし、プロジェクト全体の不要ファイルをスキャン・削除する。
 
-## Current state
+## 現在の状態
 
 - Git status: !`git status --short 2>/dev/null || true`
 - Workspace experiments: !`ls .workspace/experiments/ 2>/dev/null || true`
 - Workspace analysis: !`ls .workspace/analysis/ 2>/dev/null || true`
 
-## Cleanup Procedure
+## クリーンアップ手順
 
-### Phase 1: Pre-cleanup Preparation
+### Phase 1: 事前準備
 
-1. Review the current state above to assess working directory cleanliness
-2. Create backup if needed
-3. Identify cleanup scope (workspace only vs full project files)
+1. 上記の現在の状態を確認し、作業ディレクトリの整合性を評価する
+2. 必要に応じてバックアップを作成する
+3. クリーンアップ対象範囲を特定する(workspace のみ / プロジェクト全体のファイル)
 
-### Phase 2: Experiment Workspace Cleanup
+### Phase 2: 実験ワークスペースのクリーンアップ
 
-1. List all directories under `.workspace/{experiments, analysis}/` and identify completed experiments
-2. For each completed experiment:
-   - Extract key files and commands used (e.g., scripts, logs, notebooks)
-   - Summarize the experiment's purpose, steps, results, and any insights or learnings
-   - Save the summary in `.workspace/knowledge/expXYZ_summary.md`
-3. After confirming the summary is complete:
-   - Prompt the user to confirm cleanup
-   - Remove the corresponding directory under `.workspace/{experiments, analysis}/` to free up space
+1. `.workspace/{experiments, analysis}/` 配下の全ディレクトリを列挙し、完了した実験を特定する
+2. 各完了実験について:
+   - 使用した主要ファイルとコマンド(スクリプト、ログ、ノートブック等)を抽出する
+   - 実験の目的、手順、結果、得られた気づきや学びを要約する
+   - 要約を `.workspace/knowledge/expXYZ_summary.md` に保存する
+3. 要約が完成していることを確認した後:
+   - ユーザーにクリーンアップの確認を求める
+   - 対応する `.workspace/{experiments, analysis}/` 配下のディレクトリを削除して容量を解放する
 
-### Phase 3: Project-wide File Cleanup
+### Phase 3: プロジェクト全体のファイルクリーンアップ
 
-1. Scan entire project for unnecessary files (content-based analysis, not just extension):
-   - Temporary files: `*.tmp`, `*.temp`, `*.bak`, `*.orig`, `*.swp`, `*~`
-   - Build artifacts: `__pycache__/`, `.pytest_cache/`, `node_modules/`, `target/`, `dist/`, `build/`
-   - IDE/Editor files: `.vscode/settings.json`, `.idea/`, `*.pyc`, `.DS_Store`
-   - Test scripts and experimental code created during development
-   - Temporary data files and working files
-   - Files with patterns like: `test_`, `tmp_`, `old_`, `backup_`, `draft_`, `experimental_`
-   - Log files: `*.log`, `logs/`
-   - Files with outdated modification dates and low git activity
-2. Analyze file content and usage:
-   - Check git history for file activity
-   - Identify files not referenced by main codebase
-   - Look for TODO or FIXME comments indicating temporary nature
-   - Check file size and creation patterns
-3. Categorize files by importance:
-   - Critical: Core functionality files, main source code
-   - Important: Configuration, documentation, active tests
-   - Low priority: Old documentation, unused configs
-   - Candidate for removal: Experimental, temporary, unused, build artifacts
-4. Present organized removal candidates to user for confirmation:
-   - Group by type (temporary, build artifacts, experimental, etc.)
-   - Show file paths, sizes, and last modification dates
-   - Provide rationale for each deletion candidate
+1. プロジェクト全体をスキャンして不要ファイルを検出する(拡張子だけでなく内容に基づいて分析):
+   - 一時ファイル: `*.tmp`, `*.temp`, `*.bak`, `*.orig`, `*.swp`, `*~`
+   - ビルド生成物: `__pycache__/`, `.pytest_cache/`, `node_modules/`, `target/`, `dist/`, `build/`
+   - IDE / エディタファイル: `.vscode/settings.json`, `.idea/`, `*.pyc`, `.DS_Store`
+   - 開発中に作成された試験用スクリプトや実験コード
+   - 一時データファイルや作業ファイル
+   - `test_`, `tmp_`, `old_`, `backup_`, `draft_`, `experimental_` などのプレフィックスを持つファイル
+   - ログファイル: `*.log`, `logs/`
+   - 更新日時が古く git 活動の少ないファイル
+2. ファイルの内容と使用状況を分析:
+   - git 履歴でファイルの活動状況を確認する
+   - 本体コードベースから参照されていないファイルを特定する
+   - 一時的な性質を示す `TODO` / `FIXME` コメントを探す
+   - ファイルサイズと作成パターンを確認する
+3. 重要度別に分類:
+   - Critical: コア機能ファイル、主要ソースコード
+   - Important: 設定、ドキュメント、アクティブなテスト
+   - Low priority: 古いドキュメント、未使用の設定
+   - 削除候補: 実験用、一時、未使用、ビルド生成物
+4. 整理された削除候補をユーザーに提示して確認を得る:
+   - 種別(一時ファイル、ビルド生成物、実験用等)ごとにグループ化する
+   - ファイルパス、サイズ、最終更新日を表示する
+   - 各削除候補について根拠を示す
 
-### Phase 4: Final File Verification
+### Phase 4: 最終検証
 
-1. Review git diff to confirm all file changes are intentional
-2. Verify no critical files were accidentally removed
-3. Check that project structure remains intact
+1. git diff をレビューし、全てのファイル変更が意図通りであることを確認する
+2. 重要ファイルが誤って削除されていないことを確認する
+3. プロジェクト構造が損なわれていないことを確認する
 
-## Constraints
+## 制約
 
-### Safety and Confirmation
-
-- Always ask for user confirmation before deleting any files
-- Create backups when performing destructive operations
-- Verify git status is clean before starting major cleanup operations
-- Do not delete any data without explicit user approval
-
-### Experiment Workspace
-
-- Preserve useful insights and reproducibility information in summaries
-- Experiment summaries should be in English and follow Markdown format
-- Experiment summaries must be stored with a filename that matches the experiment's prefix
-
-### Communication
-
-- .mdファイルなどのアウトプット、その他のコミュニケーションも全て日本語で出力してください
-- Provide clear rationale for each cleanup recommendation
-- Present organized lists of cleanup candidates for user review
+- 削除前に必ずユーザーに確認を求める
+- 破壊的操作を行う際はバックアップを作成する
+- 大規模なクリーンアップを開始する前に git status がクリーンであることを確認する
+- ユーザーの明示的な承認なしにデータを削除しない
+- 実験の要約には有用な洞察と再現性のための情報を残す
+- 実験の要約は英語で書き、Markdown 形式に従う
+- 実験の要約ファイル名は実験のプレフィックスと一致させる
+- 各クリーンアップ推奨事項について明確な根拠を提示する
+- 削除候補は整理された一覧としてユーザーに提示する
+- .md ファイルなどの出力および会話は日本語で行う
