@@ -32,6 +32,17 @@ bun run biome check --write .  # 自動修正
 bun run test                   # テスト実行
 ```
 
+## Rules
+
+### パッケージ追加
+
+- `bun add xxx` でパッケージを追加しない
+- `package.json` を直接編集し、`bun install` で反映する
+
+### サプライチェーン対策
+
+- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
+
 ## Recommended tsconfig.json
 
 ```json
@@ -69,17 +80,6 @@ bun run test                   # テスト実行
   }
 }
 ```
-
-## Rules
-
-### パッケージ追加
-
-- `bun add xxx` でパッケージを追加しない
-- `package.json` を直接編集し、`bun install` で反映する
-
-### サプライチェーン対策
-
-- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
 
 ## Coding Conventions
 
