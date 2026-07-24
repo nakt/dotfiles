@@ -1,6 +1,12 @@
 ---
 name: claude-config-audit
 description: Claude Code 設定群（CLAUDE.md / rules / skills / agents）の棚卸しと是正。継ぎ足し運用で蓄積した重複・矛盾・競合・陳腐化・死蔵を検出し、証拠付き報告 → ユーザー承認 → 是正 → 検証の順で進める。
+allowed-tools:
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
+  - TaskGet
+  - AskUserQuestion
 disable-model-invocation: true
 ---
 
