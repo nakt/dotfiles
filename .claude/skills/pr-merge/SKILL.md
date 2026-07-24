@@ -83,27 +83,64 @@ EOF
 
 ### Phase 4: マージ
 
-PR 作成後、`AskUserQuestion` で「マージする／マージしない」を選んでもらう。ドラフト PR の場合はこのフェーズをスキップする。
+ドラフト PR の場合はこの Phase をスキップする。Phase 4 の設計原則として、マージ・リモート削除・ローカル cleanup を分離する（`gh pr merge --delete-branch` は使わない。内部で走る `git checkout <base>` が worktree 環境で fatal 停止するため）。
 
-1. CI ステータスを確認: `gh pr checks {pr-number}`
-   - CI が存在しない場合: スキップしてマージへ
-   - CI 実行中の場合: ステータスを報告し、`AskUserQuestion` で「完了を待つ／そのままマージ／中止」を選んでもらう
-   - CI 失敗の場合: 失敗内容を報告して終了。修正後に再度 `/pr-merge` を案内
-1. マージ実行:
+#### ステップ 1: マージ可否確認
+
+`AskUserQuestion` で「マージする／マージしない」を選んでもらう。
+
+#### ステップ 2: CI ステータス確認
+
+`gh pr checks {pr-number}` を実行し、以下で分岐する:
+
+- CI が存在しない場合: スキップして次へ
+- CI 実行中の場合: ステータスを報告し、`AskUserQuestion` で「完了を待つ／そのままマージ／中止」を選んでもらう
+- CI 失敗の場合: 失敗内容を報告して終了。修正後に再度 `/pr-merge` を案内
+
+#### ステップ 3: マージ + リモート削除
+
+以下 2 コマンドを順に実行する:
 
 ```bash
-gh pr merge {pr-number} --merge --delete-branch
+gh pr merge {pr-number} --merge
+git push origin --delete {branch}
 ```
 
-1. マージ後クリーンアップ:
+`git push origin --delete` が非ゼロ終了した場合は「リモート削除に失敗しました」と報告して Phase 4 を中止する。`git ls-remote` による確認はステップ 4 の子 worktree ケースで付加表示するのみ。
+
+#### ステップ 4: ローカル cleanup
+
+`git rev-parse --git-dir` の出力に `worktrees/` を含むかで子 worktree か親 worktree かを判定し、cleanup 手順を分岐する。以下の bash をそのまま実行する（`$branch` はステップ 3 の `{branch}` と同一値。ここで再取得しているのは bash ブロックを閉じた形にするため）:
 
 ```bash
-git checkout main
-git pull origin main
-git branch -d {branch}
+branch=$(git branch --show-current)
+parent_worktree=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
+current_worktree=$(git rev-parse --show-toplevel)
+
+if git rev-parse --git-dir | grep -q 'worktrees/'; then
+  # 子 worktree: リモート削除の付加確認 + cleanup 案内
+  echo "リモート残存チェック（出力があれば削除失敗の可能性）:"
+  git ls-remote --heads origin "$branch"
+  cat <<EOM
+
+ローカル cleanup は親 worktree 側で後日実行してください:
+
+    cd $parent_worktree
+    git worktree remove $current_worktree
+    git branch -D $branch
+    git fetch --prune
+EOM
+else
+  # 親 worktree: 従来通り cleanup
+  git checkout main
+  git pull origin main
+  git branch -d "$branch"
+fi
 ```
 
-1. 完了報告: PR URL とマージ結果をユーザーに報告
+#### ステップ 5: 完了報告
+
+PR URL とマージ結果をユーザーに報告する。子 worktree の場合はステップ 4 で出力された cleanup 案内文を最終メッセージに含めて報告する。
 
 ## エラーハンドリング
 
@@ -115,6 +152,7 @@ git branch -d {branch}
 | マージコンフリクト | ローカル解決を案内して終了 |
 | CI 失敗 | 報告して終了、修正後に `/pr-merge` を再実行 |
 | 既存 PR あり | push のみ実行し、PR 作成スキップ |
+| `fatal: 'X' is already used by worktree at ...` | 本設計では発生しない（`--delete-branch` を使わず、`git checkout <base>` を子 worktree では実行しないため）。旧手順を手動で試して発生した場合は、リモートを `git push origin --delete <branch>` で削除し、ローカルは親 worktree で cleanup する |
 
 ## Constraints
 
@@ -122,6 +160,8 @@ git branch -d {branch}
 - `--force` push は使用しない
 - `--no-verify` は使用しない
 - マージ方式は `--merge`（merge commit）固定
+- マージ後のリモート削除・ローカル cleanup は `gh pr merge --delete-branch` に委ねず、明示的に分離して実行する（`--delete-branch` が内部で走らせる `git checkout <base>` が worktree 環境で fatal 停止するのを回避するため）
+- 前提として、親 worktree が base ブランチ（通常 main）を checkout している標準配置を想定する。逆パターン（親が feature ブランチを持ち、子が base ブランチを持つ配置）は想定外
 - マージ前にユーザーに確認を取る（ドラフト PR の場合はスキップ）
 - ユーザーへの確認は `AskUserQuestion` ツールを使用する（PR タイトル/本文の承認、CI 待機の判断、マージ可否など）
 - コミットログ・PR タイトルは英語
