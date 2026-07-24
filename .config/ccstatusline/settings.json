@@ -57,6 +57,14 @@
       {
         "id": "5f1a97bb-f27c-4aa8-8b63-bf4edbe864e3",
         "type": "session-cost"
+      },
+      {
+        "id": "959b220f-37c5-4e1c-a2bd-699491aea7ac",
+        "type": "separator"
+      },
+      {
+        "id": "bfe22e98-ca9f-42d6-b5f3-1fe48c14778d",
+        "type": "git-worktree"
       }
     ],
     [
@@ -99,6 +107,8 @@
   "colorLevel": 1,
   "inheritSeparatorColors": false,
   "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "minimalistMode": false,
   "powerline": {
     "enabled": false,
     "separators": [
@@ -109,6 +119,7 @@
     ],
     "startCaps": [],
     "endCaps": [],
-    "autoAlign": false
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
   }
 }
