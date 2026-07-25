@@ -11,6 +11,7 @@
 
 | Rule                 | 対象                    | 説明                                          | 常時参照                                |
 | -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
+| finding-disposition  | All files               | 新出項目を後回しにしない処理原則              | 起動時に常時ロード（paths なし）          |
 | workspace-management | All files               | .workspace ディレクトリの運用ルール            | —（paths スコープでロード）              |
 | git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | —（paths スコープでロード）              |
 | markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | —（paths スコープでロード）              |
