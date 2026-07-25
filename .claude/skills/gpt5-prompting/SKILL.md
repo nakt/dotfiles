@@ -26,7 +26,7 @@ allowed-tools: Read
 | `phase: "commentary"` / `phase: "final_answer"` | gpt-5-4 / gpt-5-5 | 5.3-codex で導入、5.4/5.5 に拡大 |
 | `output_contract` / `verification_loop` / `tool_persistence_rules` / `completeness_contract` / `empty_result_recovery` / `parallel_tool_calling` / `personality_and_writing_controls` | gpt-5-4 | 5.4 で標準化された XML タグ |
 | outcome-first 構造 / Stop rules セクション / プレーン散文志向 / `# Personality` ヘッダ | gpt-5-5 | 5.5 推奨構造 |
-| `xhigh` reasoning_effort | gpt-5-2 / gpt-5-4 | 5.2 で導入、5.4 で運用推奨更新 |
+| `xhigh` reasoning_effort | gpt-5-2 / gpt-5-4 / gpt-5-5 | 5.2 で導入、5.4 で運用推奨更新、5.5 も eval 利得確認後に利用可 |
 | `none` reasoning_effort 言及 | gpt-5-1 以降 | 5.1 で導入 |
 | `<persistence>` / `<context_gathering>` / `<tool_preambles>` の独立タグ | gpt-5-series | 既存 GPT-5/5.1/5.2 の標準 |
 | `<exploration>` / `<verification>`（Terminal-Bench スタイル） | gpt-5-series | 公式ベンチマーク準拠 |

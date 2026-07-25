@@ -2,6 +2,7 @@
 name: plan-audit
 description: 新機能追加・大規模改修・分析処理系アプリの実装計画(planファイル、設計メモ、技術選定書)を独立した視点で批判的にレビューするスキル。プロセス監査(決め方の妥当性)、構造監査(パイプライン・ロジックの整合性)、手法監査(手法選定の妥当性と代替手法のweb探索)の三部で構成する。ユーザーが `/plan-audit` で明示的に起動したときのみ使用する(手動起動専用)。
 disable-model-invocation: true
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 ---
 
 # Plan Audit — 実装計画の独立批判レビュー

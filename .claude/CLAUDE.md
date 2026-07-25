@@ -11,9 +11,9 @@
 
 | Rule                 | 対象                    | 説明                                          | 常時参照                                |
 | -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
-| workspace-management | All files               | .workspace ディレクトリの運用ルール            | @~/.claude/rules/workspace-management.md  |
-| git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | @~/.claude/rules/git-workflow.md          |
-| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | @~/.claude/rules/markdown-style.md        |
+| workspace-management | All files               | .workspace ディレクトリの運用ルール            | —（paths スコープでロード）              |
+| git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | —（paths スコープでロード）              |
+| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | —（paths スコープでロード）              |
 | plan-files           | `**/.claude/plans/*.md` | プランの承認用構成と検証ワークフロー            | —（paths スコープでロード）              |
 | python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
 | react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | —                                         |
