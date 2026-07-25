@@ -39,27 +39,10 @@ allowed-tools:
 
 ### Phase 2: PR 情報の生成
 
-上記の Commits ahead of main と Diff stats を分析して PR のタイトルと本文を自動生成する。
+上記の Commits ahead of main と Diff stats を分析して PR のタイトルと本文を自動生成する。タイトル形式・本文構成（Summary / Test plan / `Closes #123`）は git-workflow の「PR ガイドライン」に従う。
 
-タイトル: `type(scope): description` 形式
-
-- コミットメッセージから type を集約
-- scope はブランチ名や変更ファイルのディレクトリから推定
-- description はコミット群の要約（英語、簡潔に）
-
-本文:
-
-```markdown
-## Summary
-
-- 変更内容の箇条書き（各コミットの要約ベース）
-
-## Test plan
-
-- テスト方法の記述
-```
-
-- ブランチ名やコミットメッセージに Issue 番号が含まれていれば `Closes #123` を追加
+- タイトル: コミットメッセージから type を集約、scope はブランチ名や変更ファイルのディレクトリから推定、description はコミット群の要約（英語、簡潔に）
+- 本文: 各コミットの要約から Summary を、変更に応じた Test plan を生成。ブランチ名やコミットメッセージに Issue 番号があれば `Closes #123` を付す
 - `AskUserQuestion` でタイトル/本文の承認を求める（選択肢例:「この内容で進める」「修正する」）。「修正する」が選ばれた場合はユーザーの指示に従って再生成する
 
 ### Phase 3: Push + PR 作成
@@ -157,8 +140,7 @@ PR URL とマージ結果をユーザーに報告する。子 worktree の場合
 ## Constraints
 
 - main からは実行不可（フィーチャーブランチ必須）
-- `--force` push は使用しない
-- `--no-verify` は使用しない
+- push・コミットの禁止事項（`--force` / `--no-verify` 等）は git-workflow に従う
 - マージ方式は `--merge`（merge commit）固定
 - マージ後のリモート削除・ローカル cleanup は `gh pr merge --delete-branch` に委ねず、明示的に分離して実行する（`--delete-branch` が内部で走らせる `git checkout <base>` が worktree 環境で fatal 停止するのを回避するため）
 - 前提として、親 worktree が base ブランチ（通常 main）を checkout している標準配置を想定する。逆パターン（親が feature ブランチを持ち、子が base ブランチを持つ配置）は想定外

@@ -23,7 +23,7 @@ allowed-tools: Read
 | キーワード / シグナル | 推定バージョン | 根拠 |
 |---|---|---|
 | `apply_patch` / `update_plan` / Codex CLI 言及 | gpt-5-3-codex | Codex 専用ツール |
-| `phase: "commentary"` / `phase: "final_answer"` | gpt-5-4 / gpt-5-5 | 両バージョンで導入 |
+| `phase: "commentary"` / `phase: "final_answer"` | gpt-5-4 / gpt-5-5 | 5.3-codex で導入、5.4/5.5 に拡大 |
 | `output_contract` / `verification_loop` / `tool_persistence_rules` / `completeness_contract` / `empty_result_recovery` / `parallel_tool_calling` / `personality_and_writing_controls` | gpt-5-4 | 5.4 で標準化された XML タグ |
 | outcome-first 構造 / Stop rules セクション / プレーン散文志向 / `# Personality` ヘッダ | gpt-5-5 | 5.5 推奨構造 |
 | `xhigh` reasoning_effort | gpt-5-2 / gpt-5-4 | 5.2 で導入、5.4 で運用推奨更新 |

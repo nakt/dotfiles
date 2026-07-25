@@ -12,8 +12,7 @@ allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cp:*), Bash(mkdir:*), Ba
 ## 現在の状態
 
 - Git status: !`git status --short 2>/dev/null || true`
-- Workspace experiments: !`ls .workspace/experiments/ 2>/dev/null || true`
-- Workspace analysis: !`ls .workspace/analysis/ 2>/dev/null || true`
+- Workspace 作業ディレクトリ: !`ls -d .workspace/*/ 2>/dev/null || true`
 
 ## クリーンアップ手順
 
@@ -23,16 +22,18 @@ allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cp:*), Bash(mkdir:*), Ba
 2. 必要に応じてバックアップを作成する
 3. クリーンアップ対象範囲を特定する(workspace のみ / プロジェクト全体のファイル)
 
-### Phase 2: 実験ワークスペースのクリーンアップ
+### Phase 2: 作業ワークスペースのクリーンアップ
 
-1. `.workspace/{experiments, analysis}/` 配下の全ディレクトリを列挙し、完了した実験を特定する
-2. 各完了実験について:
+workspace-management ルール（`.workspace/NN_作業名/` 体系、直下にファイルを置かない）に従う。
+
+1. `.workspace/` 配下の作業ディレクトリ（`NN_作業名/`）を列挙し、完了したものを特定する
+2. 各完了ディレクトリについて:
    - 使用した主要ファイルとコマンド(スクリプト、ログ、ノートブック等)を抽出する
-   - 実験の目的、手順、結果、得られた気づきや学びを要約する
-   - 要約を `.workspace/knowledge/expXYZ_summary.md` に保存する
+   - 目的、手順、結果、得られた気づきや学びを要約する
+   - 残す価値のある要約は、workspace-management の命名規則で新規採番した `.workspace/NN_作業名/summary.md` に保存する
 3. 要約が完成していることを確認した後:
    - ユーザーにクリーンアップの確認を求める
-   - 対応する `.workspace/{experiments, analysis}/` 配下のディレクトリを削除して容量を解放する
+   - 対応する完了済み `.workspace/NN_作業名/` ディレクトリを削除して容量を解放する
 
 ### Phase 3: プロジェクト全体のファイルクリーンアップ
 
@@ -72,9 +73,9 @@ allowed-tools: Bash(ls:*), Bash(mv:*), Bash(rm:*), Bash(cp:*), Bash(mkdir:*), Ba
 - 破壊的操作を行う際はバックアップを作成する
 - 大規模なクリーンアップを開始する前に git status がクリーンであることを確認する
 - ユーザーの明示的な承認なしにデータを削除しない
-- 実験の要約には有用な洞察と再現性のための情報を残す
-- 実験の要約は英語で書き、Markdown 形式に従う
-- 実験の要約ファイル名は実験のプレフィックスと一致させる
+- 作業の要約には有用な洞察と再現性のための情報を残す
+- 作業の要約は英語で書き、Markdown 形式に従う
+- 要約の保存先は workspace-management の `NN_作業名/` 規則に従う
 - 各クリーンアップ推奨事項について明確な根拠を提示する
 - 削除候補は整理された一覧としてユーザーに提示する
 - .md ファイルなどの出力および会話は日本語で行う

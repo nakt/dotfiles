@@ -74,9 +74,9 @@ agentic coding 特化モデル。本ファイルは Codex 固有のポインタ�
 - git dirty 状態ではユーザー変更を保持（破壊的操作禁止）
 - `git reset --hard` など破壊的シェル操作はユーザー承認なしに実行しない
 
-## 6. Phase Parameter (Codex 固有)
+## 6. Phase Parameter
 
-Responses API の `phase` パラメータは Codex Prompting Guide で「currently only supported with gpt-5.3-codex」と明記され、正しい実装が gpt-5.3-codex のパフォーマンスに必須とされる。
+Responses API の `phase` パラメータは当初 gpt-5.3-codex 限定で導入されたが、現在は gpt-5.4 / gpt-5.4-pro / gpt-5.5 / gpt-5.5-pro でもサポートされる（適用の詳細は `gpt-5-4.md` / `gpt-5-5.md`）。assistant メッセージへの phase の正しい保持が、長時間・ツール多用フローのパフォーマンスに重要。
 
 | 値 | 用途 |
 |---|---|

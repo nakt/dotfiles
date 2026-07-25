@@ -60,7 +60,7 @@ owner は上記 Current state の Owner を使用する。
 | README | 追加する（固定） |
 
 gitignore テンプレート名は大文字小文字が重要。`gh api /gitignore/templates` で取得したリストと照合して正確な名前を使う。
-主要なテンプレート名の対応は [references/gh-repo-create-reference.md](references/gh-repo-create-reference.md) を参照。
+取り違えやすい名前の対応と検証コマンドは [references/gh-repo-create-reference.md](references/gh-repo-create-reference.md) を参照。
 
 public を選択した場合、以下の警告を出して再確認する:
 

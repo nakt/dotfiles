@@ -4,6 +4,7 @@ description: uv + ruff を使った Python 開発の支援スキル。プロジ�
 allowed-tools:
   - Write
   - Read
+  - Edit
   - Glob
   - Bash(uv:*)
   - Bash(git:*)

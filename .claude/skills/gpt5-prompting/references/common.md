@@ -29,9 +29,9 @@ GPT-5 系リーズニングモデルでは、従来型の専門性ロール指�
 ### 避けるべきパターン（専門性ロール指定）
 
 ```text
-❌ You are a world-class expert in machine learning.
-❌ あなたは熟練のデータサイエンティストです。
-❌ As a senior security engineer, analyze the following code.
+NG: You are a world-class expert in machine learning.
+NG: あなたは熟練のデータサイエンティストです。
+NG: As a senior security engineer, analyze the following code.
 ```
 
 これらは以下の理由で有害：
@@ -46,13 +46,13 @@ GPT-5 系リーズニングモデルでは、従来型の専門性ロール指�
 公式 [Prompt Personalities](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities) ガイドに基づく。パーソナリティは「how（どう応答するか）」を制御するものであり、「what（何をすべきか）」を指示するものではない。
 
 ```text
-✅ You are a focused, formal, and exacting AI Agent.
+OK: You are a focused, formal, and exacting AI Agent.
    （トーン: formal、スタイル: exacting）
 
-✅ You are a highly efficient AI assistant providing clear, contextual answers.
+OK: You are a highly efficient AI assistant providing clear, contextual answers.
    （行動様式: efficient、出力特性: clear and contextual）
 
-✅ You are a plainspoken and direct AI assistant focused on helping the user achieve productive outcomes.
+OK: You are a plainspoken and direct AI assistant focused on helping the user achieve productive outcomes.
    （コミュニケーションスタイル: plainspoken, direct）
 ```
 

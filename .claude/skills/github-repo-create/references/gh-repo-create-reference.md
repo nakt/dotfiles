@@ -2,144 +2,24 @@
 
 ## Table of Contents
 
-- [フラグ一覧](#フラグ一覧)
-- [gitignore テンプレート（主要なもの）](#gitignore-テンプレート主要なもの)
-  - [Web フロントエンド](#web-フロントエンド)
-  - [Web バックエンド](#web-バックエンド)
-  - [モバイル](#モバイル)
-  - [システム/低レイヤ](#システム低レイヤ)
-  - [スクリプト/データサイエンス](#スクリプトデータサイエンス)
-  - [JVM 系](#jvm-系)
-  - [ゲーム開発](#ゲーム開発)
-  - [インフラ/DevOps](#インフラdevops)
-  - [ドキュメント/静的サイト](#ドキュメント静的サイト)
-  - [IDE/エディタ](#ideエディタ)
-  - [よくある間違い](#よくある間違い)
+- [フラグと gitignore テンプレート](#フラグと-gitignore-テンプレート)
+- [gitignore テンプレートのよくある間違い](#gitignore-テンプレートのよくある間違い)
 - [Owner 情報の取得](#owner-情報の取得)
 - [gitignore テンプレートの検証](#gitignore-テンプレートの検証)
 - [検証コマンド](#検証コマンド)
-  - [JSON フィールド](#json-フィールド)
-  - [gitignore / README の存在確認](#gitignore--readme-の存在確認)
 
-## フラグ一覧
+## フラグと gitignore テンプレート
 
-| フラグ | 短縮 | 説明 |
-|--------|------|------|
-| `--add-readme` | | README ファイルを追加 |
-| `--clone` | `-c` | 作成後にローカルにクローン |
-| `--description` | `-d` | リポジトリの説明文 |
-| `--disable-issues` | | Issue 機能を無効化 |
-| `--disable-wiki` | | Wiki 機能を無効化 |
-| `--gitignore` | `-g` | gitignore テンプレートを指定 |
-| `--homepage` | `-h` | ホームページ URL |
-| `--include-all-branches` | | テンプレートの全ブランチを含める |
-| `--internal` | | 内部リポジトリとして作成 |
-| `--license` | `-l` | OSS ライセンスを指定 |
-| `--private` | | プライベートリポジトリ |
-| `--public` | | パブリックリポジトリ |
-| `--push` | | ローカルコミットをプッシュ |
-| `--remote` | `-r` | リモート名を指定 |
-| `--source` | `-s` | ローカルリポジトリのパス |
-| `--template` | `-p` | テンプレートリポジトリを指定 |
-| `--team` | `-t` | アクセスを付与する org チーム |
+`gh repo create` の全フラグは `gh repo create --help` で、gitignore テンプレートの完全なリストは `gh api /gitignore/templates` で都度取得する（陳腐化を避けるため本リファレンスには転記しない）。テンプレート名は大文字小文字を正確に指定する必要がある。
 
-このスキルでは `--clone` の代わりに `ghq get` を使用する。
-`--license` は使用しない。
+このスキル固有の方針:
 
-## gitignore テンプレート（主要なもの）
+- `--clone` の代わりに `ghq get` を使用する
+- `--license` は使用しない
 
-テンプレート名は大文字小文字を正確に指定する必要がある。
-完全なリストは `gh api /gitignore/templates` で取得できる。
+## gitignore テンプレートのよくある間違い
 
-### Web フロントエンド
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Node` | Node.js / React / Vue / Next.js / Nest.js 等 |
-| `Angular` | Angular |
-| `Elm` | Elm |
-
-### Web バックエンド
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Go` | Go |
-| `Java` | Java |
-| `Kotlin` | Kotlin |
-| `Rails` | Ruby on Rails |
-| `Laravel` | Laravel (PHP) |
-| `Django` | Django は `Python` テンプレートを使用 |
-
-### モバイル
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Android` | Android (Java/Kotlin) |
-| `Flutter` | Flutter (Dart) |
-| `Swift` | Swift / iOS |
-| `Objective-C` | Objective-C / iOS |
-
-### システム/低レイヤ
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `C` | C |
-| `C++` | C++ |
-| `Rust` | Rust |
-| `Zig` | Zig |
-| `Go` | Go |
-
-### スクリプト/データサイエンス
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Python` | Python / Django / FastAPI / データサイエンス |
-| `Ruby` | Ruby |
-| `Julia` | Julia |
-| `R` | R |
-| `Perl` | Perl |
-| `Lua` | Lua |
-| `Elixir` | Elixir |
-
-### JVM 系
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Java` | Java |
-| `Kotlin` | Kotlin |
-| `Scala` | Scala |
-| `Gradle` | Gradle ビルドシステム |
-| `Maven` | Maven ビルドシステム |
-
-### ゲーム開発
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Unity` | Unity |
-| `UnrealEngine` | Unreal Engine |
-| `Godot` | Godot |
-
-### インフラ/DevOps
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Terraform` | Terraform |
-| `Nix` | Nix |
-
-### ドキュメント/静的サイト
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `Jekyll` | Jekyll |
-| `TeX` | LaTeX |
-
-### IDE/エディタ
-
-| テンプレート名 | 用途 |
-|---------------|------|
-| `VisualStudio` | Visual Studio |
-
-### よくある間違い
+指定名は正確な名前が必要で、次のような取り違えが起きやすい。
 
 | 間違い | 正しい名前 |
 |--------|-----------|
