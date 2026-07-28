@@ -126,6 +126,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "_tag": "ccstatusline-managed",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx -y ccstatusline@latest --hook"
+          }
+        ],
+        "matcher": "Skill"
       }
     ],
     "Notification": [
@@ -158,6 +168,17 @@
             "type": "command",
             "command": "$HOME/.claude/hooks/lint-markdown.sh",
             "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "_tag": "ccstatusline-managed",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx -y ccstatusline@latest --hook"
           }
         ]
       }

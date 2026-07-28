@@ -63,11 +63,27 @@
         "type": "separator"
       },
       {
+        "id": "a60a9b7c-da7d-4b76-a688-c5806ddfdd08",
+        "type": "git-branch"
+      },
+      {
+        "id": "b7ee01c4-0a8a-4143-ad4f-f1a7c4ae9ebf",
+        "type": "separator"
+      },
+      {
         "id": "bfe22e98-ca9f-42d6-b5f3-1fe48c14778d",
         "type": "git-worktree"
       }
     ],
     [
+      {
+        "id": "c6c1eae9-8340-4cff-b92d-4c7bcbdbc521",
+        "type": "skills"
+      },
+      {
+        "id": "9ee41905-8aca-415b-bc27-4a8fd9e860f6",
+        "type": "separator"
+      },
       {
         "id": "a0816b2b-2036-47a7-98a5-1a34206f4b6d",
         "type": "session-usage",
