@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: .claude/plans/ 配下のプランファイルを作成・更新した直後に必ず使用する。プランの完全性を検証し、曖昧な点・設計原則との齟齬・承認用セクションの欠落を論点として呼び出し元に返す。反証志向の独立監査には /plan-audit スキル（手動起動専用）を使う。
+description: .claude/plans/ 配下のプランファイルを作成・更新した直後に必ず使用する。プランの完全性を検証し、曖昧な点・設計原則との齟齬・承認用セクションの欠落を論点として呼び出し元に返す。反証志向の独立監査には plan-audit スキルを使う。
 tools: Read, Glob, Grep
 color: blue
 ---

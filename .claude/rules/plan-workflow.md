@@ -9,7 +9,7 @@
 3. 回答を受けてプランを更新
 4. 全ての曖昧さが解消されてから実装開始
 
-plan-reviewer は `/plan-audit` の発動条件（正典は `~/.claude/skills/plan-audit/SKILL.md`）への該当も判定して返す。該当した場合は `/plan-audit` の実行をユーザーに提案する。起動判断はユーザーにあるため、Claude から自動起動しない。
+plan-reviewer は plan-audit の発動条件（正典は `~/.claude/skills/plan-audit/SKILL.md`）への該当も判定して返す。該当した場合は plan-audit スキルを実行し、その指摘を上記手順 2 のユーザー確認に合流させる。該当しないプランでは実行しない。
 
 ## 設計の原則
 
