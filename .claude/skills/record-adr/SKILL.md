@@ -74,7 +74,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(tes
 2. Status は `Accepted` または `Superseded` の 2 値のみ。置き換えの詳細は `supersedes` / `superseded_by` フィールドで管理する
 3. Decision は「何を決めたか」、Rationale は「なぜか(検証・実験の根拠)」と役割を分ける
 4. 起票前に `docs/adr/README.md` を確認し、既存決定と矛盾しないか確かめる
-5. 実験の生ログ・試行錯誤は `.workspace/knowledge/`、確定した決定と根拠は docs/adr
+5. 検証・実験の一時ファイルは `.workspace/`、確定した決定と根拠は docs/adr。`.workspace/` は使い捨てのため ADR から参照しない
 6. 採番が衝突した場合(並行ブランチ等)は後から追加した方を繰り上げる
 7. 本文段落はハードラップしない。1 段落を 1 行で書く。エディタの折り返し表示に委ねる
 8. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。

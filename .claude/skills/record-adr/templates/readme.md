@@ -13,4 +13,4 @@
 - append-only。一度書いた本文は書き換えない
 - 方針変更時は新規 ADR を起票し、旧 ADR のフロントマター `status` を `Superseded`、`superseded_by` に新 ADR 番号を設定する
 - 起票は `/record-adr [タイトル]` で行う
-- 実験の生ログは `.workspace/knowledge/`、確定した決定と根拠はここ
+- 検証・実験の一時ファイルは `.workspace/` (使い捨て)、確定した決定と根拠はここ

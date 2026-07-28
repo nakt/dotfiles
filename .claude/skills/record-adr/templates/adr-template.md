@@ -17,7 +17,7 @@ superseded_by: ""
 
 ## Rationale
 
-なぜこの Decision にしたか。検証手順・実測値・比較対象との差異。詳細な実験ログは `.workspace/knowledge/` への参照リンクでもよい。
+なぜこの Decision にしたか。検証手順・実測値・比較対象との差異。根拠として残す値はここに書き切る。
 
 ## Consequences
 
