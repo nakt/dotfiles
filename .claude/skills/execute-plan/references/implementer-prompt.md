@@ -15,7 +15,7 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 
 ## Context
 
-[Context: scene-setting, 周辺の前提, 依存関係, 既存実装の参照点]
+[Context: scene-setting, 周辺の前提, 依存関係, 既存実装の参照点, プランの承認用セクション抜粋]
 
 ## 作業ディレクトリ
 
@@ -61,6 +61,7 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 - 提供された Context だけでは判断できない情報が必要
 - 計画が想定していない範囲の改修を必要とする
 - 何ファイル読んでも理解が深まらず、行き詰まっている
+- Context のプラン抜粋に反証条件 (F 番号) が含まれており、その条件に該当する事実を実装中に発見した (計画の前提が崩れている可能性がある)
 
 報告時の Status を `BLOCKED` または `NEEDS_CONTEXT` にし、何に詰まったか / 何を試したか / どんな助けが必要かを具体的に書いてください。
 
