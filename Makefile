@@ -32,10 +32,12 @@ prep: ## Prepare tools before setup
 	[ -d $(NORD_ITERM2_PATH) ] || git clone --depth 1 https://github.com/nordtheme/iterm2 $(NORD_ITERM2_PATH)
 
 update: ## Update all tools
-	@ git pull origin master
-	@ git submodule update --init --recursive
+	@ git pull origin main
 	@ git -C $(PREZTO_PATH) pull
 	@ git -C $(PREZTO_PATH) submodule update --init --recursive
+	@ git -C $(TPM_PATH) pull
+	@ git -C $(NORD_DIRCOLORS_PATH) pull
+	@ git -C $(NORD_ITERM2_PATH) pull
 
 deploy: ## Create symbolic link to home directory
 	@ for val in $(DOTFILES) .dir_colors $(addprefix .,$(PREZTO_RUNCOMS)); do \
