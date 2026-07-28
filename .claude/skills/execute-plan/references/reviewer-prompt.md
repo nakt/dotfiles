@@ -17,11 +17,11 @@ execute-plan の controller がタスク実装完了後に fresh reviewer subage
 
 [Acceptance criteria]
 
-## プラン合意事項 (D / Q 抜粋)
+## プラン合意事項
 
-以下はプランから抜粋した「確定した判断 (D 番号)」と「AskUserQuestion で合意した項目 (Q 番号)」です。生成コードと implementer prompt がこれらに沿っているかも仕様適合の観点に含めてレビューしてください。
+以下はプランの承認用セクションから抜粋した合意事項です (確定した判断、AskUserQuestion で合意した項目、反証条件)。生成コードと implementer prompt がこれらに沿っているかも仕様適合の観点に含めてレビューしてください。
 
-[プラン D / Q 抜粋]
+[承認用セクション抜粋]
 
 ## implementer の自己報告
 
@@ -51,7 +51,7 @@ execute-plan の controller がタスク実装完了後に fresh reviewer subage
 - 過剰: タスクで要求されていない機能 / リファクタを追加していないか
 - 解釈違い: 仕様の解釈が implementer 報告と differ していないか
 - 副作用: プランの対象ファイル以外に変更が及んでいないか
-- プラン合意事項との整合性: 上記「プラン合意事項 (D / Q 抜粋)」の D 番号 (確定した判断) と Q 番号 (AskUserQuestion 合意事項) が implementer prompt と生成コードに反映されているか。反映されていない場合は NEEDS_CHANGES
+- プラン合意事項との整合性: 上記「プラン合意事項」に含まれる各項目が implementer prompt と生成コードに反映されているか。反映されていない場合は NEEDS_CHANGES
 
 ### 品質 (Code quality)
 
