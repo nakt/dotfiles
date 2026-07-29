@@ -19,9 +19,9 @@ execute-plan の controller がタスク実装完了後に fresh reviewer subage
 
 ## プラン合意事項
 
-以下はプランの承認用セクションから抜粋した合意事項です (確定した判断、AskUserQuestion で合意した項目、反証条件)。生成コードと implementer prompt がこれらに沿っているかも仕様適合の観点に含めてレビューしてください。
+以下はプランの `## 合意事項` の転記です。生成コードと implementer prompt がこれらに沿っているかも仕様適合の観点に含めてレビューしてください。
 
-[承認用セクション抜粋]
+[合意事項抜粋]
 
 ## implementer の自己報告
 
