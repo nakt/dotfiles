@@ -1,10 +1,23 @@
 .DEFAULT_GOAL := help
 
 # Local Dotfiles
+# Deploy targets are listed explicitly rather than globbed. A glob over the
+# repository root leaks anything that happens to land there (.DS_Store, build
+# leftovers, ignored scratch directories) into $HOME; adding a dotfile here is
+# the opt-in step.
 DOTPATH    := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-CANDIDATES := $(wildcard .??*)
-EXCLUSIONS := .git .gitmodules %.swp
-DOTFILES   := $(filter-out $(EXCLUSIONS), $(CANDIDATES))
+DOTFILES   := \
+	.claude \
+	.codex \
+	.config \
+	.gemini \
+	.gitconfig \
+	.gitignore \
+	.npmrc \
+	.tmux.conf \
+	.vim \
+	.vimrc \
+	.zshrc
 BACKUP_DIR := $(HOME)/.dotfiles_backup
 
 # prezto Settings

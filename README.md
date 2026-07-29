@@ -4,15 +4,25 @@ Personal dotfiles repository for managing shell, editor, and development tool co
 
 ## Managed Dotfiles
 
-- `.claude/` - Claude configuration
-- `.config/` - Configuration directory
+Deployed to the home directory by `make deploy`. The `DOTFILES` variable in the
+`Makefile` is the authoritative list; entries are opt-in, so a file placed in the
+repository root is not deployed until it is named there.
+
+- `.claude/` - Claude Code configuration
+- `.codex/` - Codex configuration
+- `.config/` - XDG configuration directory
+- `.gemini/` - Gemini CLI configuration
 - `.gitconfig` - Git configuration
-- `.gitignore` - Git ignore patterns
-- `.pre-commit-config.yaml` - Pre-commit hook configuration
+- `.gitignore` - Global git ignore patterns (referenced by `core.excludesfile`)
+- `.npmrc` - npm configuration
 - `.tmux.conf` - tmux configuration
 - `.vim/` - Vim configuration directory
 - `.vimrc` - Vim configuration file
 - `.zshrc` - zsh runcom (sources Prezto and `~/.config/zsh/*.zsh`)
+
+`.pre-commit-config.yaml` configures this repository's own pre-commit hooks and
+is not deployed: pre-commit only reads the config at the root of the repository
+being committed to, so a copy in the home directory is never consulted.
 
 ## Setup Instructions
 
