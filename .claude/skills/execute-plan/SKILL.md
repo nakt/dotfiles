@@ -87,7 +87,7 @@ argument-hint: "[plan-file-path]"
 
 各タスクの implementer / reviewer prompt を組み立てる前に、以下 2 点を controller のメモリに揃えておく (Phase 3 step 4 / step 6 で prompt に埋め込むため)。どちらかが欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
 
-- プランの承認用セクションのうち `## この計画で確定する判断` `## AskUserQuestion 合意事項` `## 反証条件` を抜粋し、implementer prompt の `[Context]` と reviewer prompt の `[承認用セクション抜粋]` に転記する準備をする。存在しないセクションはスキップしてよい (承認用セクションの定義は `~/.claude/rules/plan-workflow.md`)
+- プランの `## 合意事項` を抜粋し、implementer prompt の `[Context]` と reviewer prompt の `[合意事項抜粋]` に転記する準備をする。あわせて `## 合意事項` の存在と、判断が本文へ散在していないかを 1 パスで確認する。`## 合意事項` が無いプランでは、その旨を明示して `AskUserQuestion` で続行確認する (セクション定義は `~/.claude/rules/plan-workflow.md`)
 - 対象リポの `CLAUDE.md` を「リポルート → 対象ファイルの各先祖ディレクトリ」の順に読む (`.claude/CLAUDE.md` があれば併せて確認)。monorepo の `packages/*/CLAUDE.md` などサブ階層に個別規約があれば、当該タスクに関係する検証項目 (例: Structured Output 実 API smoke 規約、独自命名規約) を抜粋し、implementer prompt の `[Context]` に含める。階層に CLAUDE.md が一つも無ければスキップしてよい
 
 ### Phase 3: バッチループ
@@ -101,14 +101,14 @@ argument-hint: "[plan-file-path]"
 3. バッチ内の各タスクを `TaskUpdate(status=in_progress)`
 4. 並列実装: 1 つのメッセージ内でバッチ内タスク分の implementer `Agent` をまとめて起動する
    - 各 Agent に `references/implementer-prompt.md` をテンプレートとして使用 (プレースホルダー `[FULL TEXT of task]`, `[Context]`, `[Working directory]` を埋める)
-   - `[Context]` には Phase 2 「controller チェックリスト」で用意した (a) 承認用セクション抜粋 (`## 反証条件` を含む)、(b) 対象リポ CLAUDE.md 由来の検証項目 を必ず含める
+   - `[Context]` には Phase 2 「controller チェックリスト」で用意した (a) `## 合意事項` 抜粋、(b) 対象リポ CLAUDE.md 由来の検証項目 を必ず含める
    - `subagent_type=general-purpose`、`model` はタスク複雑度に応じて切替 (後述の「モデル選択方針」)
    - 各 implementer は自分の対象ファイル (バッチ内で disjoint) のみ編集し、コミットはしない
 5. 全 implementer の報告を受け、タスクごとにステータス分岐 (後述の「ステータスハンドリング」)。分岐は per-task で行い、あるタスクの BLOCKED / NEEDS_CONTEXT は他のバッチタスクに波及させない
 6. 並列レビュー: DONE / DONE_WITH_CONCERNS のタスクについて、1 つのメッセージ内で reviewer `Agent` をまとめて起動する
    - 各 Agent に `references/reviewer-prompt.md` をテンプレートとして使用
-   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[承認用セクション抜粋]`, `[implementer report]`, `[BASE_SHA]` (= `PRE_BATCH_BASE`), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
-   - `[承認用セクション抜粋]` にはプランの `## この計画で確定する判断` `## AskUserQuestion 合意事項` `## 反証条件` を丸ごと転記する (Phase 2 チェックリストで抜粋済みのもの)。これが埋まらないと reviewer が「プラン合意事項との整合性」観点をレビューできない
+   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[合意事項抜粋]`, `[implementer report]`, `[BASE_SHA]` (= `PRE_BATCH_BASE`), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
+   - `[合意事項抜粋]` にはプランの `## 合意事項` を丸ごと転記する (Phase 2 チェックリストで抜粋済みのもの)。これが埋まらないと reviewer が「プラン合意事項との整合性」観点をレビューできない
    - `model=opus` 固定
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う。対象ファイルが disjoint なので、他タスクの未コミット変更や先行コミットがあっても当該タスクの差分は分離される
 7. レビュー結果分岐 (per-task):
