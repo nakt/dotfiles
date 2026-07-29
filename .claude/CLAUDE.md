@@ -16,7 +16,7 @@
 | Rule                 | 対象                    | 説明                                          | 常時参照                                |
 | -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
 | workspace-management | All files               | .workspace ディレクトリの運用ルール            | @~/.claude/rules/workspace-management.md  |
-| git-workflow         | All files               | コミット規約、ブランチ戦略、PR ガイドライン    | @~/.claude/rules/git-workflow.md          |
+| git-workflow         | All files               | コミット規約、ブランチ戦略、worktree 運用、PR ガイドライン | @~/.claude/rules/git-workflow.md          |
 | markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | @~/.claude/rules/markdown-style.md        |
 | plan-workflow        | プラン作成時            | プランの構成、レビュー手順、設計の原則          | @~/.claude/rules/plan-workflow.md         |
 | python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
