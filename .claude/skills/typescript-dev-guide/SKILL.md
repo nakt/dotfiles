@@ -32,7 +32,10 @@ bun run test                   # テスト実行
 
 ## Rules
 
-パッケージを追加する前に [references/bun-workflow.md](references/bun-workflow.md) を必ず読む（`bun add` は使用しない）。
+パッケージ運用は [references/bun-workflow.md](references/bun-workflow.md) を唯一の定義とする。要点は次の 2 つ。
+
+- `bun add` は使用しない。`package.json` を直接編集し `bun install` で反映する
+- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
 
 ## Recommended tsconfig.json
 
@@ -82,7 +85,6 @@ bun run test                   # テスト実行
 
 ## Coding Conventions
 
-- 一時コメントには `TODO` / `FIXME` ラベルを使用
 - 型推論を活用し、関数の引数と返り値のみ明示的に型を付ける
 - 型インポートは `import type` を使用
 - エラーハンドリングには Result 型パターンを推奨

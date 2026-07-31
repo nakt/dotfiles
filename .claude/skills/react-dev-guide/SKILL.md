@@ -1,7 +1,7 @@
 ---
 name: react-dev-guide
 description: bun + Vite + Biome を使った React 開発の支援スキル。プロジェクト固有の構成、コーディング規約、推奨ツールのガイドラインを提供する。React プロジェクトの新規作成、コンポーネント設計方針の確認、状態管理・スタイリング・テスト等の技術選定、Biome 設定やプロジェクト構成の整備に使用する。
-allowed-tools: Write, Read, Glob, Edit, Bash(bun:*), Bash(npx:*)
+allowed-tools: Write, Read, Glob, Edit, Bash(bun:*)
 ---
 
 # React Development Guide
@@ -14,9 +14,11 @@ bun + Vite + Biome を標準とする。
 
 ```bash
 bun create vite my-app --template react-ts
-cd my-app && bun install
-bun run dev
+bun install --cwd my-app
+bun run --cwd my-app dev
 ```
+
+以降の Common Commands は、生成したプロジェクトのルートで実行する前提で書いている。リポジトリルートから実行する場合は同様に `--cwd` を付ける。
 
 ## Common Commands
 
@@ -30,30 +32,34 @@ bun run test                   # テスト実行
 
 ## Rules
 
-パッケージを追加する前に [../typescript-dev-guide/references/bun-workflow.md](../typescript-dev-guide/references/bun-workflow.md) を必ず読む（`bun add` は使用しない）。
+パッケージ運用は [../typescript-dev-guide/references/bun-workflow.md](../typescript-dev-guide/references/bun-workflow.md) を唯一の定義とする。要点は次の 2 つ。
+
+- `bun add` は使用しない。`package.json` を直接編集し `bun install` で反映する
+- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
 
 ### 型チェック
 
-- `cd` してから `npx tsc --noEmit` を実行しない
-- プロジェクトルートから `--project` オプションで tsconfig を指定する
+`cd` を含む複合コマンドは実行のたびに権限プロンプトを誘発し、シェルの作業ディレクトリも呼び出しをまたいで保持されない。React プロジェクトがリポジトリのサブディレクトリにある場合は、`cd` せずに `--cwd` か `--project` で対象を指定する。
 
 ```bash
-# Good
-npx tsc --noEmit --project dashboard/tsconfig.json
+# Good（React プロジェクトが apps/web/ にある場合）
+bun run --cwd apps/web tsc --noEmit
+
+# 依存がリポジトリルートに hoist されている場合は --project でもよい
+bun run tsc --noEmit --project apps/web/tsconfig.json
 
 # Bad
-cd dashboard && npx tsc --noEmit
+cd apps/web && bun run tsc --noEmit
 ```
 
 ## Recommended Dependencies
 
+標準スタック（bun / Vite / Biome）に追加するもの。状態管理の選定は下の Decision Guide で扱う。
+
 | カテゴリ | パッケージ | 用途 |
 |---|---|---|
-| 状態管理 | zustand | グローバル状態 |
-| サーバー状態 | @tanstack/react-query | キャッシュ・再検証 |
 | フォーム | react-hook-form + zod | フォーム管理+バリデーション |
 | スタイリング | tailwindcss | ユーティリティファースト |
-| Lint/Format | @biomejs/biome | 統一ツール |
 | テスト | vitest + @testing-library/react | ユニット+コンポーネント |
 
 ## Project Structure
@@ -85,8 +91,8 @@ src/
 |---|---|---|
 | Component local | `useState` | Simplest |
 | Parent-child sharing | props drilling or Context | Explicit dependencies |
-| Global (small scale) | Zustand | Lightweight, simple API |
-| Server state | TanStack Query | Cache, revalidation |
+| Global (small scale) | `zustand` | Lightweight, simple API |
+| Server state | `@tanstack/react-query` | Cache, revalidation |
 
 ### Framework Selection
 

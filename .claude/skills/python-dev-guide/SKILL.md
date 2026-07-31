@@ -4,10 +4,12 @@ description: uv + ruff を使った Python 開発の支援スキル。プロジ�
 allowed-tools:
   - Write
   - Read
+  - Edit
   - Glob
   - Bash(uv:*)
   - Bash(git:*)
   - Bash(mkdir:*)
+  - Bash(cd:*)
 ---
 
 # Python Development Guide
@@ -15,8 +17,6 @@ allowed-tools:
 ## Tech Stack
 
 uv + ruff を標準とし、Python 3.14+ を対象として最新の言語機能を活用する。
-
-新規プロジェクトの作成手順は [Project Init Workflow](#project-init-workflow) を参照。
 
 ## Common Commands
 
@@ -82,10 +82,10 @@ def calculate_area(length: float, width: float) -> float:
 ```python
 from typing import Protocol
 
-# X | Y 構文 (Python 3.10+)
+# Optional/Union は X | Y 構文で書く（typing.Optional / typing.Union は使わない）
 def find_user(user_id: int) -> dict | None: ...
 
-# Generics (PEP 695, Python 3.12+)
+# ジェネリクスは PEP 695 構文で書く（typing.TypeVar は使わない）
 class Container[T]:
     def __init__(self, value: T) -> None:
         self.value = value
@@ -184,8 +184,6 @@ uv sync
 uv run pre-commit autoupdate
 uv run pre-commit install
 ```
-
-テンプレートの `rev` はプレースホルダなので、`pre-commit autoupdate` で必ず最新バージョンに更新する。
 
 ## Security
 

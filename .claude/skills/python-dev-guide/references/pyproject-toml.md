@@ -45,9 +45,6 @@ ignore = [
     "E501",  # line too long (formatter handles this)
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
-
 [tool.mypy]
 python_version = "3.14"
 strict = true
@@ -82,3 +79,11 @@ exclude_lines = [
 exclude_dirs = ["tests"]
 skips = ["B101"]
 ```
+
+## exclude-newer
+
+`exclude-newer` が相対期間（`1 week`、`3 days`、`P3D`）を受け付けるのは uv 0.9.17 以降。それ以前の uv では解析に失敗した旨の警告が出るだけで設定は無視され、cooldown が効かないまま解決が進む。uv を固定できない環境では `2026-07-01` のような日付か RFC 3339 タイムスタンプを指定する。
+
+## ruff と bandit の分担
+
+セキュリティ検査は bandit に任せ、ruff の `select` には flake8-bandit（`S`）を入れていない。テストでの `assert` 許可は `[tool.bandit]` の `exclude_dirs` / `skips` で設定済みなので、ruff 側に `per-file-ignores` で `S101` を書いても `S` が未選択である以上は何も無効化しない。
