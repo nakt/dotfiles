@@ -44,14 +44,17 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(tes
 2. タイトルを確定する
    - 引数(`$ARGUMENTS`)があればそれを使う
    - なければユーザーに確認する
-3. 採番する: Current state の Existing ADRs で最大番号を確認し +1、4 桁ゼロ埋め。並行ブランチ等で採番が衝突した場合は、後から追加した方を繰り上げる
+3. 採番する: Current state の Existing ADRs で最大番号を確認し +1、4 桁ゼロ埋め
+   - 起票時点では自ブランチに見えている番号しか判断材料が無いため、並行ブランチで同じ番号が独立に使われることがある。この衝突はマージ・リベースで両者が同じ作業ツリーに揃ったとき（同じ番号のファイルが 2 つ並ぶ、または同名ファイルのコンフリクト）に初めて検出できる
+   - 検出したら、フロントマターの `date:` が新しい方（同日なら後から取り込んだ方）を、その時点の最大番号 +1 に付け替える。番号は必ず大きい側へずらし、空き番号の再利用や既存 ADR の番号変更はしない
+   - 付け替え時はファイル名・H1 の番号・`docs/adr/README.md` の一覧行・他 ADR の `supersedes` / `superseded_by` の参照をすべて新番号に揃える
 4. `~/.claude/skills/record-adr/templates/adr-template.md` を Read し、以下を埋めて `docs/adr/NNNN-kebab-title.md` として Write する
    - kebab-title はタイトルを小文字ハイフン区切りにしたもの
    - フロントマター `date:` を Current state の Today に置換
    - H1 `# NNNN: タイトル` を実際の番号とタイトルに置換
    - status はテンプレート既定の `Accepted` のまま起票する(`Accepted` / `Superseded` の 2 値のみ。`Superseded` は手順 6 で既存 ADR を置き換えるときにのみ使う)
    - 対話で Context / Decision / Rationale / Consequences を埋める。検証・実験に基づく決定なら Rationale に実測値や比較を具体的に書く。Alternatives がなければ削除してよい
-   - 検証・実験で使った `.workspace/` の一時ファイルは参照せず、根拠となる実測値・比較結果を Rationale 本文に転記する(`.workspace/` は使い捨てのため ADR から参照しない)
+   - 検証・実験で使った `.workspace/` の一時ファイルは参照せず、根拠となる実測値・比較結果を Rationale 本文に転記する(`.workspace/` は使い捨てのため)
    - 本文の各段落は 1 段落 1 行で書く。途中でハードラップしない
 5. `docs/adr/README.md` の一覧テーブルを再生成する
    - 既存の `docs/adr/README.md` を Read で読み込み、既存行の「サマリ」列の文言を把握する

@@ -2,7 +2,7 @@
 name: wrapup-dispatch
 description: 長いセッションの終わりに、会話履歴から「やったこと・学び・決定・残すべき課題」と「反省・摩擦点(同じ修正の繰り返し / CLAUDE.md・rules を守れなかった場面)」を抽出・構造化し、既存のドキュメント化スキル(issue-tracker / record-adr / update-arch / update-readme)へ振り分け提案するルーター。自身は保存先を持たず、実体は各スキルに委譲する。「セッションをまとめて」「ラップアップして」「今日のセッションを振り返って記録に残して」「wrapup-dispatch」のような依頼で使う。GitHub PR/issue の操作には使わない。
 argument-hint: "[なし] または振り返り範囲のヒント"
-allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(echo:*)
+allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git log:*), Bash(echo:*)
 ---
 
 # Wrapup Dispatch
@@ -19,7 +19,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 - Recent commits: !`git log --oneline -10 2>/dev/null || echo '(none)'`
 - Today: !`date +%Y-%m-%d`
 
-上記は振り分け先の存在確認と重複回避の材料。`issues/inbox` / `docs/adr` に既出のテーマは再起票しない。
+上記は振り分け先の存在確認と重複回避の材料（重複回避の具体は「2. 振り分け判定」で扱う）。
 
 ## 1. 抽出(Collect)
 
@@ -28,7 +28,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 - `$ARGUMENTS` に範囲ヒント(例: 「今日の PR レビュー分」「直近 2 時間」「特定トピック名」)が渡されていれば、それを抽出対象スコープの絞り込みに使う。
 - 引数が無ければセッション全体を対象とする。
 - 範囲ヒントが会話文脈と照合できない場合(誤打鍵、範囲を絞れない語)は、一文で確認してから始める。
-- 範囲ヒントは wrapup-dispatch 自身の抽出フェーズにのみ効かせる。委譲先へは従来どおり会話文脈で橋渡しする(スキル間で引数を渡す正式 API は無いため)。
+- 範囲ヒントは wrapup-dispatch 自身の抽出フェーズにのみ効かせる。委譲先へは従来どおり会話文脈で橋渡しする(理由は「4. 委譲」を参照)。
 
 ### 抽出カテゴリ
 
@@ -58,7 +58,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 | update-readme | `README.md` |
 | 振り分けない(保留) | (なし。提示のみ) |
 
-- 設定リポジトリでの注記: update-arch / update-readme は処理フローやアプリコードの変化を前提とする。この dotfiles のような設定リポジトリでは該当が少ないので、該当する変化が会話に無ければ arch / readme へは空提案しない。
+- 空提案をしない: update-arch / update-readme は処理フローやアプリコードの変化を前提とする。会話にその変化が無ければ arch / readme へは振り分けない。設定・スクリプト主体のリポジトリ（dotfiles、CI 設定、ドキュメント集など。Current state の `docs/arch` が `no` で、会話の変更対象が設定ファイルや Markdown に偏っていれば該当と見なせる）では特に該当が少ないので、無理に行き先を埋めない。
 - 重複回避: Current state の `issues/inbox` / `docs/adr` を読み、既に起票・記録済みのテーマは再起票しない。
 - 逆方向(クローズ)も提案: セッション中に既存の inbox issue が決着したなら done を提案に含める。委譲時は会話から抽出した決着メモ(決着理由 + 学び・経緯)を添えて、issue-tracker の done に渡す。これにより、クローズ時に学びを残して「issue-tracker の履歴をナレッジに活用」を双方向化する。
 

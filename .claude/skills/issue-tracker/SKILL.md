@@ -1,6 +1,6 @@
 ---
 name: issue-tracker
-description: 調査・検討の結果や、作業中に見つけた不具合・課題・TODO を、1 ファイル 1 件の Markdown issue として `issues/` に起票し、未完了 issue の棚卸し（一覧・優先度づけ・ピックアップ）と done 化を行うスキル。1 issue = 1 ファイル、ステータスは inbox / done のディレクトリ 2 値のみで表現する。「この調査結果を issue で起票して」「未完了の issue を棚卸しして優先度が高そうなものをピックアップ」「issue-xxxx を done にして」のような明示的な依頼で使う。手動 `/issue-tracker` でも呼べる。GitHub issue の操作（gh issue / API）には使わない。
+description: 調査・検討の結果や、作業中に見つけた不具合・課題・TODO を、1 ファイル 1 件の Markdown issue として `issues/` に起票し、未完了 issue の棚卸し（一覧・優先度づけ・ピックアップ）と done 化を行うスキル。1 件でも複数件でもまとめて起票できる。1 issue = 1 ファイル、ステータスは inbox / done のディレクトリ 2 値のみで表現する。「この調査結果を issue で起票して」「未完了の issue を棚卸しして優先度が高そうなものをピックアップ」「issue-xxxx を done にして」のような依頼で使う。加えて、このセッションで着手した issue の作業が片付いた場面では、明示依頼が無くても done 化の提案・実行に使う。手動 `/issue-tracker` でも呼べる。GitHub issue の操作（gh issue / API）には使わない。
 argument-hint: "[create|triage|done <id>] または自然文の依頼"
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(echo:*), Bash(test:*), Bash(date:*), Bash(mkdir:*), Bash(git mv:*), Bash(git rev-parse:*), Bash(mv:*)
 ---
@@ -21,7 +21,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(echo:*), Bash(tes
 
 ユーザーの依頼文（または引数）から、次の 3 モードのどれかを選ぶ。複数該当する場合は依頼の主目的を優先する。
 
-- create（起票）: 「issue で起票」「issue にしておいて」「記録して」など、直前の調査・検討結果を残す依頼。
+- create（起票）: 「issue で起票」「issue にしておいて」「記録して」など、直前の調査・検討結果を残す依頼。1 件でも複数件でも同じモードで扱う（brainstorm の「スコープ外にしたもの」や wrapup-dispatch の一括委譲のように、複数テーマがまとめて渡されることがある）。
 - triage（棚卸し / pickup）: 「一覧」「棚卸し」「優先度」「ピックアップ」「どれからやる」など、未完了 issue を見渡して選ぶ依頼。tags に `hold` が入っているものは通常候補から外し、末尾の `## hold 中` セクションに分離する（下記「hold（保留）」参照）。
 - done（クローズ）: 「done にして」「クローズ」「片付いた」+ 対象 id を伴う依頼。加えて、triage で取り上げた（または起票済みの）issue に着手し、その作業がこのセッション内で片付いたときは、明示依頼が無くても done を提案・実行する（下記「着手 → 完了（done への接続）」を参照）。
 
@@ -39,17 +39,17 @@ mkdir -p issues/inbox issues/done
 
 ## create（起票）
 
-直前の調査・検討結果を 1 ファイルにまとめて `issues/inbox/` に保存する。
+直前の調査・検討結果を `issues/inbox/` に保存する。1 テーマ = 1 ファイルで、複数テーマが渡された場合も 1 回の create でまとめて処理する。
 
-1. 起票対象を確認する。 直前の会話に起票すべき調査・検討の中身があるか見る。無い／曖昧なら「何を issue にするか」を聞き返してから進む。空の issue を作らない。
-2. id を決める。 `id = YYYYMMDD-slug`。日付は Current state の Today から `YYYYMMDD`。slug は内容を表す短い kebab-case（英小文字・ハイフン）。連番は使わない（次番号スキャンが要るため。日付プレフィックスで時系列ソートする）。
-3. 衝突を避ける。 Current state の inbox / done に同 id が無いか確認する。同日・同テーマで slug が衝突しそうなら slug を具体化する。それでも衝突するなら末尾に `-2`, `-3` を付ける。
-4. テンプレートから生成する。 `~/.claude/skills/issue-tracker/templates/issue-template.md` を Read し、`{id}` `{title}` `{created}` `{updated}` を埋めて `issues/inbox/<id>.md` として Write する。`created` と `updated` は Today（`YYYYMMDD` 形式、id の日付部分と同じ表記）。
+1. 起票対象を洗い出す。 直前の会話に起票すべき調査・検討の中身があるか見て、独立して着手できるテーマ単位に分ける。テーマが複数あれば「どれを起票するか」の一覧（各 1 行サマリ）を先に提示して合意を取る。無い／曖昧なら「何を issue にするか」を聞き返してから進む。空の issue を作らない。1 テーマを無理に分割せず、逆に無関係な複数テーマを 1 ファイルに詰め込まない。
+2. 各テーマの id を決める。 `id = YYYYMMDD-slug`。日付は Current state の Today から `YYYYMMDD`。slug は内容を表す短い kebab-case（英小文字・ハイフン）。連番は使わない（次番号スキャンが要るため。日付プレフィックスで時系列ソートする）。
+3. 衝突を避ける。 Current state の inbox / done に同 id が無いか確認する。複数件を同時に起票する場合は、日付部分が全件同じになるため、このバッチ内で slug が重複していないかも突き合わせる。衝突しそうなら slug を具体化する。それでも衝突するなら末尾に `-2`, `-3` を付ける。
+4. テンプレートから生成する。 `~/.claude/skills/issue-tracker/templates/issue-template.md` を Read し（複数件でも Read は 1 回でよい）、テーマごとに `{id}` `{title}` `{created}` `{updated}` を埋めて `issues/inbox/<id>.md` として Write する。`created` と `updated` は Today（`YYYYMMDD` 形式、id の日付部分と同じ表記）。
    - TL;DR と「結論 / プラン」は短く保つ。 ここは triage で各ファイル先頭だけ読むときのスキャン対象。長文は「調査結果」節に置く。
    - 調査結果は長くてよい。 自由にネストしてよい。「事実」と「そこからの解釈」を分けて書くと後から読み返しやすい。
    - priority は分かっていれば入れる。不明なら空のままでよい（triage 側で推定される）。
-   - related は他 issue への参照が要る場合のみ id で書く。 パスで参照すると done 移動でリンクが壊れるため（`related: []` はテンプレート既定）。
-5. 報告する。 作成パスと TL;DR を 1〜2 行で返す。
+   - related は他 issue への参照が要る場合のみ id で書く。 パスで参照すると done 移動でリンクが壊れるため（`related: []` はテンプレート既定）。同じバッチで起票した issue 同士に依存関係があるときも、パスではなく id で相互参照する。
+5. 報告する。 1 件なら作成パスと TL;DR を 1〜2 行で返す。複数件なら `- <パス>: <TL;DR 1 行>` の箇条書きで全件を列挙し、末尾に件数を添える。
 
 ## triage（棚卸し / pickup）
 
@@ -57,7 +57,7 @@ mkdir -p issues/inbox issues/done
 
 1. 一覧を取る。 Current state の inbox で件数を把握する。各ファイルの先頭（frontmatter + TL;DR）を読む。全文は読まない（スキャンが目的）。frontmatter の `tags` に `hold` があるかもここで判定する。
    - inbox が空（`(none)`）なら「未完了 issue は無い」と伝えて終わる。done しか無い場合も同様。
-2. hold を分離する。 tags に `hold` を持つ issue は通常候補集合から除外する。`priority: high` が付いていても hold なら候補外。分離した hold 群は手順 3 の末尾で別セクションに出す。
+2. hold を分離する。 tags に `hold` を持つ issue は通常候補集合から除外する。`priority: high` が付いていても hold なら候補外。分離した hold 群は手順 4 の末尾で別セクションに出す。
 3. 優先度を決める。
    - frontmatter に `priority: high|med|low` が明示されていれば、それを最優先で採用する。
    - 明示が無いものは、TL;DR / tags / `created` からの経過日数 / 「未解決の論点」の多さ などから Claude が推定する。
@@ -121,9 +121,9 @@ triage でピックアップした issue や、create で残しておいた issu
 
 ## done（クローズ）
 
-調査が決着した issue を `done/` へ移す。
+調査が決着した issue を `done/` へ移す。複数 id が渡された場合は、id ごとに手順 2〜5 を繰り返し、報告（手順 6）だけまとめて 1 回で行う。
 
-1. 対象 id を確定する。 引数や依頼文の id を使う。曖昧なら inbox を一覧して確認する。
+1. 対象 id を確定する。 引数や依頼文の id を使う。複数指定されていれば全件を対象リストにする。曖昧なら inbox を一覧して確認する。
 2. hold との併存を解く。 対象 issue の `tags` に `hold` があれば、決着メモ追記の前に自動で unhold する。具体的には `tags:` から `hold` を除き、`## ログ` に `- <Today> unhold: done に向けて解除` を追記する。この後、次ステップで `done:` 行が続く形になる。hold が無ければこのステップは飛ばす。
 3. 決着メモをログに追記する（必須）。 mv の前に、対象ファイルの「## ログ」節末尾へ、会話文脈から抽出した決着メモを Edit で追記する。これが無いと「調査だけして放置」と「決着して完了」が区別できなくなる。形式は次の構造化メモにする。
 
@@ -143,7 +143,7 @@ triage でピックアップした issue や、create で残しておいた issu
    git mv issues/inbox/<id>.md issues/done/<id>.md
    ```
 
-6. 報告する。 移動結果と追記した決着理由を返す。
+6. 報告する。 移動結果と追記した決着理由を返す。複数件なら `- <移動後のパス>: <決着理由 1 行>` の箇条書きで全件を列挙する。
 
 ## ディレクトリ構成
 
