@@ -32,10 +32,7 @@ bun run test                   # テスト実行
 
 ## Rules
 
-パッケージ運用は [../typescript-dev-guide/references/bun-workflow.md](../typescript-dev-guide/references/bun-workflow.md) を唯一の定義とする。要点は次の 2 つ。
-
-- `bun add` は使用しない。`package.json` を直接編集し `bun install` で反映する
-- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
+パッケージを追加する操作（`bun add` の実行を含む）に着手する前に、必ず [../typescript-dev-guide/references/bun-workflow.md](../typescript-dev-guide/references/bun-workflow.md) を読む。禁止事項とサプライチェーン対策が定義されている。
 
 ### 型チェック
 
