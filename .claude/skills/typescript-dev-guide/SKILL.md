@@ -6,8 +6,6 @@ allowed-tools: Write, Read, Glob, Edit, Bash(bun:*)
 
 # TypeScript Development Guide
 
-.tsx では typescript-dev-guide と react-dev-guide の両方が適用され、矛盾する場合は react-dev-guide を優先する。
-
 ## Tech Stack
 
 bun + Biome を標準とする。
@@ -34,14 +32,7 @@ bun run test                   # テスト実行
 
 ## Rules
 
-### パッケージ追加
-
-- `bun add xxx` でパッケージを追加しない
-- `package.json` を直接編集し、`bun install` で反映する
-
-### サプライチェーン対策
-
-- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
+パッケージを追加する操作（`bun add` の実行を含む）に着手する前に、必ず [references/bun-workflow.md](references/bun-workflow.md) を読む。禁止事項とサプライチェーン対策が定義されている。
 
 ## Recommended tsconfig.json
 
@@ -67,8 +58,14 @@ bun run test                   # テスト実行
 
 ```json
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "organizeImports": { "enabled": true },
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": { "recommended": true }
@@ -81,14 +78,16 @@ bun run test                   # テスト実行
 }
 ```
 
+`$schema` はインストール済みパッケージへの相対パスを指定し、バージョンを固定しない。インポート整理は Biome 2.x で `assist` 配下へ移動しており、1.x のトップレベル `organizeImports` は無効。
+
 ## Coding Conventions
 
-- 一時コメントには `TODO` / `FIXME` ラベルを使用
 - 型推論を活用し、関数の引数と返り値のみ明示的に型を付ける
 - 型インポートは `import type` を使用
 - エラーハンドリングには Result 型パターンを推奨
 - 外部データのバリデーションには Zod を使用
 - コードスタイルは Biome で統一
+- シンプルな型戦略を優先し、過度な型パズルを避ける
 
 ## Decision Guide
 
@@ -108,13 +107,3 @@ bun run test                   # テスト実行
 | Recoverable error | Result type | Explicit error handling |
 | Unexpected error | throw | Catch at upper level |
 | External input | Zod | Unified parsing and validation |
-
-## Key Principles
-
-1. bun + Biome の技術スタックを使用する
-2. `strict: true` + `noUncheckedIndexedAccess` で型安全性を強化
-3. 型推論を活用し、関数の引数と返り値のみ明示的に型を付ける
-4. 型インポートは `import type` を使用する
-5. エラーハンドリングには Result 型パターンを推奨
-6. 外部データのバリデーションには Zod を使用
-7. シンプルな型戦略を優先し、過度な型パズルを避ける

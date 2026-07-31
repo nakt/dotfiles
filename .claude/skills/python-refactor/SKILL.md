@@ -6,12 +6,10 @@ effort: high
 allowed-tools:
   - Read
   - Edit
-  - Glob
+  - Write
   - Grep
   - Bash(uv:*)
   - Bash(git:*)
-  - Bash(ls:*)
-  - Bash(find:*)
   - Bash(grep:*)
 ---
 
@@ -20,15 +18,6 @@ allowed-tools:
 Python プロジェクト専用の計測駆動リファクタリング支援。計測ツール (radon / lizard / vulture / pylint) の出力をもとに、複雑性削減・デッドコード除去・類似処理の共通化・マジックナンバー定数化を進める。
 
 `$ARGUMENTS` の第 1 引数でモードを指定して個別実行できる。指定なしならフルモードで全フェーズを順に実施する。
-
-## refactor-code との棲み分け
-
-| スキル | 対象 | 駆動 |
-| --- | --- | --- |
-| `refactor-code` | 任意言語の汎用リファクタリング | 手作業ベース、6 フェーズ |
-| `python-refactor` | Python 限定 | 計測ツール駆動、モード分岐対応 |
-
-Python プロジェクトで計測値を見ながら進めたいなら本スキル、それ以外、または計測ツールを入れる前の整理は `refactor-code` を使う。
 
 ## 機能インデックス
 
@@ -42,7 +31,7 @@ Python プロジェクトで計測値を見ながら進めたいなら本スキ�
 | 類似処理共通化 | `dedupe` | パラメタライズ・設定駆動化・命名統一 | pylint, grep | [references/dedupe.md](references/dedupe.md) |
 | マジックナンバー定数化 | `magic-numbers` | 数値・文字列を定数 / Config 化 | grep, ruff | [references/magic-numbers.md](references/magic-numbers.md) |
 
-計測コマンドとツール一覧はすべて [references/tools.md](references/tools.md) に集約。
+計測コマンド・検証コマンド・ツール一覧・閾値はすべて [references/tools.md](references/tools.md) に集約する。本ファイルと各パターン references には再掲しない。
 
 ## 引数によるモード分岐
 
@@ -52,37 +41,40 @@ Python プロジェクトで計測値を見ながら進めたいなら本スキ�
 
 一致しない場合はエラーとし、候補を提示してユーザー確認を取る。例:
 
-```
+```text
 入力: complex
 → 不明なモード `complex` です。次のいずれかを指定してください: complexity / code-health / dedupe / magic-numbers / full
 ```
 
-引数なしまたは `full` の場合、Phase 0 → 5 を順に実行する。それ以外は Phase 0 (準備) → Phase 1 の該当モード計測のみ → Phase 2 の該当改善 → Phase 4 (検証) → Phase 5 (ドキュメント整合) を実行する。
+引数なしまたは `full` の場合、Phase 0 → 5 を順に実行する。それ以外は Phase 0 (準備) → Phase 1 の該当モード計測のみ → Phase 2 の該当改善 → Phase 4 の該当モード検証 → Phase 5 (ドキュメント整合) を実行する。Phase 3 (横断適用順) はフルモードのみ。
+
+Phase 0 が入れるのは起動したモードの最小ツールセットだけなので、Phase 1 と Phase 4 も同じモードの範囲を超えるツールを実行しない。
 
 ## Phase 0: 準備
 
 1. `pyproject.toml` を Read し、`[dependency-groups]` の `dev` に必要ツール (モード別の最小セットは [tools.md](references/tools.md) 参照) が揃っているか確認
 2. 不足ツールがあればユーザーに一覧を提示し承認を得る:
 
-   ```
+   ```text
    このモード (例: complexity) には radon, lizard, wily が必要ですが、現在 pyproject.toml に含まれていません。
    `uv add --dev radon lizard wily` で追加してよいですか？
    ```
-3. 承認後に `uv add --dev <tools>` を実行し、`uv sync` で同期
-4. `uv run pytest` を実行し、ベースラインのテストグリーンを確認。失敗があればリファクタリング前に修正する旨をユーザーに通知
+
+3. 承認後に `uv add --dev <tools>` を実行し、`uv sync` で同期。既存の dev エントリは削除しない
+4. `uv run pytest` を実行し、ベースラインのテストグリーンを確認。失敗があればリファクタリング前に修正する旨をユーザーに通知。テストが未整備の箇所は、リファクタリングに入る前にテストを書く
 
 ## Phase 1: 計測
 
-該当モードの計測コマンドを `uv run <tool>` 形式で実行し、結果を標準出力にそのまま提示する。ファイル保存はしない (`reports/` ディレクトリは作らない)。
+該当モードの計測コマンドを `uv run <tool>` 形式で実行し、結果を標準出力にそのまま提示する。計測結果はファイルに保存しない (`reports/` ディレクトリは作らない)。
 
 出力例の解釈 (各モードの読み方):
 
 - complexity: 関数単位で C 以上のランクが付いた箇所を改善対象として要約
 - code-health: 信頼度別に分類し、80% 以上を主対象、60-70% は偽陽性候補として注意喚起
-- dedupe: 6 行以上の重複ブロックを箇所ペアでリスト化
+- dedupe: 閾値 6 行で報告された重複ブロックを、出現箇所数 (pylint の `Similar lines in N files` の N) 付きでリスト化。この段階では統合候補の列挙であって統合の決定ではない
 - magic-numbers: ファイル × 行 × リテラル値で表化
 
-完全なコマンド一覧は [references/tools.md](references/tools.md) を参照。
+コマンドは [references/tools.md](references/tools.md) の「計測コマンド集」を参照。
 
 ## Phase 2: 改善 (モード別)
 
@@ -139,6 +131,8 @@ def process_file(p, fmt): return parse(p, delimiter=FORMATS[fmt])
 
 → 詳細パターン: [references/dedupe.md](references/dedupe.md)
 
+Phase 1 が出すのは候補なので、統合するかどうかはここで決める。出現箇所が 3 箇所以上なら統合、2 箇所だけなら `dedupe.md` の「過抽象化への警戒」の条件を満たす場合のみ統合する。
+
 ### magic-numbers モード例 (Extract to Constants)
 
 ```python
@@ -157,7 +151,9 @@ if amount < SMALL_AMOUNT_THRESHOLD:
 
 → 詳細パターン: [references/magic-numbers.md](references/magic-numbers.md)
 
-各改善ステップの後で `uv run pytest` を流し、テストがグリーンであることを確認する。
+各改善ステップの後で `uv run pytest` を流し、テストがグリーンであることを確認する。モジュール分割や公開 API の変更といった大きな構造変更に着手する前は、ユーザー確認を取る。
+
+新規ファイルの作成 (vulture の `whitelist.py`、抽出した基底クラスや設定クラスの置き場など) もこの「大きな構造変更」に含め、作る前にユーザー確認を取る。Phase 1 の「ファイルに保存しない」は計測結果に対する制約であり、リファクタリング成果物としてのソース追加を禁じるものではない。
 
 ## Phase 3: 横断適用順 (フルモードのみ)
 
@@ -170,44 +166,23 @@ if amount < SMALL_AMOUNT_THRESHOLD:
 
 ## Phase 4: 検証
 
-```bash
-uv run pytest                         # テストグリーン
-uv run ruff check .                   # Lint
-uv run ruff format --check .          # フォーマット
-uv run mypy .                         # 型チェック
-uv run radon cc . -n C                # 複雑度ゲート
-uv run vulture . --min-confidence 80  # デッドコード再確認
-uv run wily diff HEAD~1               # 改善度
-```
+2 段階で行う。
 
-完全な検証コマンドリストは [references/tools.md](references/tools.md) の「最終検証コマンド一式」を参照。
+1. 全モード共通の検証 (pytest / ruff check / ruff format --check / mypy)。これらは `python-dev-guide` の既定 dev グループに入っているのでどのモードでも実行できる
+2. 起動したモードの計測ツールによる再計測。Phase 0 で導入していないツールは実行しない。モード分岐を無視して全ツールを流すと、未インストールのコマンドで失敗する
+
+コマンドは [references/tools.md](references/tools.md) の「検証コマンド集」を参照。
 
 ## Phase 5: ドキュメント整合性チェック
 
 リファクタリングで生じた構造変更がドキュメントと乖離していないか確認し、必要なら更新へ誘導する。
 
-判定とアクション:
+`git diff --stat` と変更ファイル一覧を確認し、次のいずれかに該当すればスキルの呼び出しを提案する。
 
-| 対象 | 判定基準 | アクション |
-| --- | --- | --- |
-| `docs/arch/` | 存在し、かつ処理フロー・モジュール構造・公開 API が変更された | `update-arch` スキルの呼び出しを提案 |
-| `README.md` | Quick Start / コマンド例 / プロジェクト構造のいずれかが変更された | `update-readme` スキルの呼び出しを提案 |
-| いずれも | 影響なし | 「ドキュメント影響なし: <理由>」を 1 行表示してスキップ |
+- `docs/arch/` が存在する → `update-arch` スキル。更新要否の判定基準は `update-arch` 側が持つのでここでは再掲しない
+- Quick Start / コマンド例 / プロジェクト構造のいずれかが変更された → `update-readme` スキル。`update-readme` は判定基準を持たず呼ばれたら生成する形式なので、条件はここで持つ
 
-判定は `git diff --stat` と変更ファイル一覧から自動で見積もり、最終判断はユーザーに確認する。
-
-## 閾値要約
-
-| 観点 | 閾値 |
-| --- | --- |
-| 循環的複雑度 | C 以上 (≥ 11) で改善対象 |
-| 認知的複雑度 | > 15 で改善対象 |
-| 保守性指数 | < 65 で改善対象 |
-| 1 ファイル行数 | > 500 行で分割検討 |
-| 重複コード | ≥ 6 行のブロックは統合検討 |
-| デッドコード信頼度 | ≥ 80% で削除候補 |
-
-根拠と詳細は [references/tools.md](references/tools.md) を参照。
+いずれも該当しない場合は「ドキュメント影響なし: <理由>」を 1 行表示してスキップする。最終判断はユーザーに確認する。
 
 ## スコープ外
 
@@ -220,14 +195,6 @@ uv run wily diff HEAD~1               # 改善度
 - pre-commit セットアップ — `python-dev-guide` を参照
 
 必要に応じて参考リポ [l-mb/python-refactoring-skills](https://github.com/l-mb/python-refactoring-skills) の py-security / py-test-quality / py-modernize / py-quality-setup / py-git-hooks を直接参照する。
-
-## Key Principles
-
-1. 計測 → 改善 → 検証 → ドキュメント整合の順を守る
-2. テストグリーンを維持。テスト未整備のコードは先にテストを書く
-3. 大きな構造変更の前にユーザー確認を取る
-4. 過抽象化を避ける (`dedupe` の 3 回ルール参照)
-5. 出力・対話は日本語、コード内コメントは英語
 
 ## 出典
 

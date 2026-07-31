@@ -2,16 +2,7 @@
 
 循環的・認知的複雑度を下げ、保守性指数を高めるためのリファクタリングパターン集。
 
-## 計測コマンド要約
-
-```bash
-uv run radon cc . -n C -s           # cyclomatic ≥ 11 を表示
-uv run radon mi . -n B              # 保守性指数 < 65
-uv run lizard -C 15 -L 50 .         # 認知的複雑度・関数行数
-uv run wily diff HEAD~1             # 直前コミットからの改善差分
-```
-
-詳細は [tools.md](tools.md) を参照。
+計測・検証のコマンドと閾値は [tools.md](tools.md) の「complexity モード」に集約している。本ファイルは改善パターンのみを扱う。
 
 ## 改善パターン
 
@@ -133,12 +124,14 @@ def save(data: Data, cache_mode: CacheModeOption) -> None: ...
 
 ## Verification Checklist
 
-- [ ] `uv run radon cc . -n C` で C 以上の関数が報告されない（または対処済み）
-- [ ] `uv run lizard -C 15 .` で認知的複雑度の警告が出ない
-- [ ] `uv run radon mi . -n B` で保守性指数 < 65 のモジュールがない
+コマンドは [tools.md](tools.md) の「検証コマンド集」を参照。ここでは合格条件のみを示す。
+
+- [ ] radon cc で C 以上の関数が報告されない（または対処済み）
+- [ ] lizard で認知的複雑度の警告が出ない
+- [ ] radon mi で保守性指数 < 65 のモジュールがない
 - [ ] 1 ファイル > 500 行は分割するか分割不可な理由を確認
 - [ ] テストグリーンを維持
-- [ ] `uv run wily diff HEAD~1` で改善方向を確認
+- [ ] wily diff で改善方向を確認
 
 ## 出典
 

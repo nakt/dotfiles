@@ -4,6 +4,7 @@ description: uv + ruff を使った Python 開発の支援スキル。プロジ�
 allowed-tools:
   - Write
   - Read
+  - Edit
   - Glob
   - Bash(uv:*)
   - Bash(git:*)
@@ -14,17 +15,7 @@ allowed-tools:
 
 ## Tech Stack
 
-uv + ruff を標準とする。
-
-## Quick Start
-
-```bash
-mkdir my-app && cd my-app
-git init
-uv init
-uv add -d ruff mypy pytest
-uv venv && uv sync
-```
+uv + ruff を標準とし、Python 3.14+ を対象として最新の言語機能を活用する。
 
 ## Common Commands
 
@@ -36,26 +27,9 @@ uv run ruff format .             # フォーマット
 uv run mypy src/                 # 型チェック
 ```
 
-## Recommended pyproject.toml
+## pyproject.toml
 
-```toml
-[project]
-requires-python = ">=3.12"
-
-[tool.uv]
-exclude-newer = "1 week"
-
-[tool.ruff]
-target-version = "py312"
-line-length = 120
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-
-[tool.mypy]
-python_version = "3.12"
-strict = true
-```
+[references/pyproject-toml.md](references/pyproject-toml.md) を唯一の定義とする。uv / ruff / mypy / pytest / coverage / bandit / build-system / dependency-groups の設定はすべてそこにある。
 
 ## Project Structure
 
@@ -77,11 +51,11 @@ strict = true
 
 ## Coding Conventions
 
-- 一時コメントには `TODO` / `FIXME` ラベルを使用
 - 型ヒントを積極的に使用し、mypy strict モードで検証
 - 外部データのバリデーションには Pydantic を使用
 - コードスタイルは ruff で統一
 - テストは pytest を使用
+- シンプルな設計を優先し、過度な抽象化を避ける
 
 ### Docstring
 
@@ -107,10 +81,10 @@ def calculate_area(length: float, width: float) -> float:
 ```python
 from typing import Protocol
 
-# X | Y 構文 (Python 3.10+)
+# Optional/Union は X | Y 構文で書く（typing.Optional / typing.Union は使わない）
 def find_user(user_id: int) -> dict | None: ...
 
-# Generics (PEP 695, Python 3.12+)
+# ジェネリクスは PEP 695 構文で書く（typing.TypeVar は使わない）
 class Container[T]:
     def __init__(self, value: T) -> None:
         self.value = value
@@ -201,16 +175,15 @@ uv run pytest --cov=src/
 
 ### 3. 環境セットアップ
 
-```bash
-cd {project_name}
-git init
-uv venv
-uv sync
-uv run pre-commit autoupdate
-uv run pre-commit install
-```
+`cd` を含む複合コマンドは実行のたびに権限プロンプトを誘発し、シェルの作業ディレクトリも呼び出しをまたいで保持されない。`cd` せずに `git init <dir>` と `uv --directory` で対象を指定する。
 
-テンプレートの `rev` はプレースホルダなので、`pre-commit autoupdate` で必ず最新バージョンに更新する。
+```bash
+git init {project_name}
+uv venv --directory {project_name}
+uv sync --directory {project_name}
+uv run --directory {project_name} pre-commit autoupdate
+uv run --directory {project_name} pre-commit install
+```
 
 ## Security
 
@@ -219,22 +192,3 @@ uv add --dev bandit pip-audit
 uv run bandit -r src/                   # コードのセキュリティ脆弱性
 uv run pip-audit                        # 依存関係の脆弱性
 ```
-
-## AI Tool Usage Notes
-
-Claude Code や Gemini CLI から Python プロジェクトを操作する際:
-
-- パッケージ管理は `uv add` / `uv sync` / `uv remove` を使用（`pip install` を避ける）
-- `pyproject.toml` と `uv.lock` の両方をコミット
-- 仮想環境外へのインストールは禁止
-- テスト実行前に `uv run ruff format .` を通す
-
-## Key Principles
-
-1. uv + ruff の技術スタックを使用する
-2. Python 3.12+ を対象とし、最新の言語機能を活用する
-3. mypy strict モードで型安全性を強化
-4. 型ヒントを積極的に使用する
-5. 外部データのバリデーションには Pydantic を使用
-6. コードスタイルは ruff で統一する
-7. シンプルな設計を優先し、過度な抽象化を避ける

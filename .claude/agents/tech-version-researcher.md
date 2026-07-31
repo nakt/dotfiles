@@ -1,6 +1,7 @@
 ---
 name: tech-version-researcher
-description: Investigates latest versions of libraries, frameworks, and tools to support technical decisions
+description: ライブラリ・フレームワーク・ツールの最新バージョンを調査し、技術的な意思決定を支援するエージェント
+tools: Read, Glob, Grep, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
 color: purple
 ---
 
@@ -72,7 +73,6 @@ Present your findings in a structured, easy-to-read format:
 
 ## Communication Guidelines
 
-- Respond in Japanese as per user preferences
 - Be concise but comprehensive
 - Highlight any critical information (security vulnerabilities, EOL notices, breaking changes)
 - If comparing multiple technologies, provide a summary comparison table

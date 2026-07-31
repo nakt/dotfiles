@@ -44,7 +44,7 @@
 | `--team` | `-t` | アクセスを付与する org チーム |
 
 このスキルでは `--clone` の代わりに `ghq get` を使用する。
-`--license` は使用しない。
+`--license` の運用方針は [SKILL.md](../SKILL.md) の Phase 4 を参照。
 
 ## gitignore テンプレート（主要なもの）
 

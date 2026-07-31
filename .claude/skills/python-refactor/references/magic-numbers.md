@@ -2,21 +2,7 @@
 
 コード中に散らばった数値・文字列リテラルを意味のある名前に変え、変更可能性と読みやすさを高める。
 
-## 検出コマンド
-
-```bash
-# 2 桁以上の数値リテラル
-grep -rnE '\b[0-9]{2,}\b' --include='*.py' .
-
-# 短い文字列リテラル (キーやモード名の候補)
-grep -rnE '"[a-zA-Z_]{2,20}"' --include='*.py' . \
-    | grep -v 'docstring\|"""'
-
-# ruff の magic value ルール
-uv run ruff check . --select PLR2004
-```
-
-詳細は [tools.md](tools.md) を参照。
+検出・検証のコマンドは [tools.md](tools.md) の「magic-numbers モード」に集約している。本ファイルは改善パターンと定数化する / しないの判断基準を扱う。
 
 ## 改善パターン
 
@@ -130,6 +116,8 @@ settings = AppSettings()
 
 `APP_SESSION_TIMEOUT_SECONDS=60` を環境変数で渡すだけで上書きされる。バリデーションが付いてくる利点もある。
 
+`pydantic-settings` は本スキルの最小ツールセットに含まれないので、依存追加と設定モジュールの新規作成はどちらもユーザー確認を取ってから行う。
+
 ### 5. テストでの定数置換
 
 テストでは `monkeypatch.setattr` で定数を一時的に置き換える。`importlib.reload` を避けられる。
@@ -165,7 +153,9 @@ def test_settings(monkeypatch):
 
 ## Verification Checklist
 
-- [ ] `uv run ruff check . --select PLR2004` が空、または意図的な例外のみ
+コマンドは [tools.md](tools.md) の「検証コマンド集」を参照。ここでは合格条件のみを示す。
+
+- [ ] ruff の PLR2004 が空、または意図的な例外のみ
 - [ ] 同じリテラルが複数箇所で重複していない
 - [ ] 数値定数の単位が名前で明示されている
 - [ ] 環境ごとに変える値は `pydantic-settings` でオーバーライド可能

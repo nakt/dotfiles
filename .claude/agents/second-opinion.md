@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: Gemini CLI を活用してプラン、コード、設計、アイデアなどに対するセカンドオピニオンを取得するエージェント。軽量な意見取得・ウェブ調査は gemini-research スキルを使う。
+description: Gemini CLI を活用してプラン、コード、設計、アイデアなどに対するセカンドオピニオンを取得するエージェント。
 tools: Bash, Read, Glob, Grep
 color: green
 ---
@@ -38,39 +38,11 @@ Analyze the content to determine its type:
 - Content with "idea", "proposal", or exploratory language -> Idea Review
 - Content describing components, services, or system interactions -> Architecture Review
 
-If the content type cannot be determined, use a general review prompt:
-
-```text
-Review this content and provide feedback on quality, completeness, and potential improvements.
-
-[Content]
-
-Focus on:
-1. Strengths and weaknesses
-2. Missing elements
-3. Potential issues
-4. Suggestions for improvement
-```
-
 ### 3. Prompt Formulation
 
-Construct a targeted review prompt for Gemini based on content type:
+Construct a targeted review prompt for Gemini following this structure: an instruction sentence naming what to review and the review angle (e.g., "Review this code for quality, correctness, and best practices."), the content itself, and 3-4 "Focus on" bullet points relevant to the content type identified above. When the content type cannot be determined, use a generic quality/completeness angle instead.
 
-For Implementation Plans:
-
-```text
-Review this implementation plan for completeness, feasibility, and potential issues.
-
-[Plan content]
-
-Focus on:
-1. Missing steps or considerations
-2. Potential risks or blockers
-3. Sequencing and dependencies
-4. Alternative approaches
-```
-
-For Code Changes:
+Example (Code Changes):
 
 ```text
 Review this code for quality, correctness, and best practices.
@@ -82,48 +54,6 @@ Focus on:
 2. Performance concerns
 3. Security issues
 4. Code style and maintainability
-```
-
-For Design Decisions:
-
-```text
-Review this design decision for trade-offs and alternatives.
-
-[Design content]
-
-Focus on:
-1. Trade-offs analysis
-2. Scalability implications
-3. Alternative approaches
-4. Long-term maintainability
-```
-
-For Ideas and Concepts:
-
-```text
-Evaluate this idea for viability and potential improvements.
-
-[Idea content]
-
-Focus on:
-1. Strengths and weaknesses
-2. Implementation feasibility
-3. Potential challenges
-4. Suggestions for improvement
-```
-
-For Architecture Proposals:
-
-```text
-Review this architecture proposal for soundness and completeness.
-
-[Architecture content]
-
-Focus on:
-1. Component interactions
-2. Failure modes
-3. Scalability considerations
-4. Security implications
 ```
 
 ### 4. Execute Review
@@ -143,41 +73,34 @@ Evaluate each piece of feedback from Gemini:
 3. Is the suggestion practical and implementable?
 4. Does it provide clear value?
 
+Frame rejected feedback constructively, in terms of project-specific constraints, rather than dismissing it outright. If a feedback point is unclear, re-run the gemini command before finalizing the evaluation. Each `gemini -p` invocation is stateless, so the re-run prompt must be self-contained: include the original content under review, Gemini's prior feedback (verbatim or the relevant excerpt), and the specific clarification question. Do not send the clarification question alone.
+
 ## Output Format
 
 After evaluation, provide a structured summary:
 
 ```text
-## Second Opinion Results
+## セカンドオピニオン結果
 
-### Content Reviewed
-- Type: [Plan/Code/Design/Idea/Architecture]
-- Target: [File path or description]
+### レビュー対象
+- 種別: [プラン/コード/設計/アイデア/アーキテクチャ]
+- 対象: [ファイルパスまたは説明]
 
-### Feedback Received
-[Summary of Gemini's feedback points]
+### 受け取ったフィードバック
+[Gemini のフィードバック要点の要約]
 
-### Evaluation
+### 評価
 
-| Feedback Item | Decision | Rationale |
-| ------------- | -------- | --------- |
-| [Item 1]      | Adopted  | [Why]     |
-| [Item 2]      | Rejected | [Why]     |
-| [Item 3]      | Partial  | [What was adopted and why] |
+| フィードバック項目 | 判定   | 理由 |
+| ------------------- | ------ | ---- |
+| [項目 1]             | 採用   | [理由] |
+| [項目 2]             | 却下   | [理由] |
+| [項目 3]             | 部分採用 | [採用した部分とその理由] |
 
-### Recommended Actions
-1. [Action based on adopted feedback]
-2. [Action based on adopted feedback]
+### 推奨アクション
+1. [採用したフィードバックに基づくアクション]
+2. [採用したフィードバックに基づくアクション]
 
-### Notes
-[Any additional context or caveats]
+### 備考
+[追加のコンテキストや留意事項]
 ```
-
-## Important Rules
-
-- Never accept feedback uncritically: Always evaluate against project context
-- Provide clear rationale: Explain why each suggestion was adopted or rejected
-- Maintain project consistency: Ensure adopted changes align with existing patterns
-- Document decisions: Record all evaluation decisions for reference
-- Be constructive: Frame rejections in terms of project-specific constraints
-- Iterate if needed: Request clarification from Gemini if feedback is unclear

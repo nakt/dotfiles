@@ -1,53 +1,43 @@
 ---
 name: commit
-description: 未コミットの変更を分析し、論理的なグループに分類して適切な粒度でコミットするスキル。ユーザーが「コミットして」「変更をコミット」「commit」と言ったとき、または作業完了後にコミットを求められたときに使用する。
+description: 未コミットの変更を分析し、論理的なグループに分類して適切な粒度でコミットするスキル。
 disable-model-invocation: true
 effort: low
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(git diff:*), Bash(git log:*), Bash(pre-commit:*), Bash(echo:*), Write
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(git diff:*), Bash(git log:*), Bash(git symbolic-ref:*), Bash(git rev-parse:*), Bash(pre-commit:*), Bash(uv:*), Bash(grep:*), Bash(echo:*), Bash(test:*)
 ---
 
 # Git Commit
 
-Analyze uncommitted files and commit logically related changes with appropriate granularity.
+未コミットのファイルを分析し、論理的に関連する変更を適切な粒度でコミットする。
 
 ## Current state
 
+base ブランチは `origin/HEAD` から解決する（取得できなければ `main` / `master` の存在で決める）。
+
 - Branch: !`git branch --show-current`
+- Base branch: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; echo "${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}"`
 - Status: !`git status --short`
 - Diff summary: !`git diff HEAD --stat 2>/dev/null || echo '(no commits yet)'`
 - Recent commits: !`git log --oneline -10 2>/dev/null || echo '(no commits yet)'`
 
-## Your Tasks
+## タスク
 
-1. Review the current state above and list the necessary work to be done
-2. Handle initial commit (HEAD not yet established)
-   - If Recent commits shows `(no commits yet)`:
-     a. This is the repository's first commit. Skip branch inference (stay on the current branch)
-     b. `git status --short` (Status above) is the only inventory available in this state — Diff summary / Recent commits are placeholders. Review the untracked list there and stage the relevant files with `git add` per git-workflow rules
-     c. Create the root commit with `<type>: <description>` message (typically `chore: initial commit` or similar)
-     d. Then continue with Step 6 (`Check pre-commit hook updates`), skipping Steps 3-5 (branch inference / categorization / normal commit granularity)
-   - Otherwise: proceed to Step 3
-3. Ensure feature branch
-   - If Branch is `main`:
-     a. Analyze the status and diff summary above
-     b. Infer branch name: `type/short-description` format
-        - Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`
-        - Description: lowercase, hyphen-separated
-        - Examples: `feat/add-login-page`, `fix/null-pointer-error`
-     c. Create and switch: `git checkout -b {branch-name}`
-     d. Report the created branch name to the user
-   - If not on `main`: proceed without changes
-4. Categorize changes into logical groups
-5. Commit with appropriate granularity
-   - Message format: `<type>: <description>` (same types as above)
-   - Explain why the change was made, not what was changed
-6. Check pre-commit hook updates (if `.pre-commit-config.yaml` exists in the project root)
-   - Run `pre-commit autoupdate`
-   - If the config was updated, commit the change separately:
+1. 上記の Current state を確認し、必要な作業をリストアップする
+2. 初回コミットの処理（HEAD が未確立の場合）
+   - Recent commits が `(no commits yet)` の場合:
+     a. このリポジトリの最初のコミットである。ブランチ推定はスキップする（現在のブランチのまま作業する）
+     b. `git status --short`（上記 Status）がこの状態で得られる唯一の一覧であり、Diff summary / Recent commits はプレースホルダーである。そこに表示された未追跡ファイルの一覧を確認し、該当するファイルを `git add` でステージする
+     c. ルートコミットを作成する（通常は `chore: initial commit` などとする）
+     d. その後 Step 6（`pre-commit フックの更新確認`）に進み、Step 3-5（ブランチ推定・分類・通常のコミット粒度）はスキップする
+   - それ以外の場合: Step 3 に進む
+3. フィーチャーブランチを確保する
+   - Branch が Base branch と同じ場合: フィーチャーブランチを作成する。名前は上記の Status と Diff summary から推定し、作成後にブランチ名をユーザーに報告する
+   - それ以外の場合: 何もせず進む
+4. 変更を論理的なグループに分類する
+5. 適切な粒度でコミットする
+   - 何を変更したかではなく、なぜ変更したかを説明する
+6. pre-commit フックの更新を確認する（`test -f .pre-commit-config.yaml` などでプロジェクトルートに `.pre-commit-config.yaml` が存在するか確認し、存在する場合のみ）
+   - `pre-commit autoupdate` を実行する。ただし `test -f uv.lock` または `grep -q "^\[tool.uv" pyproject.toml` が真なら uv 管理リポなので `uv run pre-commit autoupdate` を実行する
+   - 設定が更新された場合は、その変更を別コミットとして記録する:
      `git add .pre-commit-config.yaml && git commit -m "chore: update pre-commit hooks"`
-   - If no updates were made, skip silently
-
-## Constraints
-
-- コミットログは英語で記載してください
-- その他の会話は特別な指定がない限り日本語で回答してください
+   - 更新がなければ何も報告せずスキップする

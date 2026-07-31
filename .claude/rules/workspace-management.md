@@ -1,7 +1,5 @@
 ---
 description: .workspace ディレクトリの運用ルール
-paths:
-  - "**/*"
 ---
 
 # .workspace ディレクトリ運用ルール
@@ -20,4 +18,4 @@ paths:
 
 ## バージョン管理
 
-- `.workspace/` はバージョン管理対象外（`.gitignore` に追加済み）
+- `.workspace/` はバージョン管理対象外とし、`.gitignore` に追加する

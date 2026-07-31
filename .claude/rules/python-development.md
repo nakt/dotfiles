@@ -1,4 +1,5 @@
 ---
+description: Python のコード作業時に参照するガイドラインへのポインタ
 paths:
   - "**/*.py"
 ---

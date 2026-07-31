@@ -76,7 +76,9 @@ agentic coding 特化モデル。本ファイルは Codex 固有のポインタ�
 
 ## 6. Phase Parameter (Codex 固有)
 
-Responses API の `phase` パラメータは Codex Prompting Guide で「currently only supported with gpt-5.3-codex」と明記され、正しい実装が gpt-5.3-codex のパフォーマンスに必須とされる。
+Responses API の `phase` パラメータは gpt-5.3-codex と同時に導入された。Codex Prompting Guide の「currently only supported with `gpt-5.3-codex`」は導入時点の記述で、その後 gpt-5.4 / gpt-5.5 にも拡大している（API リファレンスの表現は「`gpt-5.3-codex` and beyond」）。
+
+Codex 固有なのは対応可否ではなく必須度。gpt-5.4 / 5.5 では optional かつ推奨だが、gpt-5.3-codex では正しい実装がパフォーマンスに必須で、履歴再構築で assistant アイテムの `phase` を落とすと大きく劣化する。
 
 | 値 | 用途 |
 |---|---|

@@ -1,24 +1,23 @@
 # CLAUDE.md
 
-このファイルは、このリポジトリで作業する際の Claude Code へのガイダンスを提供します。
+このファイルは全プロジェクト共通のユーザー設定であり、どのリポジトリで作業していても適用されます。
 
 ## コミュニケーションルール
 
 - 常に日本語で会話する
 
-## 構造
-
-- Rules (`~/.claude/rules/`): 各ルールの質的な定義。下表の「常時参照」列で `@` import されたもののみが実際に読み込まれ、それ以外はスキル呼び出し用のポインタ中間ファイル
-- Skills (`~/.claude/skills/`): YAML frontmatter の description でトリガー判定、`/name` で手動呼び出しも可能。一覧は `~/.claude/skills/` の実体を正典とし、CLAUDE.md 側に台帳は置かない
-
 ## 利用可能な Rules
 
-| Rule                 | 対象                    | 説明                                          | 常時参照                                |
-| -------------------- | ----------------------- | --------------------------------------------- | ----------------------------------------- |
-| workspace-management | All files               | .workspace ディレクトリの運用ルール            | @~/.claude/rules/workspace-management.md  |
-| git-workflow         | All files               | コミット規約、ブランチ戦略、worktree 運用、PR ガイドライン | @~/.claude/rules/git-workflow.md          |
-| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | @~/.claude/rules/markdown-style.md        |
-| plan-workflow        | プラン作成時            | プラン必須の原則と brainstorm / write-plan / execute-plan への振り分け | @~/.claude/rules/plan-workflow.md         |
-| python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | —                                         |
-| react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | —                                         |
-| typescript-coding    | `**/*.ts`, `**/*.tsx`   | → `/typescript-dev-guide` スキルへのポインタ   | —                                         |
+Rules は 7 件で固定的なので下表を台帳として置く。Skills は追加・改廃が頻繁なので台帳を置かず、`~/.claude/skills/` の実体を唯一の情報源とする（手動呼び出し名はスキルのディレクトリ名で、`/<ディレクトリ名>` で起動する）。
+
+「内容の適用先」はルールの中身が対象とするファイル、「ロード方式」はルール本文が読み込まれるタイミング。
+
+| Rule                 | 内容の適用先            | 説明                                          | ロード方式    |
+| -------------------- | ----------------------- | --------------------------------------------- | ------------- |
+| workspace-management | All files               | .workspace ディレクトリの運用ルール            | 常時ロード    |
+| git-workflow         | All files               | コミット規約、ブランチ戦略、worktree 運用、PR ガイドライン、禁止事項 | 常時ロード    |
+| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | 常時ロード    |
+| plan-workflow        | All files               | プラン必須の原則と brainstorm / write-plan / execute-plan への振り分け | 常時ロード    |
+| python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | path-scoped   |
+| react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | path-scoped   |
+| typescript-coding    | `**/*.ts`, `**/*.tsx`   | → `/typescript-dev-guide` スキルへのポインタ   | path-scoped   |

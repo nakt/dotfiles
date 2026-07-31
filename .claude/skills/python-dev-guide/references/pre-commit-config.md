@@ -2,12 +2,12 @@
 
 以下の内容で `.pre-commit-config.yaml` を生成する。pyproject.toml のツール設定と整合する hooks を定義する。
 
-`rev` の値はプレースホルダであり、生成後に `uv run pre-commit autoupdate` で最新化すること。
+`rev` は 2026-07 時点の最新版。生成後に必ず `uv run pre-commit autoupdate` を実行して最新化する。
 
 ```yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -16,21 +16,21 @@ repos:
       - id: check-toml
       - id: check-json
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.12.3
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
     hooks:
       - id: ruff-format
-      - id: ruff
+      - id: ruff-check
         args: [--fix, --exit-non-zero-on-fix]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v2.3.0
     hooks:
       - id: mypy
         additional_dependencies: []
 
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.6
+    rev: 1.9.4
     hooks:
       - id: bandit
         args: [-c, pyproject.toml]
