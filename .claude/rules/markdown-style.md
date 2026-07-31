@@ -1,7 +1,5 @@
 ---
 description: Markdown ファイル作成時のスタイルガイド
-paths:
-  - "**/*.md"
 ---
 
 # Markdown 作成ルール
@@ -51,5 +49,5 @@ paths:
 
 ## Linter について
 
-- markdownlint は PostToolUse hook が自動実行するため、自分で `npx markdownlint` 等を Bash で実行しない
-- hook からの lint エラーフィードバックを受けたら、その内容に従って Edit ツールで修正する
+- markdownlint は PostToolUse hook が自動実行するため、同じ lint を二重に実行しない
+- hook からの lint エラーフィードバックを受けたら、その内容に従って修正する

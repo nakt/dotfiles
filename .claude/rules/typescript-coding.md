@@ -1,4 +1,5 @@
 ---
+description: TypeScript のコード作業時に参照するガイドラインへのポインタ
 paths:
   - "**/*.ts"
   - "**/*.tsx"
