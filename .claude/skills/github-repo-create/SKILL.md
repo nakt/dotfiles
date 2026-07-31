@@ -3,13 +3,11 @@ name: github-repo-create
 description: >-
   GitHub リポジトリの新規作成スキル。プロジェクト内容をヒアリングしてリポジトリ名・description を提案し、
   gitignore を選択して gh repo create で作成する。作成後に verify-repo.sh で visibility と default branch の検証を行う。
-  `/github-repo-create` で手動起動する。
 disable-model-invocation: true
 allowed-tools:
   - Bash(gh:*)
   - Bash(ghq:*)
   - Bash(bash:*)
-  - Bash(ls:*)
   - Bash(jq:*)
   - Bash(grep:*)
   - Read
@@ -56,10 +54,9 @@ owner は上記 Current state の Owner を使用する。対応するのは個�
 | description | `{description}` |
 | visibility | private（または public） |
 | gitignore | `{template_name}` |
-| README | 追加する（固定） |
+| README | 追加する |
 
-gitignore テンプレート名は大文字小文字が重要。`gh api /gitignore/templates` で取得したリストと照合して正確な名前を使う。
-主要なテンプレート名の対応は [references/gh-repo-create-reference.md](references/gh-repo-create-reference.md) を参照。
+gitignore テンプレート名は大文字小文字が重要。候補名を確定させる際は [references/gh-repo-create-reference.md](references/gh-repo-create-reference.md) の「gitignore テンプレートの検証」手順に従い、`gh api /gitignore/templates` で取得したリストと照合して正確な名前を使う。主要なテンプレート名の対応も同ファイルを参照。
 
 public を選択した場合、以下の警告を出して再確認する:
 
@@ -70,9 +67,6 @@ public を選択した場合、以下の警告を出して再確認する:
 ### Phase 4: リポジトリ作成
 
 ```bash
-# gitignore テンプレート名の検証
-gh api /gitignore/templates | jq -r '.[]' | grep -ix "{template_name}"
-
 # リポジトリ作成
 gh repo create {repo_name} \
   --private \

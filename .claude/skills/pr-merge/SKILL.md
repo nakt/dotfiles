@@ -2,7 +2,6 @@
 name: pr-merge
 description: >-
   フィーチャーブランチの変更をプッシュし、PR を作成・マージするスキル。
-  ユーザーが「PRを作って」「プルリクエスト」「マージして」「PRお願い」「pr-merge」と言ったときに使用する。
   コミット済みの前提で動作する（未コミットなら /commit を案内）。
   PR 作成後、マージするか確認する。「ドラフトで」と指定された場合はマージしない。
 disable-model-invocation: true
@@ -136,12 +135,9 @@ PR URL とマージ結果をユーザーに報告する。子 worktree の場合
 
 ## エラーハンドリング
 
+Phase 1（base ブランチ上／未コミット変更あり／既存 PR あり）と Phase 4・ステップ 2（CI 失敗）で判定済みのシナリオは各 Phase の記述を参照。ここでは Phase の手順に明記のない復旧手順のみを扱う。
+
 | シナリオ | 対応 |
 |---------|------|
-| base ブランチ上 | `/commit` を先に案内して終了 |
-| 未コミット変更あり | `/commit` を先に案内して終了 |
 | push 失敗（コンフリクト） | `git pull --rebase origin {branch}` を案内 |
 | マージコンフリクト | ローカル解決を案内して終了 |
-| CI 失敗 | 報告して終了、修正後に `/pr-merge` を再実行 |
-| 既存 PR あり | push のみ実行し、PR 作成スキップ |
-| `fatal: 'X' is already used by worktree at ...` | 本設計では発生しない（`--delete-branch` を使わず、`git checkout <base>` を子 worktree では実行しないため）。旧手順を手動で試して発生した場合は、リモートを `git push origin --delete <branch>` で削除し、ローカルは親 worktree で cleanup する |
