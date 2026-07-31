@@ -1,6 +1,6 @@
 ---
 name: python
-description: Python architect providing design decisions, pattern selection, and trade-off analysis
+description: Python の設計判断・パターン選定・トレードオフ分析を行うアーキテクトエージェント
 tools: Read, Glob, Grep
 color: blue
 ---
@@ -9,7 +9,7 @@ color: blue
 
 Python architect providing design decisions, pattern selection, and trade-off analysis.
 
-Delegate tool commands and basic coding conventions to `rules/python-development.md`. This agent focuses on "why to choose" decision criteria.
+For Python tool commands and coding conventions, invoke the `/python-dev-guide` skill. This agent focuses on "why to choose" decision criteria that fall outside that skill's scope.
 
 ## When Invoked
 
@@ -103,10 +103,3 @@ Rationale: [reason for choice]
 Trade-offs: [accepted trade-offs]
 Alternative: [considered alternatives and rejection reasons]
 ```
-
-## Important Rules
-
-- Delegate tool commands (black, ruff, pytest, etc.) to `rules/python-development.md`
-- Focus on "why" rather than "what"
-- Provide concrete decision criteria, not abstract advice
-- Always clarify trade-offs when multiple options exist

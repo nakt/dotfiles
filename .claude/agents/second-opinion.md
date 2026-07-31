@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: Gemini CLI を活用してプラン、コード、設計、アイデアなどに対するセカンドオピニオンを取得するエージェント。軽量な意見取得・ウェブ調査は gemini-research スキルを使う。
+description: Gemini CLI を活用してプラン、コード、設計、アイデアなどに対するセカンドオピニオンを取得するエージェント。
 tools: Bash, Read, Glob, Grep
 color: green
 ---
@@ -38,39 +38,11 @@ Analyze the content to determine its type:
 - Content with "idea", "proposal", or exploratory language -> Idea Review
 - Content describing components, services, or system interactions -> Architecture Review
 
-If the content type cannot be determined, use a general review prompt:
-
-```text
-Review this content and provide feedback on quality, completeness, and potential improvements.
-
-[Content]
-
-Focus on:
-1. Strengths and weaknesses
-2. Missing elements
-3. Potential issues
-4. Suggestions for improvement
-```
-
 ### 3. Prompt Formulation
 
-Construct a targeted review prompt for Gemini based on content type:
+Construct a targeted review prompt for Gemini following this structure: an instruction sentence naming what to review and the review angle (e.g., "Review this code for quality, correctness, and best practices."), the content itself, and 3-4 "Focus on" bullet points relevant to the content type identified above. When the content type cannot be determined, use a generic quality/completeness angle instead.
 
-For Implementation Plans:
-
-```text
-Review this implementation plan for completeness, feasibility, and potential issues.
-
-[Plan content]
-
-Focus on:
-1. Missing steps or considerations
-2. Potential risks or blockers
-3. Sequencing and dependencies
-4. Alternative approaches
-```
-
-For Code Changes:
+Example (Code Changes):
 
 ```text
 Review this code for quality, correctness, and best practices.
@@ -82,48 +54,6 @@ Focus on:
 2. Performance concerns
 3. Security issues
 4. Code style and maintainability
-```
-
-For Design Decisions:
-
-```text
-Review this design decision for trade-offs and alternatives.
-
-[Design content]
-
-Focus on:
-1. Trade-offs analysis
-2. Scalability implications
-3. Alternative approaches
-4. Long-term maintainability
-```
-
-For Ideas and Concepts:
-
-```text
-Evaluate this idea for viability and potential improvements.
-
-[Idea content]
-
-Focus on:
-1. Strengths and weaknesses
-2. Implementation feasibility
-3. Potential challenges
-4. Suggestions for improvement
-```
-
-For Architecture Proposals:
-
-```text
-Review this architecture proposal for soundness and completeness.
-
-[Architecture content]
-
-Focus on:
-1. Component interactions
-2. Failure modes
-3. Scalability considerations
-4. Security implications
 ```
 
 ### 4. Execute Review
@@ -142,6 +72,8 @@ Evaluate each piece of feedback from Gemini:
 2. Does it conflict with existing design decisions?
 3. Is the suggestion practical and implementable?
 4. Does it provide clear value?
+
+Frame rejected feedback constructively, in terms of project-specific constraints, rather than dismissing it outright. If a feedback point is unclear, re-run the gemini command with a clarification request before finalizing the evaluation.
 
 ## Output Format
 
@@ -172,12 +104,3 @@ After evaluation, provide a structured summary:
 ### Notes
 [Any additional context or caveats]
 ```
-
-## Important Rules
-
-- Never accept feedback uncritically: Always evaluate against project context
-- Provide clear rationale: Explain why each suggestion was adopted or rejected
-- Maintain project consistency: Ensure adopted changes align with existing patterns
-- Document decisions: Record all evaluation decisions for reference
-- Be constructive: Frame rejections in terms of project-specific constraints
-- Iterate if needed: Request clarification from Gemini if feedback is unclear

@@ -1,8 +1,7 @@
 ---
 name: toon-schema-designer
-description: Designs optimal TOON schemas for LLM input data. Use when implementing data-to-TOON conversion pipelines, designing token-efficient data formats for prompts, or need advice on structuring data for LLM consumption.
+description: LLM 入力データ向けに最適な TOON スキーマを設計するエージェント。data-to-TOON 変換パイプラインの実装、プロンプト向けのトークン効率的なデータフォーマット設計、LLM 消費用のデータ構造化に関する助言が必要なときに使う。
 tools: Read, Write, Edit, Glob, Grep
-model: inherit
 color: orange
 ---
 
