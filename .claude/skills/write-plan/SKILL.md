@@ -28,7 +28,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Agent, Bash(date:
 
 ## 保存先
 
-- スキル単独で起動された場合: `docs/workflow/plans/YYYY-MM-DD-<topic>.md` (日付は Current state の Today、`<topic>` は内容を表す短い kebab-case)
+- スキル単独で起動された場合: `.claude/plans/YYYY-MM-DD-<topic>.md` (日付は Current state の Today、`<topic>` は内容を表す短い kebab-case)
 - plan mode 中: ハーネスが指定するプランファイルを唯一のプランファイルとする (下記「プランファイルの運用」)
 
 ## プランの構成
@@ -41,7 +41,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Agent, Bash(date:
 
 ### ## 合意事項（フル形で必須）
 
-A1, A2… と番号付きで、1 判断につき「判断 1〜2 行 + 根拠 1 行」。根拠には、その判断を選ばせた制約（既存資産・データ量・運用体制・非機能要件など）を書く。AskUserQuestion で確定した判断も、代替案比較で選んだ判断も、すべてここに一元化する（他の場所に判断を書かない）。棄却案・代替案の比較はプランに書かない。
+A1, A2… と番号付きで、1 判断につき「判断 1〜2 行 + 根拠 1 行」。根拠には、その判断を選ばせた制約（既存資産・データ量・運用体制・非機能要件など）を書く。AskUserQuestion で確定した判断も、代替案比較で選んだ判断も、このプラン内では合意事項に一元化する。棄却案・代替案の比較はプランに書かない。
 
 execute-plan の controller はこのセクションを implementer / reviewer prompt に転記する。ここに無い判断は実装に引き渡されない。
 
@@ -69,7 +69,7 @@ execute-plan の controller はこのセクションを implementer / reviewer p
 2. 結果をユーザーに確認する（原則 AskUserQuestion 1 回。4 問を超える場合は重要度順に分割）。
 3. 確定事項をプランに反映して実装開始。再レビューはユーザーが明示的に求めたときのみ行う。
 
-憲章の正典は plan-reviewer 定義（`~/.claude/agents/plan-reviewer.md`）に置く。形式・体裁への指摘はしない。
+憲章の唯一の情報源は plan-reviewer 定義（`~/.claude/agents/plan-reviewer.md`）に置く。形式・体裁への指摘はしない。
 
 レビューの指摘は、反映する前に要約を書き直して確かめる。要約が 5〜10 行に収まらなくなる、あるいは失敗経路や条件分岐の説明が要るようになったら反映せず、指摘が集中した決定のほうを落とす。実害: 指摘を順に取り込み、要約を書き直さないまま変更範囲が 2 ファイル 4 箇所から 6 箇所に膨れ、ユーザーの介入で差し戻した。
 
