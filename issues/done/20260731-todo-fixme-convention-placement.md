@@ -64,3 +64,5 @@ TODO / FIXME のラベル運用は言語に依存しない規約である。言�
      文脈が薄ければ done: の 1 行のみでもよい -->
 
 - 20260731 created
+- 20260731 done: TODO/FIXME 規約を常時ロードされる rule に移した
+  - 経緯: TODO / FIXME の規約を `.claude/rules/git-workflow.md` の「コメント・メッセージ」セクションに移した。この rule は `paths` を持たないため常時ロードされ、すべての言語に届く。新規ファイルは作らず既存の rule に相乗りさせた。typescript-dev-guide からは削除済み。

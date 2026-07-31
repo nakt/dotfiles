@@ -41,3 +41,5 @@ Claude Code 設定群の棚卸しで `record-adr/SKILL.md` の description を�
 
 - 20260731 created
 - 20260731 結論/プランに次アクションを追記
+- 20260731 done: templates/readme.md の文言を修正し SKILL.md の description と整合
+  - 経緯: record-adr/templates/readme.md の記述を「起票は record-adr スキルが行う。重要な設計・ロジック判断が下された場面では自動で起票が提案され、明示したいときは `/record-adr [タイトル]` で呼び出す」に変更した。

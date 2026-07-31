@@ -51,3 +51,5 @@ Claude Code 設定群の棚卸し作業中、`.claude/skills/python-refactor/SKI
 
 - 20260731 created
 - 20260731 markdownlint-cli2 実測結果（行番号）と結論/プランの次アクションを追記
+- 20260731 done: markdownlint 指摘（MD040 x2 / MD031 x1）をすべて解消
+  - 経緯: python-refactor の SKILL.md と references の markdownlint 指摘を修正した。あわせて references の構成も整理し、コマンドと閾値を tools.md に集約した。

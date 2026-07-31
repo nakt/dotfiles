@@ -45,3 +45,5 @@ Claude Code 設定群の棚卸し作業中に気づいた。`grep -ln "claude-co
 
 - 20260731 created
 - 20260731 結論/プランに次アクションを追記
+- 20260731 done: 何もしないと判断
+  - 経緯: `claude-config-audit`（rules を減らす出口）と `wrapup-dispatch`（rules を足す出口）が互いを参照しない件は、循環の存在は認識した上で、スキル間の結線を増やさない判断とした。
