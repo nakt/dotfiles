@@ -89,33 +89,11 @@ allowed-tools: Read
 | スコープドリフト防止 | common.md「スコープドリフト防止」 | 要求外の機能追加やスタイリングを禁止しているか |
 | メタプロンプティング | common.md「メタプロンプティング」 | GPT-5 自身にプロンプト改善を問う手法が活用できるか |
 | Phase parameter | gpt-5-4.md「Phase Parameter」 / gpt-5-5.md「Phase parameter」 | ツール多用フローで commentary / final_answer が適切に使い分けられているか |
-| Output Contract | gpt-5-4.md「Output Contract」 | 出力セクション・順序・フォーマットが厳密に定義されているか |
-| Verification Loop | gpt-5-4.md「Verification Loop」 | 最終化前の自己検証ステップが含まれているか |
 | Empty Result Recovery | gpt-5-4.md「Empty Result Recovery」 | 空結果時のフォールバック戦略が指定されているか |
 | Outcome-first 構造 | gpt-5-5.md「Outcome-first prompts and stopping conditions」 | プロセス指示よりゴール定義が優先されているか |
 | Streaming Preamble | gpt-5-5.md「Improve time to first visible token with a preamble」 | 最初の可視トークンを早めるプリアンブル指示があるか |
 | Retrieval Budget | gpt-5-5.md「Grounding, citations, and retrieval budgets」 | 検索の停止条件・追加検索の発動条件が明示されているか |
 | Tool Persistence Rules | gpt-5-4.md「Tool Persistence Rules」 | ツール継続呼び出しの規則が定義されているか |
-
-### ロール指定の混入について（要約）
-
-GPT-5 系リーズニングモデルでは「あなたは○○の専門家です」のような専門性ロール指定は避ける。
-
-避けるべきパターン（専門性ロール指定）:
-
-- 「You are a world-class expert in ...」
-- 「あなたは熟練の○○エンジニアです」
-- 「○○の専門家として分析してください」
-
-これらは内部推論にバイアスを注入し、分析結果を歪める（[arxiv:2602.18710](https://arxiv.org/abs/2602.18710)）。リーズニングモデルは内部 CoT で最適な推論パスを自律的に選択するため、外部からの専門性ロールは有害なノイズとなる。
-
-許容されるパターン（パーソナリティ定義）:
-
-- トーン・スタイル制御（warmth, brevity, directness）
-- コミュニケーション頻度の調整
-- 出力の簡潔さ・丁寧さの度合い
-
-公式ガイドが推奨する「clear agent persona」はこのパーソナリティ定義を指しており、専門性ロール指定ではない。詳細は `common.md「ロール指定とパーソナリティの区別」`、GPT-5.5 推奨パターンは `gpt-5-5.md「Personality and behavior」` を参照。
 
 ## Quick Reference
 
@@ -169,18 +147,6 @@ GPT-5.4 / 5.5 推奨構造:
 ```text
 Role → # Personality → # Goal → # Success criteria → # Constraints → # Output → # Stop rules
 ```
-
-### バージョン推定キーワード（要約）
-
-詳細は冒頭の「対象バージョンの特定」を参照。
-
-- `apply_patch` / `update_plan` → gpt-5-3-codex
-- `phase` パラメータ → gpt-5-4 + gpt-5-5
-- `output_contract` / `verification_loop` 等 XML タグ → gpt-5-4
-- outcome-first / Stop rules / `# Personality` → gpt-5-5
-- `xhigh` → gpt-5-2 / gpt-5-4
-- `none` → gpt-5-1 以降
-- `<persistence>` / `<context_gathering>` / `<tool_preambles>` → gpt-5-series
 
 ## References
 

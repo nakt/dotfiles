@@ -48,9 +48,13 @@ GPT-5.4 は long-running multi-step タスク、強いパーソナリティ/ト�
 
 ## 1. 強み・弱みの概要
 
-**Strengths**: Strong personality/tone adherence, agentic workflow robustness, evidence-rich synthesis, instruction adherence, long-context analysis, parallel tool calling, spreadsheet/finance workflows.
+### Strengths
 
-**Areas needing explicit prompting**: Low-context tool routing, dependency-aware workflows, reasoning effort selection, research tasks, irreversible actions, terminal environments.
+Strong personality/tone adherence, agentic workflow robustness, evidence-rich synthesis, instruction adherence, long-context analysis, parallel tool calling, spreadsheet/finance workflows.
+
+### Areas needing explicit prompting
+
+Low-context tool routing, dependency-aware workflows, reasoning effort selection, research tasks, irreversible actions, terminal environments.
 
 ## 2. Output Contract
 
@@ -405,14 +409,14 @@ effort を上げる前に追加推奨:
 
 ## 26. Small Model Guidance（gpt-5.4-mini / nano）
 
-**gpt-5.4-mini の特性**:
+### gpt-5.4-mini の特性
 
 - より literal、暗黙の推論が少ない
 - 構造化された指示に強い
 - 暗黙的なワークフローには弱い
 - 抑制しないとフォローアップ質問を発しがち
 
-**mini プロンプティングの 7 原則**:
+### mini プロンプティングの 7 原則
 
 1. 重要ルールを最初に置く
 2. ツール使用の完全な実行順序を指定
@@ -422,14 +426,14 @@ effort を上げる前に追加推奨:
 6. パッケージング（長さ、フォローアップ挙動、引用スタイル、セクション順）を直接指定
 7. 「output nothing else」は使わず、スコープ指定を選ぶ
 
-**gpt-5.4-nano**:
+### gpt-5.4-nano
 
 - 狭く well-bounded なタスクのみで使用
 - closed output（ラベル、列挙、短い JSON、テンプレート）を選ぶ
 - マルチステップ調整は避ける
 - 曖昧 / 計画タスクは強モデルにルーティング
 
-**小型モデル向けの良いパターン**:
+### 小型モデル向けの良いパターン
 
 1. Task
 2. Critical rule
