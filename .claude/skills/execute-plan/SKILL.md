@@ -1,7 +1,7 @@
 ---
 name: execute-plan
 description: >-
-  承認済みプラン (`.claude/plans/` または `docs/workflow/plans/`) を、タスクごとに fresh subagent で実装 → レビュー → コミット → 完了マークの逐次実行で進めるスキル。
+  承認済みプラン (`.claude/plans/`) を、タスクごとに fresh subagent で実装 → レビュー → コミット → 完了マークの逐次実行で進めるスキル。
   ユーザーが「プランを実行して」「実装を進めて」「プランの通り実装して」「execute-plan」と言ったとき、
   または Plan モードで ExitPlanMode 承認されたプランを実装フェーズに進めるときに使用する。
   モデルが自動起動した場合は、最初に AskUserQuestion で実行確認してから進む。
@@ -21,8 +21,6 @@ allowed-tools:
   - Bash(echo:*)
   - TaskCreate
   - TaskUpdate
-  - TaskList
-  - TaskGet
   - AskUserQuestion
   - Agent
 argument-hint: "[plan-file-path]"
@@ -36,7 +34,7 @@ argument-hint: "[plan-file-path]"
 
 - Branch: !`git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "(not a git repository)"`
 - Uncommitted changes: !`git status --porcelain 2>/dev/null | head -20`
-- Available plans: !`ls -1t .claude/plans/ docs/workflow/plans/ 2>/dev/null | head -20 || echo "no plans"`
+- Available plans: !`ls -1t .claude/plans/ 2>/dev/null | head -20 || echo "no plans"`
 
 ## コア原則
 
@@ -51,7 +49,7 @@ argument-hint: "[plan-file-path]"
 
 1. 実行確認 (自動起動時のみ): 本スキルがユーザーの `/execute-plan` スラッシュコマンド以外 (ExitPlanMode 承認後の自動継続、または「実装を進めて」等の自然言語依頼) で起動された場合、`AskUserQuestion` で「execute-plan で実行しますか？ (はい / いいえ)」を提示し、「いいえ」なら中止する。`/execute-plan` のスラッシュコマンド起動と確定できる場合のみこの確認をスキップする (起動経路が判別できないときは安全側に倒して確認する)
 2. 引数でプランパスが渡されていればそれを使う
-3. なければ `.claude/plans/` と `docs/workflow/plans/` を `Glob` で列挙し、更新時刻の新しい順にまとめる
+3. なければ `.claude/plans/` を `Glob` で列挙し、更新時刻の新しい順にまとめる
    - 1 件 → それを使う
    - 複数 → `AskUserQuestion` で選択 (最新 4 件を選択肢として提示)
    - 0 件 → 「プランがありません」と報告して終了
@@ -60,7 +58,7 @@ argument-hint: "[plan-file-path]"
    - ない場合: `AskUserQuestion` で「実装タスクを追記してから再実行する」「このまま見出し / 番号付きリストから抽出を試みる」「中止」の 3 択を提示
 6. プラン本文に `## 合意事項` セクションがあるか確認
    - ない場合: 短縮形プラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `.claude/skills/write-plan/SKILL.md`)
-7. main / master ブランチで実行されている場合は `AskUserQuestion` で続行確認し (`.claude/rules/git-workflow.md` に従う)、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
+7. main / master ブランチで実行されている場合は `AskUserQuestion` で続行確認し、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
 8. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)
    - クリーン → 続行
    - 未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクのレビュー差分 (直前コミット (HEAD) からのパス限定差分) に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
@@ -88,7 +86,7 @@ argument-hint: "[plan-file-path]"
 
 ### Phase 3: タスクループ
 
-タスクを 1 件ずつ逐次に処理する。各タスクについて以下を行う。
+タスクを 1 件ずつ逐次に処理する。implementer / reviewer subagent を同時に複数起動しない (共有ツリーで変更が混ざり、レビュー差分とコミット単位が分離できなくなるため)。各タスクについて以下を行う。
 
 1. タスク選定: Phase 2 の実行順で残タスクから次の 1 件を選び、`TaskUpdate(status=in_progress)`
 2. 実装: implementer `Agent` を 1 件起動する
@@ -108,9 +106,8 @@ argument-hint: "[plan-file-path]"
    - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容を `[Context]` に追記)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
 6. コミット: APPROVED になったタスクを controller が直接コミットする
    - Phase 1 ステップ 7 で既にフィーチャーブランチ上にいることを前提とする
-   - 当該タスクの対象ファイルのみを `git add <対象ファイル>` し、Conventional Commits 形式 (英語) のメッセージで `git commit` (1 タスク = 1 コミット)
+   - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
    - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更してもコミットには入らない
-   - `--no-verify` / `--force` push / `reset --hard` は使用しない (`.claude/rules/git-workflow.md` の禁止事項に従う)
 7. `TaskUpdate(status=completed)`
 8. タスク後チェック: 対象ファイル外の未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する
 9. 残タスクがあれば次のタスクへ (ステップ 1 に戻る)
@@ -122,7 +119,7 @@ argument-hint: "[plan-file-path]"
 - hook の stderr / stdout を Context として抜粋する (どのファイルの何が引っ掛かったか)
 - 当該タスクを fresh implementer に再委譲する (ステップ 5 の NEEDS_CHANGES 再委譲と同じフローに乗せる)
 - 抜粋した hook エラーは implementer prompt の `[Context]` に追記する
-- `--no-verify` で hook を skip して commit を通さないこと (禁止事項)。hook が示している問題は必ず implementer に fix させる
+- hook が示している問題は必ず implementer に fix させる (`--no-verify` で skip して commit を通さない)
 - hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
 
 hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。`references/implementer-prompt.md` の「lint / hook self-check」で `references/lint-per-language.md` に沿った検出・実行が徹底されていれば、この分岐に来る頻度は下がる。
@@ -170,18 +167,6 @@ implementer subagent は 4 種の status で報告する。
 | reviewer | `opus` | 常に固定 |
 
 複雑度判定は controller がプランの `対象ファイル` の数、`Context` の長さ、`Acceptance criteria` の主観性で行う。プラン内に明示的な複雑度ヒントがあれば優先する。
-
-## Constraints
-
-- main / master ブランチ上で実装開始しない (`AskUserQuestion` で確認)
-- 作業ツリーが dirty な状態で実装開始しない (中止してユーザーに案内)
-- reviewer の指摘を未解決のまま次タスクへ進まない
-- implementer に plan ファイルを読ませず、controller が必要な全文を prompt に貼って渡す
-- implementer はコミットしない。コミットは controller が直接 `git add` + `git commit` で行う
-- タスクは 1 件ずつ逐次に実行する。implementer / reviewer subagent を同時に複数起動しない (共有ツリーで変更が混ざり、レビュー差分とコミット単位が分離できなくなるため)
-- コミットはタスク単位 (1 タスク = 1 コミット、対象ファイルのみ `git add`)
-- `--no-verify`、`--force` push、`reset --hard` などは原典 Red Flags と本リポ `.claude/rules/git-workflow.md` の禁止事項に従う
-- コミットログは英語、その他の会話は日本語 (本リポ既存スキルの規約に従う)
 
 ## References
 
