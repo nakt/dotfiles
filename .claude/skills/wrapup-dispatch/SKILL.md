@@ -1,6 +1,6 @@
 ---
 name: wrapup-dispatch
-description: 長いセッションの終わりに、会話履歴から「やったこと・学び・決定・残すべき課題」と「反省・摩擦点(同じ修正の繰り返し / CLAUDE.md・rules を守れなかった場面)」を抽出・構造化し、既存のドキュメント化スキル(issue-tracker / record-adr / update-arch / update-readme)へ振り分け提案するルーター。自身は保存先を持たず、実体は各スキルに委譲する。「セッションをまとめて」「ラップアップして」「今日のセッションを振り返って記録に残して」「wrapup-dispatch」のような依頼、または長いセッションの区切りで使う。GitHub PR/issue の操作には使わない。
+description: 長いセッションの終わりに、会話履歴から「やったこと・学び・決定・残すべき課題」と「反省・摩擦点(同じ修正の繰り返し / CLAUDE.md・rules を守れなかった場面)」を抽出・構造化し、既存のドキュメント化スキル(issue-tracker / record-adr / update-arch / update-readme)へ振り分け提案するルーター。自身は保存先を持たず、実体は各スキルに委譲する。「セッションをまとめて」「ラップアップして」「今日のセッションを振り返って記録に残して」「wrapup-dispatch」のような依頼で使う。GitHub PR/issue の操作には使わない。
 argument-hint: "[なし] または振り返り範囲のヒント"
 allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(echo:*)
 ---
@@ -94,7 +94,7 @@ Dispatch が終わったら、最終サマリを行き先スキル別の `###` �
 1. 純粋ルーター。自前の保存先を持たず、自分では書かない。実体は委譲先スキルが書く。
 2. 一次入力は会話セッション。`Current state` の既存 issue / adr は重複回避と突き合わせにのみ使う。
 3. 捏造しない。会話に根拠のある項目だけを抽出・振り分けする。
-4. 反省・摩擦点を最優先で拾う。同じ修正の繰り返しや CLAUDE.md / rules 違反は、ルールの欠落・弱さを示す最重要シグナル。issue-tracker に「再発防止のためのルール追加/強化」TODO として起票する。
+4. 反省・摩擦点を最優先で拾う。同じ修正の繰り返しや CLAUDE.md / rules 違反は、ルールの欠落・弱さを示す最重要シグナル。issue-tracker への「再発防止のためのルール追加/強化」TODO としての起票を提案し、ユーザー承認後にのみ実行する。
 5. 承認を経てから委譲する。自動で一括起票しない。
 6. 既存と重複する項目は再起票しない。決着済みは done を提案する。
 7. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。
