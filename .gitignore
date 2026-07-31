@@ -71,6 +71,9 @@ override.tf.json
 .workspace/
 .claude/worktrees/
 
+# Design memos (brainstorm output; consumed by write-plan, discardable after implementation)
+docs/workflow/memo/
+
 # Gemini (keep directory but ignore contents)
 .gemini/*
 !.gemini/.gitkeep
