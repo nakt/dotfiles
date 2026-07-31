@@ -9,7 +9,6 @@ allowed-tools:
   - Bash(uv:*)
   - Bash(git:*)
   - Bash(mkdir:*)
-  - Bash(cd:*)
 ---
 
 # Python Development Guide
@@ -176,13 +175,14 @@ uv run pytest --cov=src/
 
 ### 3. 環境セットアップ
 
+`cd` を含む複合コマンドは実行のたびに権限プロンプトを誘発し、シェルの作業ディレクトリも呼び出しをまたいで保持されない。`cd` せずに `git init <dir>` と `uv --directory` で対象を指定する。
+
 ```bash
-cd {project_name}
-git init
-uv venv
-uv sync
-uv run pre-commit autoupdate
-uv run pre-commit install
+git init {project_name}
+uv venv --directory {project_name}
+uv sync --directory {project_name}
+uv run --directory {project_name} pre-commit autoupdate
+uv run --directory {project_name} pre-commit install
 ```
 
 ## Security

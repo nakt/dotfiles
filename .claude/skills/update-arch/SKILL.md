@@ -2,7 +2,7 @@
 name: update-arch
 description: アーキテクチャドキュメント(docs/arch)の更新・初期化スキル。コード変更時に処理概要・処理フロー・データフローのドキュメント更新要否を判断し、必要に応じて更新する。docs/arch が存在しないプロジェクトでは初期化を行う。ユーザーがアーキテクチャドキュメントの作成・更新を求めたとき、または手動 `/update-arch` で呼び出されたときに使用する。
 argument-hint: "[target directory]"
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git merge-base:*), Bash(git rev-parse:*), Bash(test:*), Bash(echo:*)
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git merge-base:*), Bash(git rev-parse:*), Bash(git symbolic-ref:*), Bash(test:*), Bash(echo:*)
 ---
 
 # Update Architecture Docs
@@ -11,11 +11,14 @@ docs/arch の処理概要・処理フロー・データフローを、過度に�
 
 ## Current state
 
+Default branch は `origin/HEAD` から解決する（取得できなければ `main` / `master` の存在で決める）。
+
 - docs/arch exists: !`test -d docs/arch && echo 'yes' || echo 'no'`
 - Staged changes: !`git diff --cached --stat 2>/dev/null || true`
 - Unstaged changes: !`git diff --stat 2>/dev/null || true`
 - Recent commits: !`git log --oneline -10 2>/dev/null || echo '(none)'`
 - Current branch: !`git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '(none)'`
+- Default branch: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; echo "${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}"`
 
 ## モード判定
 
@@ -55,7 +58,7 @@ docs/arch/
 1. 対象の差分を決める。 staged 変更は空であることが多い（execute-plan はタスクごとにコミットし、wrapup-dispatch はセッション終盤に呼ぶため）。下記を上から順に見て、最初に中身のあるものを対象にする
    1. Current state の Staged changes が空でなければ `git diff --cached` を対象にする
    2. 空なら Unstaged changes を見て、空でなければ `git diff` を対象にする
-   3. どちらも空なら、このブランチで積んだコミット群を対象にする。`git merge-base HEAD <デフォルトブランチ>` で分岐点を求め `git diff <分岐点>..HEAD` を使う。デフォルトブランチ上にいる、または分岐点が求まらない場合は Recent commits から対象コミット範囲をユーザーに確認する
+   3. どちらも空なら、このブランチで積んだコミット群を対象にする。`git merge-base HEAD <Current state の Default branch>` で分岐点を求め `git diff <分岐点>..HEAD` を使う。Current branch が Default branch と同じ場合、または分岐点が求まらない場合は Recent commits から対象コミット範囲をユーザーに確認する
    4. 上記いずれでも差分が取れない場合は、更新要否を判断できないので「対象の変更が特定できない」と伝えて対象範囲をユーザーに確認する。差分が空であることを根拠に「更新不要」とは報告しない
 2. 変更に関連する docs/arch 内のドキュメントを特定する（対応表は下記 Decision Guide「更新対象の判断」）
 3. 更新要否を判断する

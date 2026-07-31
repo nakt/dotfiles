@@ -3,7 +3,7 @@ name: commit
 description: 未コミットの変更を分析し、論理的なグループに分類して適切な粒度でコミットするスキル。
 disable-model-invocation: true
 effort: low
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(git diff:*), Bash(git log:*), Bash(git symbolic-ref:*), Bash(git rev-parse:*), Bash(pre-commit:*), Bash(echo:*), Bash(test:*)
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(git diff:*), Bash(git log:*), Bash(git symbolic-ref:*), Bash(git rev-parse:*), Bash(pre-commit:*), Bash(uv:*), Bash(grep:*), Bash(echo:*), Bash(test:*)
 ---
 
 # Git Commit
@@ -37,7 +37,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 5. 適切な粒度でコミットする
    - 何を変更したかではなく、なぜ変更したかを説明する
 6. pre-commit フックの更新を確認する（`test -f .pre-commit-config.yaml` などでプロジェクトルートに `.pre-commit-config.yaml` が存在するか確認し、存在する場合のみ）
-   - `pre-commit autoupdate` を実行する
+   - `pre-commit autoupdate` を実行する。ただし `test -f uv.lock` または `grep -q "^\[tool.uv" pyproject.toml` が真なら uv 管理リポなので `uv run pre-commit autoupdate` を実行する
    - 設定が更新された場合は、その変更を別コミットとして記録する:
      `git add .pre-commit-config.yaml && git commit -m "chore: update pre-commit hooks"`
    - 更新がなければ何も報告せずスキップする
