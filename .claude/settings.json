@@ -235,5 +235,6 @@
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
   "editorMode": "vim",
+  "verbose": false,
   "agentPushNotifEnabled": true
 }
