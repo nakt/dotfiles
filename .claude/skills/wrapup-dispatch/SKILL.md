@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 
 長いセッションの終わりに、会話セッションを唯一の一次入力として、残すべき知識(やったこと・学び・決定・課題・反省点)を抽出・整理し、既存のドキュメント化スキルへ振り分け提案するルーター。長いセッションで埋もれた要点を、会話が流れて失われる前に、適切な保存先へ送り出す役割。
 
-このスキル自身は新しい保存先を一切持たず、ファイルも書かない。抽出した知識の実体は、すべて委譲先スキル(issue-tracker / record-adr / update-arch / update-readme)が各自の権限で書く。`allowed-tools` を読み取り + 状態把握のみに絞っているのは、この「純粋ルーター」性をツールレベルで担保するため。
+このスキル自身は新しい保存先を一切持たず、ファイルも書かない。抽出した知識の実体は、すべて委譲先スキル(issue-tracker / record-adr / update-arch / update-readme)が各自の権限で書く。
 
 ## Current state
 
@@ -48,16 +48,15 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 
 ## 2. 振り分け判定(Route)
 
-各項目を行き先スキルへマッピングする。判定ルーブリック:
+各項目は、対応するドキュメント化スキル(issue-tracker / record-adr / update-arch / update-readme)の description を参照し、最も合致するものへ振り分ける。以下の表は行き先と出力先のみを示す(振り分け条件は各スキルの description に委ねる)。
 
-| 抽出項目のシグナル | 行き先スキル | 出力先 |
-| --- | --- | --- |
-| 不具合・課題・TODO・後回しにした調査 | issue-tracker (create) | `issues/inbox/` |
-| 反省・摩擦点(同じ修正の繰り返し / CLAUDE.md・rules 違反) | issue-tracker (create) | `issues/inbox/`(「ルール X を追加/強化して再発防止」の再発防止 TODO として起票) |
-| 設計・ロジックの「決定とその理由」 | record-adr | `docs/adr/` |
-| 処理フロー・データフロー・コンポーネント構成の変化 | update-arch | `docs/arch/` |
-| プロジェクト構造・使い方・セットアップの変化 | update-readme | `README.md` |
-| どこにも当てはまらない雑多なメモ | 振り分けない(保留) | (なし。提示のみ) |
+| 行き先スキル | 出力先 |
+| --- | --- |
+| issue-tracker (create) | `issues/inbox/` |
+| record-adr | `docs/adr/` |
+| update-arch | `docs/arch/` |
+| update-readme | `README.md` |
+| 振り分けない(保留) | (なし。提示のみ) |
 
 - 設定リポジトリでの注記: update-arch / update-readme は処理フローやアプリコードの変化を前提とする。この dotfiles のような設定リポジトリでは該当が少ないので、該当する変化が会話に無ければ arch / readme へは空提案しない。
 - 重複回避: Current state の `issues/inbox` / `docs/adr` を読み、既に起票・記録済みのテーマは再起票しない。
@@ -75,7 +74,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 
 バッチ方針: 承認された項目は行き先スキルごとにグルーピングし、1 スキルにつき 1 回でまとめて委譲する(1 件ずつ起動して往復を増やさない)。具体的には issue-tracker create は複数件を 1 回、issue-tracker done も別途 1 回、update-arch / update-readme / record-adr もそれぞれ 1 回。
 
-- issue-tracker → create モードで起票 / done モードで決着メモ付きクローズ(決着理由 + 学び・経緯を渡す)
+- issue-tracker → create モードで起票(反省・摩擦点は「ルールを追加/強化して再発防止」の TODO として起票する) / done モードで決着メモ付きクローズ(決着理由 + 学び・経緯を渡す)
 - update-arch → 更新 / 初期化
 - update-readme → 更新
 - record-adr → タイトルと Context / Decision / Rationale の素案を渡して同一会話で起動
@@ -84,19 +83,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 
 Dispatch が終わったら、最終サマリを行き先スキル別の `###` サブ見出し + パス一覧の箇条書きで提示する。ラップアップの出口として「どこに何を書いたか / 何を保留にしたか」を一望できる形にする。
 
-- `### issue-tracker (create)` / `### issue-tracker (done)` / `### update-arch` / `### update-readme` / `### record-adr` の節に、書き込まれたパス一覧(例: `issues/inbox/2026-07-07-xxx.md`, `docs/arch/flow.md`, `docs/adr/NNNN-*.md` 等)を箇条書き。
+- `### issue-tracker (create)` / `### issue-tracker (done)` / `### update-arch` / `### update-readme` / `### record-adr` の節に、書き込まれたパス一覧(例: `issues/inbox/20260707-xxx.md`, `docs/arch/flow.md`, `docs/adr/NNNN-*.md` 等)を箇条書き。
 - `### 保留` の節に、承認されず保留になった項目を「1 行サマリ + 保留理由」で列挙。
 
 抽出が空、または承認された委譲が無かった場合はマニフェスト自体を省略してよい。
-
-## Key Principles
-
-1. 純粋ルーター。自前の保存先を持たず、自分では書かない。実体は委譲先スキルが書く。
-2. 一次入力は会話セッション。`Current state` の既存 issue / adr は重複回避と突き合わせにのみ使う。
-3. 捏造しない。会話に根拠のある項目だけを抽出・振り分けする。
-4. 反省・摩擦点を最優先で拾う。同じ修正の繰り返しや CLAUDE.md / rules 違反は、ルールの欠落・弱さを示す最重要シグナル。issue-tracker への「再発防止のためのルール追加/強化」TODO としての起票を提案し、ユーザー承認後にのみ実行する。
-5. 承認を経てから委譲する。自動で一括起票しない。
-6. 既存と重複する項目は再起票しない。決着済みは done を提案する。
-7. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。
-8. 行き先ごとに 1 回でまとめて委譲する。1 件ずつ起動して往復を増やさない。
-9. Dispatch 後は完了マニフェストで締める。書き込まれたパス一覧・保留を提示して出口を明確にする。

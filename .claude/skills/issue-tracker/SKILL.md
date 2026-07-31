@@ -48,6 +48,7 @@ mkdir -p issues/inbox issues/done
    - TL;DR と「結論 / プラン」は短く保つ。 ここは triage で各ファイル先頭だけ読むときのスキャン対象。長文は「調査結果」節に置く。
    - 調査結果は長くてよい。 自由にネストしてよい。「事実」と「そこからの解釈」を分けて書くと後から読み返しやすい。
    - priority は分かっていれば入れる。不明なら空のままでよい（triage 側で推定される）。
+   - related は他 issue への参照が要る場合のみ id で書く。 パスで参照すると done 移動でリンクが壊れるため（`related: []` はテンプレート既定）。
 5. 報告する。 作成パスと TL;DR を 1〜2 行で返す。
 
 ## triage（棚卸し / pickup）
@@ -143,18 +144,6 @@ triage でピックアップした issue や、create で残しておいた issu
    ```
 
 6. 報告する。 移動結果と追記した決着理由を返す。
-
-## Key Principles
-
-1. 状態はディレクトリが単一の真実。 `inbox/` = 未完了、`done/` = 完了。frontmatter に status を持たせない（二重管理で不整合が出る）。
-2. hold は inbox の中の「今はやらない」表明。 ディレクトリ状態は動かさず `tags: [hold]` で表現し、triage の推し候補から外れる。付与／解除は理由 1 行のログ（`hold:` / `unhold:`）とセット。done 化時は自動で unhold する（tags に hold を残さない）。
-3. issue 間の参照は id で行う。 パスで参照すると done 移動でリンクが壊れる。`related:` には id を書く。
-4. id は `YYYYMMDD-slug`、連番にしない。 日付プレフィックスで時系列ソートでき、次番号スキャンも不要。frontmatter の `created` / `updated` と `## ログ` に書く `<Today>` / `<date>` もすべて `YYYYMMDD` 形式で統一する（id の日付部分と同じ表記）。
-5. TL;DR と結論は短く、調査本体は自由に長く。 前者は triage のスキャン対象、後者は記録。役割が違う。
-6. done 化は決着メモとセット。 ログに決着メモ（`done:` の決着理由 1 行 + 経緯 + 学び）を残してから動かす。会話文脈が薄ければ決着理由 1 行にフォールバックしてよいが、空での done は不可。
-7. 着手した issue は完了したら done へ接続する。 triage でピックアップ / 起票済みの issue に着手し、その作業がセッション内で片付いたら、明示依頼を待たず done を提案する（放置すると完了済みが inbox に残り triage 精度が落ちる）。部分完了なら done にせず `progress:` メモを残して inbox に継続する。
-8. 索引は常設しない。 陳腐化するので triage 時にその場で生成する止まり。
-9. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。
 
 ## ディレクトリ構成
 

@@ -1,9 +1,9 @@
 ---
 name: record-adr
-description: 設計・ロジック判断の決定記録(ADR)を docs/adr に起票するスキル。技術選定だけでなく処理フロー変更・アルゴリズム選択・データモデル・API 設計・検証や実験から得た方針の「決定とその理由」を記録する。docs/adr が存在しないプロジェクトでは初期化を行う。手動 `/record-adr [タイトル]` で呼び出す。
+description: 設計・ロジック判断の決定記録(ADR)を docs/adr に起票するスキル。技術選定だけでなく処理フロー変更・アルゴリズム選択・データモデル・API 設計・検証や実験から得た方針の「決定とその理由」を記録する。docs/adr が存在しないプロジェクトでは初期化を行う。「この決定を ADR として残して」「設計判断を記録して」のような依頼、または重要な設計・ロジック判断が下された場面で使う。手動 `/record-adr [タイトル]` でも呼べる。
 disable-model-invocation: false
 argument-hint: "[decision title]"
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(test:*), Bash(date:*), Bash(echo:*)
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(test:*), Bash(date:*), Bash(echo:*), Bash(mkdir:*)
 ---
 
 # Record ADR
@@ -40,17 +40,20 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(tes
 
 新しい決定を起票する。
 
-1. タイトルを確定する
+1. 起票前に `docs/adr/README.md` を確認し、既存決定と矛盾しないか確かめる
+2. タイトルを確定する
    - 引数(`$ARGUMENTS`)があればそれを使う
    - なければユーザーに確認する
-2. 採番する: Current state の Existing ADRs で最大番号を確認し +1、4 桁ゼロ埋め
-3. `~/.claude/skills/record-adr/templates/adr-template.md` を Read し、以下を埋めて `docs/adr/NNNN-kebab-title.md` として Write する
+3. 採番する: Current state の Existing ADRs で最大番号を確認し +1、4 桁ゼロ埋め。並行ブランチ等で採番が衝突した場合は、後から追加した方を繰り上げる
+4. `~/.claude/skills/record-adr/templates/adr-template.md` を Read し、以下を埋めて `docs/adr/NNNN-kebab-title.md` として Write する
    - kebab-title はタイトルを小文字ハイフン区切りにしたもの
    - フロントマター `date:` を Current state の Today に置換
    - H1 `# NNNN: タイトル` を実際の番号とタイトルに置換
+   - status はテンプレート既定の `Accepted` のまま起票する(`Accepted` / `Superseded` の 2 値のみ。`Superseded` は手順 6 で既存 ADR を置き換えるときにのみ使う)
    - 対話で Context / Decision / Rationale / Consequences を埋める。検証・実験に基づく決定なら Rationale に実測値や比較を具体的に書く。Alternatives がなければ削除してよい
+   - 検証・実験で使った `.workspace/` の一時ファイルは参照せず、根拠となる実測値・比較結果を Rationale 本文に転記する(`.workspace/` は使い捨てのため ADR から参照しない)
    - 本文の各段落は 1 段落 1 行で書く。途中でハードラップしない
-4. `docs/adr/README.md` の一覧テーブルを再生成する
+5. `docs/adr/README.md` の一覧テーブルを再生成する
    - 既存の `docs/adr/README.md` を Read で読み込み、既存行の「サマリ」列の文言を把握する
    - 全 ADR のフロントマター status と H1 タイトルを以下で収集する
 
@@ -61,20 +64,9 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(tes
 
    - 既存行の「サマリ」列はそのまま使い、新規行のサマリのみ Claude が記入する
    - テーブル全体を書き直す(追記ではなく再生成)
-5. 方針変更を伴う場合は、新旧 ADR のフロントマターを双方向に更新する
+6. 方針変更を伴う場合は、新旧 ADR のフロントマターを双方向に更新する
    - 新 ADR の `supersedes: "NNNN"` に旧 ADR 番号を設定する
    - 旧 ADR の `status: Superseded` に変更する
    - 旧 ADR の `superseded_by: "NNNN"` に新 ADR 番号を設定する
    - これはフロントマターのみの更新で、本文セクション(`##` 以降)は変更しない。append-only の例外として許可する
-6. 起票結果を報告する
-
-## Key Principles
-
-1. append-only。本文は書き換えない。変更は新規 ADR で表現する
-2. Status は `Accepted` または `Superseded` の 2 値のみ。置き換えの詳細は `supersedes` / `superseded_by` フィールドで管理する
-3. Decision は「何を決めたか」、Rationale は「なぜか(検証・実験の根拠)」と役割を分ける
-4. 起票前に `docs/adr/README.md` を確認し、既存決定と矛盾しないか確かめる
-5. 検証・実験の一時ファイルは `.workspace/`、確定した決定と根拠は docs/adr。`.workspace/` は使い捨てのため ADR から参照しない
-6. 採番が衝突した場合(並行ブランチ等)は後から追加した方を繰り上げる
-7. 本文段落はハードラップしない。1 段落を 1 行で書く。エディタの折り返し表示に委ねる
-8. Markdown スタイルは `~/.claude/rules/markdown-style.md` に従う。
+7. 起票結果を報告する
