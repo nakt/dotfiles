@@ -3,10 +3,9 @@ name: brainstorm
 description: >-
   機能追加・実装方針・技術的な設計に関する要件検討を、論点を 1 つずつ整理しながら進めるスキル。「検討に付き合って」「実装方針を相談したい」
   「設計を詰めたい」「これどう作るか一緒に考えて」など、機能・実装・アーキテクチャに関わる要件のすり合わせに使う。事業アイデア・サービス案・
-  新規事業提案の評価・投資判断は対象外(business-idea-review が担当)。検討がまとまったら確定判断を設計メモとして
-  `docs/workflow/memo/` に保存し、write-plan の入力として渡す。
+  新規事業提案の評価・投資判断は対象外(business-idea-review が担当)。
 argument-hint: "[検討したいトピック] または自然文の依頼"
-allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash(mkdir:*), Bash(date:*), Bash(ls:*), Bash(echo:*)
+allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Skill, Bash(mkdir:*), Bash(date:*), Bash(ls:*), Bash(echo:*)
 ---
 
 # Brainstorm
@@ -57,7 +56,10 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash(mkdir:*), Ba
    ```
 
    「確定判断とその根拠」は、write-plan が `## 合意事項` へそのまま転記できる粒度(1 判断につき「判断 1〜2 行 + 根拠 1 行」)で書く。
-4. 「スコープ外にしたもの」は issue-tracker (create モード) に起票する。設計メモにも一覧として残す。
+4. 「スコープ外にしたもの」は設計メモに一覧として残す。そのうち後から着手しうるものを、`Skill` ツールで issue-tracker を起動して create モードで起票する (起票する旨と件数を先に伝えてから起動する)。粒度は次の通り。
+   - 1 項目 = 1 issue を既定とする。issue-tracker は 1 issue = 1 ファイルで triage するため、独立して着手できる単位で分けないと棚卸しで扱えない
+   - ただし、同じ変更でまとめて片付く項目 (同一ファイル・同一機能の派生など、片方だけ着手する意味がないもの) は 1 issue にまとめる
+   - 一覧が「今回は考えないと決めた」だけで着手対象になりえない項目のみなら、起票せず設計メモの記載で終える
 5. 保存パスを報告し、write-plan へ引き継ぐ旨を伝えて終了する。
 
 ## write-plan への接続
