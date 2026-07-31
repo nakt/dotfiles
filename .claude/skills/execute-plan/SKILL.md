@@ -1,16 +1,15 @@
 ---
 name: execute-plan
 description: >-
-  承認済みプラン (`.claude/plans/`) を、タスクごとに fresh subagent で実装 → レビュー → コミット → 完了マークの逐次実行で進めるスキル。
+  承認済みプラン (`.claude/plans/`) を、タスクごとに fresh subagent で実装 → レビュー → コミット → 完了マークの順に進めるスキル。
   ユーザーが「プランを実行して」「実装を進めて」「プランの通り実装して」「execute-plan」と言ったとき、
   または Plan モードで ExitPlanMode 承認されたプランを実装フェーズに進めるときに使用する。
-  モデルが自動起動した場合は、最初に AskUserQuestion で実行確認してから進む。
+  ユーザーからの明示的な実行依頼がないまま起動した場合 (ExitPlanMode 承認後の自動継続など) のみ、最初に AskUserQuestion で実行確認してから進む。
 allowed-tools:
   - Read
   - Glob
   - Bash(git status:*)
   - Bash(git log:*)
-  - Bash(git branch:*)
   - Bash(git diff:*)
   - Bash(git rev-parse:*)
   - Bash(git add:*)
@@ -28,7 +27,7 @@ argument-hint: "[plan-file-path]"
 
 # Execute Plan
 
-承認済みプランを controller として読み込み、タスクごとに fresh subagent で実装 → レビュー → controller が直接コミット、を 1 件ずつ逐次に実行するスキル。
+承認済みプランを controller として読み込み、タスクごとに fresh subagent で実装 → レビュー → controller が直接コミット、を進めるスキル。
 
 ## Current state
 
@@ -47,7 +46,7 @@ argument-hint: "[plan-file-path]"
 
 ### Phase 1: プラン特定と読み込み
 
-1. 実行確認 (自動起動時のみ): 本スキルがユーザーの `/execute-plan` スラッシュコマンド以外 (ExitPlanMode 承認後の自動継続、または「実装を進めて」等の自然言語依頼) で起動された場合、`AskUserQuestion` で「execute-plan で実行しますか？ (はい / いいえ)」を提示し、「いいえ」なら中止する。`/execute-plan` のスラッシュコマンド起動と確定できる場合のみこの確認をスキップする (起動経路が判別できないときは安全側に倒して確認する)
+1. 実行確認 (ユーザーの明示依頼がない場合のみ): ユーザーが実行を明示的に依頼している場合 (`/execute-plan` スラッシュコマンド、または「プランを実行して」「実装を進めて」等の自然言語依頼) は確認せずに続行する。明示依頼がないまま起動した場合 (ExitPlanMode 承認後の自動継続など) のみ `AskUserQuestion` で「execute-plan で実行しますか？ (はい / いいえ)」を提示し、「いいえ」なら中止する。起動経路が判別できないときは安全側に倒して確認する
 2. 引数でプランパスが渡されていればそれを使う
 3. なければ `.claude/plans/` を `Glob` で列挙し、更新時刻の新しい順にまとめる
    - 1 件 → それを使う
@@ -57,7 +56,9 @@ argument-hint: "[plan-file-path]"
 5. プラン本文に `## 実装タスク` セクションがあるか確認
    - ない場合: `AskUserQuestion` で「実装タスクを追記してから再実行する」「このまま見出し / 番号付きリストから抽出を試みる」「中止」の 3 択を提示
 6. プラン本文に `## 合意事項` セクションがあるか確認
-   - ない場合: 短縮形プラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `.claude/skills/write-plan/SKILL.md`)
+   - ある場合: 全文を controller のメモリに保持する (Phase 2 チェックリストで使う)
+   - ない場合: 短縮形プラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)
+   - 「続行する」を選んだ場合: 合意事項は存在しないものとして扱い、implementer / reviewer prompt の `[合意事項全文]` には固定文言 `(このプランは短縮形のため合意事項なし。合意事項との整合性は評価対象外)` を入れる。合意事項を推測して捏造しない
 7. main / master ブランチで実行されている場合は `AskUserQuestion` で続行確認し、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
 8. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)
    - クリーン → 続行
@@ -67,50 +68,62 @@ argument-hint: "[plan-file-path]"
 ### Phase 2: タスク抽出と TaskList 作成
 
 1. 抽出規則 (優先度順):
-   - `## 実装タスク` 配下の `### Task N: ...` 見出し (推奨形式。詳細は `.claude/skills/write-plan/references/task-format.md` を参照)
+   - `## 実装タスク` 配下の `### Task N: ...` 見出し (推奨形式。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
    - `- [ ]` 形式の TaskList
    - 番号付きリスト (`1.`, `2.`, ...)
 2. 各タスクから以下を controller のメモリに保持:
    - タスク全文 (本文をそのまま)
-   - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は `.claude/skills/write-plan/references/task-format.md` を参照)
+   - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
    - 複雑度ヒント (対象ファイル数 / Context 長さ / criteria の主観性)
 3. `TaskCreate` で抽出した各タスクを登録
-4. 実行順を決める: 依存が明示されているタスクは依存元の後に回し、それ以外はプラン記載順とする。Phase 3 はこの順で 1 件ずつ処理する
+4. 実行順とバッチを決める:
+   - 依存が明示されているタスクは依存元の後に回し、それ以外はプラン記載順とする
+   - この順に走査し、対象ファイルが互いに素かつ依存関係のないタスク群を 1 バッチにまとめる。対象ファイルが 1 つでも重なるタスク、依存関係のあるタスク、対象ファイルが特定できないタスクは同じバッチに入れず、単独バッチとする
+   - Phase 3 はバッチ単位で処理する (1 件だけのバッチは逐次実行と同じ)
 
 #### controller チェックリスト (Phase 3 へ渡す前)
 
-各タスクの implementer / reviewer prompt を組み立てる前に、以下 2 点を controller のメモリに揃えておく (Phase 3 のステップ 2 / ステップ 4 で prompt に埋め込むため)。どちらかが欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
+各タスクの implementer / reviewer prompt を組み立てる前に、以下 2 点を controller のメモリに揃えておく (Phase 3 のステップ 2 / ステップ 4 で prompt に埋め込むため)。1 点目が欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
 
-- プランの `## 合意事項` を抜粋し、implementer prompt の `[Context]` と reviewer prompt の `[合意事項抜粋]` に転記する準備をする。あわせて判断が本文へ散在していないかを 1 パスで確認する
-- 対象リポの `CLAUDE.md` を「リポルート → 対象ファイルの各先祖ディレクトリ」の順に読む (`.claude/CLAUDE.md` があれば併せて確認)。monorepo の `packages/*/CLAUDE.md` などサブ階層に個別規約があれば、当該タスクに関係する検証項目 (例: Structured Output 実 API smoke 規約、独自命名規約) を抜粋し、implementer prompt の `[Context]` に含める。階層に CLAUDE.md が一つも無ければスキップしてよい
+- プランの `## 合意事項` セクションの全文を、implementer prompt の `[Context]` と reviewer prompt の `[合意事項全文]` に転記できる状態にしておく。要約・抜粋はしない。短縮形プランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて判断が本文へ散在していないかを 1 パスで確認する
+- 対象リポの `CLAUDE.md` を「リポルート → 対象ファイルの各先祖ディレクトリ」の順に読む (`.claude/CLAUDE.md` があれば併せて確認)。monorepo の `packages/*/CLAUDE.md` などサブ階層に個別規約があれば、当該タスクに関係する検証項目 (例: 独自の命名規約、特定ディレクトリでのテスト必須ルール、コミット前に通すべきチェック) を抜粋し、implementer prompt の `[Context]` に含める。階層に CLAUDE.md が一つも無ければ、この項目自体を省略してよい
 
 ### Phase 3: タスクループ
 
-タスクを 1 件ずつ逐次に処理する。implementer / reviewer subagent を同時に複数起動しない (共有ツリーで変更が混ざり、レビュー差分とコミット単位が分離できなくなるため)。各タスクについて以下を行う。
+Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク (対象ファイルが互いに素で依存関係がない) は implementer / reviewer を並列に起動してよい。対象ファイルが重なるタスクや依存関係のあるタスクは別バッチなので、結果として逐次に処理される。
 
-1. タスク選定: Phase 2 の実行順で残タスクから次の 1 件を選び、`TaskUpdate(status=in_progress)`
-2. 実装: implementer `Agent` を 1 件起動する
-   - `references/implementer-prompt.md` をテンプレートとして使用 (プレースホルダー `[FULL TEXT of task]`, `[Context]`, `[Working directory]` を埋める)
-   - `[Context]` には Phase 2 「controller チェックリスト」で用意した (a) `## 合意事項` 抜粋、(b) 対象リポ CLAUDE.md 由来の検証項目 を必ず含める
+並列実行時に守ること:
+
+- 各 implementer prompt の `[Context]` に、同一バッチで並行実行している他タスクの対象ファイル一覧を渡し、担当外のファイルは読むだけで編集しないことを明示する
+- reviewer に渡す差分は必ず `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定にする。同じツリーに他タスクの未コミット変更が同居するため、パス限定を外すと他タスクの変更を誤検出する
+- `[BASE_SHA]` はバッチ開始時点の `git rev-parse HEAD` をバッチ内の全タスクで共有する (バッチ内の他タスクのコミットで base がずれると差分に他タスクの変更が混ざる)
+- コミットは controller が APPROVED になったタスクから 1 件ずつ、`git add <対象ファイル>` のパス限定で行う (1 タスク = 1 コミット)
+
+各バッチについて以下を行う。
+
+1. バッチ選定: Phase 2 の順で次のバッチを取り、含まれる各タスクを `TaskUpdate(status=in_progress)`。`BASE_SHA` として `git rev-parse HEAD` を記録する
+2. 実装: バッチ内の各タスクに implementer `Agent` を起動する (バッチ内は同時起動可)
+   - `~/.claude/skills/execute-plan/references/implementer-prompt.md` をテンプレートとして使用 (プレースホルダー `[FULL TEXT of task]`, `[Context]`, `[Working directory]` を埋める)
+   - `[Context]` には Phase 2 「controller チェックリスト」で用意した (a) `## 合意事項` 全文 (短縮形プランなら Phase 1 ステップ 6 の固定文言)、(b) 対象リポ CLAUDE.md 由来の検証項目 (CLAUDE.md が無ければこの項目自体を省く)、(c) 並列実行時は他タスクの対象ファイル一覧 を含める
    - `subagent_type=general-purpose`、`model` はタスク複雑度に応じて切替 (後述の「モデル選択方針」)
    - implementer は自分の対象ファイルのみ編集し、コミットはしない
-3. implementer の報告を受けてステータス分岐 (後述の「ステータスハンドリング」)
-4. レビュー: DONE / DONE_WITH_CONCERNS なら reviewer `Agent` を起動する
-   - `references/reviewer-prompt.md` をテンプレートとして使用
-   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[合意事項抜粋]`, `[implementer report]`, `[BASE_SHA]` (= `git rev-parse HEAD` の出力 = 直前コミット), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
-   - `[合意事項抜粋]` にはプランの `## 合意事項` を丸ごと転記する (Phase 2 チェックリストで抜粋済みのもの)。これが埋まらないと reviewer が「プラン合意事項との整合性」観点をレビューできない
+3. implementer の報告を受けてタスクごとにステータス分岐 (後述の「ステータスハンドリング」)
+4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
+   - `~/.claude/skills/execute-plan/references/reviewer-prompt.md` をテンプレートとして使用
+   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[合意事項全文]`, `[implementer report]`, `[BASE_SHA]` (= ステップ 1 で記録した SHA), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
+   - `[合意事項全文]` にはプランの `## 合意事項` を丸ごと転記する (短縮形プランなら Phase 1 ステップ 6 の固定文言。reviewer 側でこの観点がスキップされる)。空のまま渡すと reviewer が「プラン合意事項との整合性」観点をレビューできない
    - `model=opus` 固定
-   - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う。逐次実行なので、未コミットの変更は当該タスクのものだけになる
-5. レビュー結果分岐:
+   - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
+5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
    - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容を `[Context]` に追記)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
-6. コミット: APPROVED になったタスクを controller が直接コミットする
+6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
    - Phase 1 ステップ 7 で既にフィーチャーブランチ上にいることを前提とする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
-   - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更してもコミットには入らない
-7. `TaskUpdate(status=completed)`
-8. タスク後チェック: 対象ファイル外の未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する
-9. 残タスクがあれば次のタスクへ (ステップ 1 に戻る)
+   - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更しても、また同一バッチの他タスクが未コミットで同居していても、コミットには入らない
+7. コミットしたタスクを `TaskUpdate(status=completed)`
+8. バッチ後チェック: バッチ内全タスクの対象ファイル以外に未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する
+9. 残バッチがあれば次のバッチへ (ステップ 1 に戻る)
 
 #### pre-commit hook fail 時の扱い
 
@@ -122,7 +135,7 @@ argument-hint: "[plan-file-path]"
 - hook が示している問題は必ず implementer に fix させる (`--no-verify` で skip して commit を通さない)
 - hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
 
-hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。`references/implementer-prompt.md` の「lint / hook self-check」で `references/lint-per-language.md` に沿った検出・実行が徹底されていれば、この分岐に来る頻度は下がる。
+hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。`~/.claude/skills/execute-plan/references/implementer-prompt.md` の「lint / hook self-check」で `~/.claude/skills/execute-plan/references/lint-per-language.md` に沿った検出・実行が徹底されていれば、この分岐に来る頻度は下がる。
 
 ### Phase 4: 完了報告
 
@@ -130,7 +143,7 @@ hook fail が発生する主因は、implementer の self-check が対象リポ�
 
 - 変更ファイル数とコミット数を `git log` / `git diff` で確認
 - 1〜2 文のサマリを出力 (例: 「3 タスク完了。5 ファイル変更、3 コミット作成」)
-- 未完タスク (cancelled / blocked) があれば一覧で報告
+- 未完タスクがあれば一覧で報告する。内訳は、エスカレーションでスキップした `deleted` のタスクと、着手前に停止して `pending` のまま残ったタスク
 - PR の作成に進む場合は `pr-merge` スキルを使うようユーザーに案内する
 
 最終全体レビューは実施しない (タスクごとの 1 段レビューで担保)。
@@ -151,8 +164,8 @@ implementer subagent は 4 種の status で報告する。
 修正ループ 2 回超過時、または `BLOCKED` 報告時は、`AskUserQuestion` で 3 択をユーザーに提示する。
 
 1. 追加指示を与えて再試行 (ユーザー入力を `[Context]` に追記して fresh で再委譲)
-2. 当該タスクをスキップして次へ (`TaskUpdate(status=deleted)`、状況をログ出力)
-3. スキル全体を停止 (残タスクを抱えたまま終了し、Phase 4 のサマリで未完一覧を出力)
+2. 当該タスクをスキップして次へ (`TaskUpdate(status=deleted)`、状況をログ出力。Phase 4 では未完タスクとして一覧に載せる)
+3. スキル全体を停止 (残タスクを `pending` のまま終了し、Phase 4 のサマリで未完一覧を出力)
 
 ## モデル選択方針
 
@@ -161,8 +174,7 @@ implementer subagent は 4 種の status で報告する。
 | ロール | 既定モデル | 切替条件 |
 | -- | -- | -- |
 | controller (本スキル本体) | セッション継承 | 切替しない |
-| implementer (機械的タスク) | `sonnet` | 対象ファイル 1-2 件、明確な仕様、リファクタ等 |
-| implementer (統合タスク) | `sonnet` | 複数ファイル、パターン照合、デバッグ |
+| implementer (通常タスク) | `sonnet` | 明確な仕様、リファクタ、パターン照合、デバッグ |
 | implementer (設計判断) | `opus` | 設計判断、広範な理解、Context 長大 |
 | reviewer | `opus` | 常に固定 |
 
@@ -170,7 +182,7 @@ implementer subagent は 4 種の status で報告する。
 
 ## References
 
-- `references/implementer-prompt.md`: implementer subagent 用テンプレート
-- `references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
-- `.claude/skills/write-plan/references/task-format.md`: 実装タスクの記述形式 (controller 側の抽出規則はこの形式に従う)
-- `references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)
+- `~/.claude/skills/execute-plan/references/implementer-prompt.md`: implementer subagent 用テンプレート
+- `~/.claude/skills/execute-plan/references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
+- `~/.claude/skills/execute-plan/references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)
+- `~/.claude/skills/write-plan/references/task-format.md`: 実装タスクの記述形式 (controller 側の抽出規則はこの形式に従う)

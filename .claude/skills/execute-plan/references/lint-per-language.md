@@ -1,6 +1,8 @@
 # Lint / Hook 言語別パターン
 
-`references/implementer-prompt.md` の「実行手順」で規定した「対象ファイル明示 + fix→check 2 段 + 設定検出条件付き実行」の原則に対して、言語別の判定・実行コマンドを載せる。実装者 (implementer subagent) が Phase 3 で本ファイルを参照して、対象ファイルの言語系統に対応するセクションを選び、記載のコマンドを実行する。
+`~/.claude/skills/execute-plan/references/implementer-prompt.md` の「実行手順」で規定した「対象ファイル明示 + fix→check 2 段 + 設定検出条件付き実行」の原則に対して、言語別の判定・実行コマンドを載せる。実装者 (implementer subagent) が Phase 3 で本ファイルを参照して、対象ファイルの言語系統に対応するセクションを選び、記載のコマンドを実行する。
+
+全言語共通で、リポ全体に対する `--check` (`ruff format --check .` / `biome check .` / `pre-commit run --all-files` 等) だけで pass 判定しないこと。他ファイルの pass に紛れて自分の編集ファイルの fail を見落とす原因になる。以下の各言語セクションのコマンドはすべて対象ファイルを引数で明示する前提で書いてある。
 
 未収載言語 (Rust / Go / Elixir 等) は、原則に従って implementer が対象リポのツールチェーンから判断すること。判断がついたら本ファイルに新セクションを追加すると次回以降が楽になる (末尾「新言語追加時のフォーマット」を参照)。
 
@@ -41,8 +43,6 @@ pre-commit が検出された場合、対象ファイルを引数に渡して以
 ```bash
 [uv run] pre-commit run --files <対象ファイル>
 ```
-
-リポ全体に対する `ruff format --check .` や `pre-commit run --all-files` だけで pass 判定しないこと。他ファイルの pass に紛れて自分の編集ファイルの fail を見落とす原因になる。
 
 ### スキップ時の報告文言テンプレ
 
@@ -114,8 +114,6 @@ husky / lint-staged が検出された場合 (pre-commit 相当の hook を回�
 [<pm> exec] lint-staged --diff=HEAD --files <対象ファイル>
 ```
 
-リポ全体に対する `biome check .` / `eslint .` / `lint-staged` だけで pass 判定しないこと。他ファイルの pass に紛れて自分の編集ファイルの fail を見落とす原因になる。
-
 ### スキップ時の報告文言テンプレ
 
 linter / hook がいずれも検出されなかった場合、報告に以下を含める:
@@ -156,4 +154,4 @@ lint / hook 実行: TypeScript / JavaScript 系統だが biome / eslint / pretti
 <検出条件が全て偽だった場合の報告文言>
 ```
 
-`references/implementer-prompt.md` の原則 (対象ファイル明示 + fix→check 2 段 + リポ全体 pass に紛れさせない) は言語非依存で必ず守ること。新セクション追加時に原則を破らないように既存 2 系統を参考にする。
+`~/.claude/skills/execute-plan/references/implementer-prompt.md` の原則 (対象ファイル明示 + fix→check 2 段 + リポ全体 pass に紛れさせない) は言語非依存で必ず守ること。新セクション追加時に原則を破らないように既存 2 系統を参考にする。

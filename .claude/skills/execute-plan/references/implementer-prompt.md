@@ -15,7 +15,7 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 
 ## Context
 
-[Context: scene-setting, 周辺の前提, 依存関係, 既存実装の参照点, プランの `## 合意事項` 抜粋]
+[Context: scene-setting, 周辺の前提, 依存関係, 既存実装の参照点, プランの `## 合意事項` 全文, 並列実行時は他タスクの対象ファイル一覧]
 
 ## 作業ディレクトリ
 
@@ -37,19 +37,18 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 
 ### lint / hook self-check
 
-以下の原則に従って対象ファイルに対する lint / formatter / hook を回す。言語別の具体的な検出コマンド・実行コマンドは `references/lint-per-language.md` を参照する (Python と TypeScript / JavaScript の 2 系統を収録)。
+以下の原則に従って対象ファイルに対する lint / formatter / hook を回す。言語別の具体的な検出コマンド・実行コマンドは `~/.claude/skills/execute-plan/references/lint-per-language.md` を `Read` して参照する (Python と TypeScript / JavaScript の 2 系統を収録)。
 
 1. 対象リポの言語系統を判定する (系統検出ファイルの存在確認)
 2. 対象言語のフォーマッタ / linter / hook 設定ファイルが存在するかを検出する
 3. 設定がある場合のみ、対象ファイル明示で fix → check の 2 段 (例: format → format --check) と linter を実行する。パッケージマネージャの run 前置が必要ならそれに従う
 4. リポ全体に対する `--check` (例: `format --check .`) だけで判断しない。他ファイルの pass に紛れて自分の編集ファイルの fail を見落とす摩擦の再発防止
 5. 検出条件がすべて偽なら本ステップは省略する。省略した旨は報告フォーマットに含める
-6. 具体的な検出・実行コマンドは言語ごとに `references/lint-per-language.md` に定義されているので、そちらを参照して実行する
 
 ## Code Organization
 
 - ファイルは責務を絞り、計画の意図に沿って配置する
-- プランで指定された対象ファイル以外には触れない (副作用を広げない)
+- プランで指定された対象ファイル以外には触れない (副作用を広げない)。Context に他タスクの対象ファイル一覧が渡されている場合、それらは他の subagent が同じツリーで並行編集中なので、読むのはよいが編集しない
 - 既存ファイルが既に大きい / 複雑である場合、計画外の分割をしない。気づいた点は懸念として報告に含める
 - 既存コードベースのパターンに従う
 
@@ -78,12 +77,12 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 
 ## プロジェクト固有規約
 
-Context として controller から渡されたプロジェクト固有規約 (`CLAUDE.md` 抜粋、Structured Output の実 API smoke 規約、独自命名規約、リポジトリ独自のセキュリティルールなど) は、規約が示す検証を self-check に含めてください。例:
+Context として controller から渡されたプロジェクト固有規約 (`CLAUDE.md` 抜粋、独自命名規約、リポジトリ独自のセキュリティルールなど) は、規約が示す検証を self-check に含めてください。例:
 
-- 「Structured Output モデルを変更したら実 API 1 コール smoke で strict スキーマ互換を確認」 → 該当タスクなら smoke を 1 回走らせて strict 互換を確認する
 - 「特定ディレクトリ配下のファイルには X の命名規則を適用」 → 生成物が規則に沿っているか確認する
+- 「この層を変更したら統合テストを 1 本走らせる」 → 該当タスクならそのテストを実行して結果を報告に含める
 
-規約に反する構造 / 命名 / 実装を発見し、修正するとタスク仕様との整合が崩れる場合は、`NEEDS_CHANGES` ではなく `BLOCKED` として controller にエスカレーションしてください (規約 vs 仕様の判断は controller が行う)。
+規約に反する構造 / 命名 / 実装を発見し、修正するとタスク仕様との整合が崩れる場合は、自分で判断せず `BLOCKED` として controller にエスカレーションしてください (規約 vs 仕様の判断は controller が行う)。
 
 ## 報告フォーマット
 
