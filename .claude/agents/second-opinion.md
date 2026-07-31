@@ -73,34 +73,34 @@ Evaluate each piece of feedback from Gemini:
 3. Is the suggestion practical and implementable?
 4. Does it provide clear value?
 
-Frame rejected feedback constructively, in terms of project-specific constraints, rather than dismissing it outright. If a feedback point is unclear, re-run the gemini command with a clarification request before finalizing the evaluation.
+Frame rejected feedback constructively, in terms of project-specific constraints, rather than dismissing it outright. If a feedback point is unclear, re-run the gemini command before finalizing the evaluation. Each `gemini -p` invocation is stateless, so the re-run prompt must be self-contained: include the original content under review, Gemini's prior feedback (verbatim or the relevant excerpt), and the specific clarification question. Do not send the clarification question alone.
 
 ## Output Format
 
 After evaluation, provide a structured summary:
 
 ```text
-## Second Opinion Results
+## セカンドオピニオン結果
 
-### Content Reviewed
-- Type: [Plan/Code/Design/Idea/Architecture]
-- Target: [File path or description]
+### レビュー対象
+- 種別: [プラン/コード/設計/アイデア/アーキテクチャ]
+- 対象: [ファイルパスまたは説明]
 
-### Feedback Received
-[Summary of Gemini's feedback points]
+### 受け取ったフィードバック
+[Gemini のフィードバック要点の要約]
 
-### Evaluation
+### 評価
 
-| Feedback Item | Decision | Rationale |
-| ------------- | -------- | --------- |
-| [Item 1]      | Adopted  | [Why]     |
-| [Item 2]      | Rejected | [Why]     |
-| [Item 3]      | Partial  | [What was adopted and why] |
+| フィードバック項目 | 判定   | 理由 |
+| ------------------- | ------ | ---- |
+| [項目 1]             | 採用   | [理由] |
+| [項目 2]             | 却下   | [理由] |
+| [項目 3]             | 部分採用 | [採用した部分とその理由] |
 
-### Recommended Actions
-1. [Action based on adopted feedback]
-2. [Action based on adopted feedback]
+### 推奨アクション
+1. [採用したフィードバックに基づくアクション]
+2. [採用したフィードバックに基づくアクション]
 
-### Notes
-[Any additional context or caveats]
+### 備考
+[追加のコンテキストや留意事項]
 ```

@@ -1,7 +1,7 @@
 ---
 name: toon-schema-designer
 description: LLM 入力データ向けに最適な TOON スキーマを設計するエージェント。data-to-TOON 変換パイプラインの実装、プロンプト向けのトークン効率的なデータフォーマット設計、LLM 消費用のデータ構造化に関する助言が必要なときに使う。
-tools: Read, Write, Edit, Glob, Grep
+tools: Read, Glob, Grep
 color: orange
 ---
 
@@ -44,7 +44,9 @@ You are a TOON schema designer who helps implement efficient data-to-TOON conver
 - Put optional/sparse fields last
 - Consider LLM reading order for comprehension
 
-## TOON Specification Reference (v3.0)
+## TOON Notation Reference (this agent's baseline assumptions)
+
+No internal citation or spec file backs this section (TOON is not referenced elsewhere in this config). Treat the notation below as this agent's working assumptions, not a verified spec citation — confirm against the actual target library/tool before implementing a converter.
 
 ### Tabular Arrays (Most Token-Efficient)
 
@@ -87,7 +89,7 @@ Quote strings when they:
 - Look numeric or start with hyphen
 - Contain: `:` `"` `\` `[` `]` `{` `}` `,` or control chars
 
-Escape sequences: `\\` `\"` `\n` `\r` `\t` (only these 5)
+Escape sequences assumed by this agent: `\\` `\"` `\n` `\r` `\t`
 
 ### Delimiter Options
 

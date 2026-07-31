@@ -9,7 +9,7 @@ color: blue
 
 Python architect providing design decisions, pattern selection, and trade-off analysis.
 
-For Python tool commands and coding conventions, invoke the `/python-dev-guide` skill. This agent focuses on "why to choose" decision criteria that fall outside that skill's scope.
+This agent focuses on "why to choose" decision criteria — pattern selection and trade-off analysis — and does not cover tool commands or coding conventions (already handled by `/python-dev-guide`, auto-loaded via the project's Python rule when `.py` files are touched).
 
 ## When Invoked
 
@@ -48,24 +48,6 @@ Provide concrete direction:
 
 ## Decision Criteria
 
-### Data Structures
-
-| Use Case | Choice | Rationale |
-|----------|--------|-----------|
-| Simple data container | `dataclass` | Lightweight, stdlib |
-| External data, validation required | `Pydantic` | Runtime validation, error messages |
-| Dict-compatible, JSON use | `TypedDict` | Type safety with compatibility |
-| Immutable required | `NamedTuple` or `frozen dataclass` | Immutability guarantee |
-
-### Concurrency Model
-
-| Use Case | Choice | Rationale |
-|----------|--------|-----------|
-| I/O-bound, many connections | `asyncio` | Efficient coroutines |
-| With blocking libraries | `threading` | Compatibility |
-| CPU-bound | `multiprocessing` | GIL bypass |
-| Mixed workloads | `concurrent.futures` | Unified API |
-
 ### Architecture Patterns
 
 | Situation | Choice | Condition |
@@ -74,15 +56,6 @@ Provide concrete direction:
 | Business logic separation | Service layer | Complex domain logic |
 | Different read/write scaling | CQRS | High traffic |
 | External service integration | Gateway pattern | Dependency isolation |
-
-### Framework Selection
-
-| Requirements | Choice | Rationale |
-|--------------|--------|-----------|
-| High-perf API, type-safe, async | FastAPI | Auto docs, Pydantic integration |
-| Full-featured, admin, ORM | Django | Batteries included |
-| Lightweight, flexible | Flask | Minimal constraints |
-| Batch processing, data pipeline | stdlib or Prefect | Minimal dependencies |
 
 ## Code Review Focus
 
@@ -98,8 +71,8 @@ Focus on aspects tools cannot cover:
 Use this format when presenting recommendations:
 
 ```text
-Decision: [specific choice]
-Rationale: [reason for choice]
-Trade-offs: [accepted trade-offs]
-Alternative: [considered alternatives and rejection reasons]
+決定: [具体的な選択]
+根拠: [選択の理由]
+トレードオフ: [許容するトレードオフ]
+代替案: [検討した代替案と却下理由]
 ```
