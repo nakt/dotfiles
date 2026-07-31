@@ -14,17 +14,9 @@ allowed-tools:
 
 ## Tech Stack
 
-uv + ruff を標準とする。
+uv + ruff を標準とし、Python 3.12+ を対象として最新の言語機能を活用する。
 
-## Quick Start
-
-```bash
-mkdir my-app && cd my-app
-git init
-uv init
-uv add -d ruff mypy pytest
-uv venv && uv sync
-```
+新規プロジェクトの作成手順は [Project Init Workflow](#project-init-workflow) を参照。
 
 ## Common Commands
 
@@ -36,26 +28,9 @@ uv run ruff format .             # フォーマット
 uv run mypy src/                 # 型チェック
 ```
 
-## Recommended pyproject.toml
+## pyproject.toml
 
-```toml
-[project]
-requires-python = ">=3.12"
-
-[tool.uv]
-exclude-newer = "1 week"
-
-[tool.ruff]
-target-version = "py312"
-line-length = 120
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-
-[tool.mypy]
-python_version = "3.12"
-strict = true
-```
+[references/pyproject-toml.md](references/pyproject-toml.md) を唯一の定義とする。uv / ruff / mypy / pytest / coverage / bandit / build-system / dependency-groups の設定はすべてそこにある。
 
 ## Project Structure
 
@@ -77,11 +52,11 @@ strict = true
 
 ## Coding Conventions
 
-- 一時コメントには `TODO` / `FIXME` ラベルを使用
 - 型ヒントを積極的に使用し、mypy strict モードで検証
 - 外部データのバリデーションには Pydantic を使用
 - コードスタイルは ruff で統一
 - テストは pytest を使用
+- シンプルな設計を優先し、過度な抽象化を避ける
 
 ### Docstring
 
@@ -219,22 +194,3 @@ uv add --dev bandit pip-audit
 uv run bandit -r src/                   # コードのセキュリティ脆弱性
 uv run pip-audit                        # 依存関係の脆弱性
 ```
-
-## AI Tool Usage Notes
-
-Claude Code や Gemini CLI から Python プロジェクトを操作する際:
-
-- パッケージ管理は `uv add` / `uv sync` / `uv remove` を使用（`pip install` を避ける）
-- `pyproject.toml` と `uv.lock` の両方をコミット
-- 仮想環境外へのインストールは禁止
-- テスト実行前に `uv run ruff format .` を通す
-
-## Key Principles
-
-1. uv + ruff の技術スタックを使用する
-2. Python 3.12+ を対象とし、最新の言語機能を活用する
-3. mypy strict モードで型安全性を強化
-4. 型ヒントを積極的に使用する
-5. 外部データのバリデーションには Pydantic を使用
-6. コードスタイルは ruff で統一する
-7. シンプルな設計を優先し、過度な抽象化を避ける

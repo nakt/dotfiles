@@ -6,8 +6,6 @@ allowed-tools: Write, Read, Glob, Edit, Bash(bun:*), Bash(npx:*)
 
 # React Development Guide
 
-.tsx では typescript-dev-guide と react-dev-guide の両方が適用され、矛盾する場合は react-dev-guide を優先する。
-
 ## Tech Stack
 
 bun + Vite + Biome を標準とする。
@@ -32,14 +30,7 @@ bun run test                   # テスト実行
 
 ## Rules
 
-### パッケージ追加
-
-- `bun add xxx` でパッケージを追加しない
-- `package.json` を直接編集し、`bun install` で反映する
-
-### サプライチェーン対策
-
-- プロジェクトルートに `.npmrc` を作成し `min-release-age=7` を設定する
+パッケージを追加する前に [../typescript-dev-guide/references/bun-workflow.md](../typescript-dev-guide/references/bun-workflow.md) を必ず読む（`bun add` は使用しない）。
 
 ### 型チェック
 
@@ -80,11 +71,11 @@ src/
 
 ## Coding Conventions
 
-- 一時コメントには `TODO` / `FIXME` ラベルを使用
 - 関数コンポーネントのみ使用（クラスコンポーネント不可）
 - Props は `interface` で定義
 - カスタムフックは `use` プレフィックスで命名
 - コードスタイルは Biome で統一
+- シンプルな選択を優先し、過度な最適化・設計を避ける
 
 ## Decision Guide
 
@@ -104,11 +95,3 @@ src/
 | SPA, simple | Vite + React | Minimal setup, bun compatible |
 | SSR, SEO needed | Next.js (App Router) | Proven (note bun compatibility) |
 | Static site | Astro | Minimal JS |
-
-## Key Principles
-
-1. bun + Vite + Biome の技術スタックを使用する
-2. 関数コンポーネントのみ（クラスコンポーネント不可）
-3. 状態管理は zustand、サーバー状態は TanStack Query
-4. コードスタイルは Biome で統一する
-5. シンプルな選択を優先し、過度な最適化・設計を避ける

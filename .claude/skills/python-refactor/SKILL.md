@@ -60,7 +60,7 @@ Python プロジェクト専用の計測駆動リファクタリング支援。�
    `uv add --dev radon lizard wily` で追加してよいですか？
    ```
 3. 承認後に `uv add --dev <tools>` を実行し、`uv sync` で同期
-4. `uv run pytest` を実行し、ベースラインのテストグリーンを確認。失敗があればリファクタリング前に修正する旨をユーザーに通知
+4. `uv run pytest` を実行し、ベースラインのテストグリーンを確認。失敗があればリファクタリング前に修正する旨をユーザーに通知。テストが未整備の箇所は、リファクタリングに入る前にテストを書く
 
 ## Phase 1: 計測
 
@@ -130,6 +130,8 @@ def process_file(p, fmt): return parse(p, delimiter=FORMATS[fmt])
 
 → 詳細パターン: [references/dedupe.md](references/dedupe.md)
 
+共通化は過抽象化と紙一重なので、`dedupe.md` の 3 回ルールに従って判断する。
+
 ### magic-numbers モード例 (Extract to Constants)
 
 ```python
@@ -148,7 +150,7 @@ if amount < SMALL_AMOUNT_THRESHOLD:
 
 → 詳細パターン: [references/magic-numbers.md](references/magic-numbers.md)
 
-各改善ステップの後で `uv run pytest` を流し、テストがグリーンであることを確認する。
+各改善ステップの後で `uv run pytest` を流し、テストがグリーンであることを確認する。モジュール分割や公開 API の変更といった大きな構造変更に着手する前は、ユーザー確認を取る。
 
 ## Phase 3: 横断適用順 (フルモードのみ)
 
@@ -177,15 +179,12 @@ uv run wily diff HEAD~1               # 改善度
 
 リファクタリングで生じた構造変更がドキュメントと乖離していないか確認し、必要なら更新へ誘導する。
 
-判定とアクション:
+`git diff --stat` と変更ファイル一覧を確認し、ドキュメント更新が要りそうなら次のスキルの呼び出しを提案する。更新要否の判定基準は `update-arch` が持つのでここでは再掲しない。`update-readme` は判定基準を持たず呼ばれたら生成する形式のため、Quick Start / コマンド例 / プロジェクト構造のいずれかが変更された場合に提案する。
 
-| 対象 | 判定基準 | アクション |
-| --- | --- | --- |
-| `docs/arch/` | 存在し、かつ処理フロー・モジュール構造・公開 API が変更された | `update-arch` スキルの呼び出しを提案 |
-| `README.md` | Quick Start / コマンド例 / プロジェクト構造のいずれかが変更された | `update-readme` スキルの呼び出しを提案 |
-| いずれも | 影響なし | 「ドキュメント影響なし: <理由>」を 1 行表示してスキップ |
+- `docs/arch/` が存在する場合の更新 → `update-arch` スキル
+- `README.md` の更新 (Quick Start / コマンド例 / プロジェクト構造のいずれかが変更された場合) → `update-readme` スキル
 
-判定は `git diff --stat` と変更ファイル一覧から自動で見積もり、最終判断はユーザーに確認する。
+いずれも該当しない場合は「ドキュメント影響なし: <理由>」を 1 行表示してスキップする。最終判断はユーザーに確認する。
 
 ## 閾値要約
 
@@ -211,14 +210,6 @@ uv run wily diff HEAD~1               # 改善度
 - pre-commit セットアップ — `python-dev-guide` を参照
 
 必要に応じて参考リポ [l-mb/python-refactoring-skills](https://github.com/l-mb/python-refactoring-skills) の py-security / py-test-quality / py-modernize / py-quality-setup / py-git-hooks を直接参照する。
-
-## Key Principles
-
-1. 計測 → 改善 → 検証 → ドキュメント整合の順を守る
-2. テストグリーンを維持。テスト未整備のコードは先にテストを書く
-3. 大きな構造変更の前にユーザー確認を取る
-4. 過抽象化を避ける (`dedupe` の 3 回ルール参照)
-5. 出力・対話は日本語、コード内コメントは英語
 
 ## 出典
 
