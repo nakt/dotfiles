@@ -2,19 +2,11 @@
 
 デッドコードとコメントアウトされた残骸を整理し、ノイズを減らす。重複の検出・統合は [dedupe.md](dedupe.md) を参照。
 
-## 検出コマンド
-
-```bash
-uv run vulture . --min-confidence 80                       # 信頼度 80% 以上
-uv run vulture . --min-confidence 80 --sort-by-size        # 大きい順
-uv run vulture . --min-confidence 80 --exclude tests,.venv
-```
-
-詳細は [tools.md](tools.md) を参照。
+検出・検証のコマンドと閾値は [tools.md](tools.md) の「code-health モード」に集約している。本ファイルは出力の読み方と改善パターンのみを扱う。
 
 ## vulture 出力の読み方
 
-```
+```text
 src/billing.py:45: unused function 'calculate_tax' (80% confidence)
 src/processors.py:123: unused class 'LegacyProcessor' (90% confidence)
 src/config.py:12: unused variable 'debug_mode' (60% confidence)
@@ -69,16 +61,14 @@ def public_api(): ...
 - フレームワーク慣習はディレクトリ単位で `--exclude` を当てる
 - 動的呼び出しは設計を見直すか、最小限の whitelist にとどめる
 
-whitelist は通常のモジュールとして書き、vulture に引数として渡す:
+whitelist は通常のモジュールとして書き、vulture に引数として渡す (コマンドは [tools.md](tools.md) の「code-health モード」参照):
 
 ```python
 # whitelist.py
 public_api  # type: ignore  # External consumers
 ```
 
-```bash
-uv run vulture . whitelist.py --min-confidence 80
-```
+`whitelist.py` は新規ファイルなので、作成前にユーザー確認を取る。
 
 ## 「使われていない＝本来使われるべきだった」ケース
 
@@ -132,7 +122,9 @@ def calculate_total(items: list[Item]) -> float:
 
 ## Verification Checklist
 
-- [ ] `uv run vulture . --min-confidence 80` が空、または偽陽性のみ
+コマンドは [tools.md](tools.md) の「検証コマンド集」を参照。ここでは合格条件のみを示す。
+
+- [ ] vulture の信頼度 80% 以上の報告が空、または偽陽性のみ
 - [ ] コメントアウトされたコードブロックが残っていない
 - [ ] 削除前にテストが通り、削除後もテストが通る
 - [ ] カバレッジが下がっていない
