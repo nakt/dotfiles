@@ -6,7 +6,7 @@ allowed-tools: Read
 
 # Claude Fable 5 / Mythos 5 プロンプティングガイド
 
-回答時に references/ のどのファイル・どの章に基づくかをファイル名と章タイトルで引用する（例: `fable-5.md「進捗報告を根拠づける」`、`parameters.md「effort パラメータ」`）。
+主張の根拠は `ファイル名「章タイトル」` の形で必ず添える（例: `fable-5.md「進捗報告を根拠づける」`）。references/ を読まずに答えない。
 
 対象は Claude Fable 5（`claude-fable-5`）と Claude Mythos 5（`claude-mythos-5`）。両者はプロンプティング・パラメータ推奨が同一なので、特記しない限りまとめて扱う。
 
@@ -16,16 +16,19 @@ allowed-tools: Read
 
 ## リファレンスの読み分け
 
-`common.md` は常に併読する。加えてリクエストの焦点で以下を Read する。判断がつかなければ3ファイルすべてを Read する。
+`common.md` は常に併読する。値の実体は references 側にあるので、下表で当たりをつけて該当章を Read してから答える。判断がつかなければ3ファイルすべてを Read する。
 
-| リクエストの焦点 / シグナル | Read するファイル |
+| リクエストの焦点 / シグナル | 読む章 |
 |---|---|
-| 長時間 autonomous run / サブエージェント / メモリ / 進捗報告 / 早期停止 / 境界設定 / send-to-user | fable-5.md |
-| Opus 4.8 や GPT 系からの Fable 5 移行 / スキルのリファクタ / prescriptive すぎる指示 | fable-5.md（+ common.md） |
-| effort / xhigh / max_tokens / thinking の深さ | parameters.md |
-| adaptive thinking / thinking.display / omitted / summarized / thinking ブロックの往復 | parameters.md |
-| `stop_reason: refusal` / cyber / bio / frontier_llm / reasoning_extraction / fallback | parameters.md |
-| clear-and-direct / 例 / XML タグ / ロール / 長 context / prefill 移行 / hallucination | common.md |
+| 長時間 autonomous run / 早期停止 / checkpoint / 境界設定 | fable-5.md「まれな早期停止」「境界を明示する」「強い指示遵守」 |
+| 進捗報告 / 可読性 / send-to-user | fable-5.md「進捗報告を根拠づける」「ユーザーとのコミュニケーションの可読性」「send-to-user ツールを作る」 |
+| サブエージェント / メモリ / 自己検証 | fable-5.md「並列サブエージェント」「メモリシステムを構築する」「推奨スキャフォールディング変更」、common.md「サブエージェント orchestration」 |
+| Opus 4.8 や GPT 系からの移行 / スキルのリファクタ / prescriptive すぎる指示 | fable-5.md「推奨スキャフォールディング変更」「ターンが長くなる」 |
+| effort のレベル一覧と運用方針 / max_tokens / コスト | parameters.md「effort パラメータ」「コスト制御」 |
+| adaptive thinking / thinking.display / omitted / summarized / thinking ブロックの往復 | parameters.md「adaptive thinking」 |
+| `stop_reason: refusal` / cyber / bio / frontier_llm / reasoning_extraction / fallback | parameters.md「Refusal と Fallback」 |
+| clear-and-direct / 例 / XML タグ / ロール / 長 context / prefill 移行 / hallucination | common.md「一般原則」「出力とフォーマット」 |
+| overthinking / 過剰エンジニアリング / 積極性の上げ下げ | common.md「overthinking の抑制」「過剰エンジニアリング（Overeagerness）」、fable-5.md「effort レベルを使い分ける」 |
 
 Fable 5 固有の最重要ポイント（判断に迷ったら優先的に確認）:
 
@@ -35,26 +38,11 @@ Fable 5 固有の最重要ポイント（判断に迷ったら優先的に確認
 
 ## Review
 
-既存プロンプトの評価と改善提案を行う。
-
-出力形式:
-
-1. 対象モデル（Fable 5 / Mythos 5）と、他モデル向けからの移行なら移行元
-2. 評価サマリー
-3. チェック項目ごとの判定（OK / 要改善 / 該当なし）- Review Checklist を使用
-4. 改善提案（具体的な修正案 + 該当ファイル名と原則を引用）
-5. 改善後のプロンプト全文
+冒頭に対象モデル（Fable 5 / Mythos 5）を置き、他モデル向けからの移行ならその移行元も書く。次に Review Checklist を上から通し、各項目を OK / 要改善 / 該当なし に振り分ける。要改善には修正案と、根拠にした章を添える。最後に改善後のプロンプト全文を出す。
 
 ## Draft
 
-新規プロンプトを設計・作成する。
-
-出力形式:
-
-1. 対象モデルと設計方針
-2. 設計判断の説明（該当ファイルの原則に基づく根拠）
-3. プロンプト全文
-4. 推奨パラメータ設定（effort, max_tokens, thinking.display, 必要なら fallback 構成）
+対象モデルと設計方針を先に述べ、references のどの原則に沿って何を決めたかを説明してからプロンプト全文を書く。末尾に推奨パラメータ（effort、max_tokens、thinking.display、必要なら fallback 構成）を添える。
 
 ## Advise
 
@@ -84,51 +72,6 @@ Fable 5 固有の最重要ポイント（判断に迷ったら優先的に確認
 | 明確さ / 具体性 | common.md「明確かつ直接的に」 | 望む出力・制約が具体的か。過剰な語調で overtrigger させていないか |
 | ツール使用の明示 | common.md「ツール使用の明示」 | 行動させたいのに「提案して」になっていないか。CRITICAL 等の過剰語調がないか |
 | 過剰エンジニアリング | common.md「過剰エンジニアリング」 / fable-5.md「effort レベルを使い分ける」 | 要求外のファイル・抽象・防御コードを抑えているか |
-
-## Quick Reference
-
-### effort 早見（Fable 5 / Mythos 5）
-
-| レベル | 使いどころ |
-|---|---|
-| `low` | 単純タスク、サブエージェント。速度・低コスト優先 |
-| `medium` | routine work の step down |
-| `high`（既定） | 大半のタスクの出発点 |
-| `xhigh` | 最も能力が要るワークロード、30分超の長時間 agentic |
-| `max` | トークン無制約で絶対最大能力 |
-
-運用方針: 既定 `high` から始め、routine は `medium` / `low` に下げる。Fable 5 の低 effort は従来モデルの `xhigh` を上回ることが多い。完了するが遅すぎる / より対話的にしたいなら下げる。`high` / `xhigh` では `max_tokens`（thinking + response の総出力上限）を大きく取る。詳細は `parameters.md「effort パラメータ」`。
-
-### thinking の要点
-
-- 常時オンの adaptive thinking のみ。`disabled` 不可、`budget_tokens` は 400 エラー
-- `thinking.display` の既定は `"omitted"`（thinking フィールドが空）。サマリーが欲しければ `"summarized"` を明示
-- raw chain of thought は返らない。可視化は `thinking` ブロックを読む（応答テキストで推論を求めない）
-- 同一モデル継続時は thinking ブロックを受け取ったまま返す。モデル切替時は除去する
-- 詳細は `parameters.md「adaptive thinking」`
-
-### refusal category と対処
-
-| category | 対処 |
-|---|---|
-| `cyber` / `bio` / `frontier_llm` | Opus 4.8 等へ fallback（server-side / SDK middleware / 手動 retry） |
-| `reasoning_extraction` | 応答テキストで推論を求める指示を除去し、adaptive thinking の構造化ブロックを使う |
-
-詳細は `parameters.md「Refusal と Fallback」`。
-
-### 積極性・冗長性の制御
-
-- 抑える: effort を下げる、要求外の整理・リファクタを禁じる指示、checkpoint を「本当に必要なときだけ」に限定
-- 上げる: effort を `high` / `xhigh` に、autonomous 用の system reminder（許可を求めず reversible な行動は進める）
-- 簡潔化: outcome-first 指示1本で足りる。個別挙動の列挙は不要
-
-### 移行時の勘所（Opus 4.8 / GPT 系 → Fable 5）
-
-- prescriptive すぎる指示・過剰な語調を削る（品質を下げうる）
-- 内部推論を応答に書かせる指示を監査・除去（`reasoning_extraction` 対策）
-- `budget_tokens` を effort + `max_tokens` に置換
-- ターンが長くなる前提で timeout / streaming / 進捗インジケータを調整、非同期確認の構成を検討
-- 難易度レンジの上限のタスクで試す
 
 ## References
 
