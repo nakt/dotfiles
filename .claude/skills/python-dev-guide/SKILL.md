@@ -14,7 +14,7 @@ allowed-tools:
 
 ## Tech Stack
 
-uv + ruff を標準とし、Python 3.12+ を対象として最新の言語機能を活用する。
+uv + ruff を標準とし、Python 3.14+ を対象として最新の言語機能を活用する。
 
 新規プロジェクトの作成手順は [Project Init Workflow](#project-init-workflow) を参照。
 

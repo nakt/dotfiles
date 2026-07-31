@@ -58,8 +58,14 @@ bun run test                   # テスト実行
 
 ```json
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "organizeImports": { "enabled": true },
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": { "recommended": true }
@@ -71,6 +77,8 @@ bun run test                   # テスト実行
   }
 }
 ```
+
+`$schema` はインストール済みパッケージへの相対パスを指定し、バージョンを固定しない。インポート整理は Biome 2.x で `assist` 配下へ移動しており、1.x のトップレベル `organizeImports` は無効。
 
 ## Coding Conventions
 

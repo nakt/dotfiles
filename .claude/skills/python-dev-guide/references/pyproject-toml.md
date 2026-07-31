@@ -8,7 +8,7 @@ name = "{project_name}"
 version = "0.1.0"
 description = "{description}"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 
 dependencies = []
 
@@ -33,7 +33,7 @@ exclude-newer = "1 week"
 [tool.ruff]
 line-length = 120
 indent-width = 4
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.format]
 quote-style = "double"
@@ -49,7 +49,7 @@ ignore = [
 "tests/*" = ["S101"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 strict = true
 exclude = ["tests/", "template/", ".workspace/"]
 
