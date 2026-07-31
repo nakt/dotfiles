@@ -2,7 +2,7 @@
 name: wrapup-dispatch
 description: 長いセッションの終わりに、会話履歴から「やったこと・学び・決定・残すべき課題」と「反省・摩擦点(同じ修正の繰り返し / CLAUDE.md・rules を守れなかった場面)」を抽出・構造化し、既存のドキュメント化スキル(issue-tracker / record-adr / update-arch / update-readme)へ振り分け提案するルーター。自身は保存先を持たず、実体は各スキルに委譲する。「セッションをまとめて」「ラップアップして」「今日のセッションを振り返って記録に残して」「wrapup-dispatch」のような依頼で使う。GitHub PR/issue の操作には使わない。
 argument-hint: "[なし] または振り返り範囲のヒント"
-allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git log:*), Bash(echo:*)
+allowed-tools: Read, Glob, Grep, Skill, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(git log:*), Bash(echo:*)
 ---
 
 # Wrapup Dispatch
@@ -70,7 +70,7 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Bash(test:*), Bash(date:*), Bash(gi
 
 ## 4. 委譲(Dispatch)
 
-承認された項目について、同一会話の中でそのまま対応スキルを続けて起動する。このスキルの `allowed-tools` は読み取りのみだが、起動された各スキルは自分の `allowed-tools` で書き込むため、wrapup-dispatch 自身は何も書かないまま実体が作られる。Claude Code にはスキル間で引数を渡す正式 API が無いので、振り分け提案で確定した抽出内容を、続く各スキル起動の入力(直近会話の文脈)として渡す形で橋渡しする。
+承認された項目について、`Skill` ツールで同一会話の中でそのまま対応スキルを続けて起動する。このスキルの `allowed-tools` には読み取り系と `Skill` しか無く書き込みツールを持たないが、起動された各スキルは自分の `allowed-tools` で書き込むため、wrapup-dispatch 自身は何も書かないまま実体が作られる。Claude Code にはスキル間で引数を渡す正式 API が無いので、振り分け提案で確定した抽出内容を、続く各スキル起動の入力(直近会話の文脈)として渡す形で橋渡しする。
 
 バッチ方針: 承認された項目は行き先スキルごとにグルーピングし、1 スキルにつき 1 回でまとめて委譲する(1 件ずつ起動して往復を増やさない)。具体的には issue-tracker create は複数件を 1 回、issue-tracker done も別途 1 回、update-arch / update-readme / record-adr もそれぞれ 1 回。
 

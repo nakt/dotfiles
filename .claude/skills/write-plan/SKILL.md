@@ -5,7 +5,7 @@ description: >-
   要件検討 (`brainstorm`) の設計メモが揃って実装計画に落とす段になったとき、または plan mode でプランを書くときに使用する。手動 `/write-plan` でも呼べる。
   プランの実行 (`execute-plan`) や、判断がまだ固まっていない段階の要件検討 (`brainstorm`) には使わない。
 argument-hint: "[topic] または自然文の依頼"
-allowed-tools: Read, Write, Edit, AskUserQuestion, Agent, Bash(date:*), Bash(ls:*), Bash(echo:*)
+allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Agent, Skill, Bash(date:*), Bash(ls:*), Bash(echo:*)
 ---
 
 # Write Plan
@@ -41,7 +41,7 @@ allowed-tools: Read, Write, Edit, AskUserQuestion, Agent, Bash(date:*), Bash(ls:
 
 ## プランの構成
 
-以下のセクションのみ。この順序・見出し名で置く (短縮形では `## 合意事項` を置かない)。
+以下のセクションのみ。この順序・見出し名で置く (短縮形では `## 合意事項` を置かない)。`## 実装タスク` は短縮形・フル形とも必ず置く。実装タスクを持たないプランは write-plan では生成しない (実装を伴わない調査・設計の記録は `brainstorm` の設計メモの領分)。
 
 ### ## 要約（必須）
 
@@ -75,9 +75,9 @@ execute-plan の controller はこのセクションを implementer / reviewer p
 
 - プレースホルダーの走査: 「TBD」「後で」「後で決める」「実装時に判断」等の記述が残っていないか。残っていれば埋める。埋められないなら上記「未確定事項が出てきたとき」の差し戻しに乗せる
 - 受け入れ基準の検証可能性: 各 Acceptance criteria が観測可能・コードで確認できるか。「適切に」「きれいに」のような主観的表現がないか
-- 対象ファイルの明示: 各タスクが触るファイルがパスで書かれているか。「関連ファイル」のような曖昧な表現に隠れていないか
-- タスクの独立性: 各タスクが fresh subagent で、先行タスクの暗黙の文脈なしに着手できるか。依存があるなら明示されているか
 - 要約が `## 要約` に定めた行数に収まるか。収まらないなら盛り込みすぎとみなし、決定のほうを落とす
+
+タスクの粒度・独立性・依存の明示・Context の自己完結性は plan-reviewer の「execute-plan 適用性検査」が持つ観点なので、ここには複製しない。短縮形は plan-reviewer を呼ばないため、上記に加えて `~/.claude/agents/plan-reviewer.md` の当該節を `Read` し、そこに書かれた観点を自分で 1 回通す。フル形は下記「レビュー手順」の plan-reviewer 呼び出しで担保されるので、ここで二重に確認しない。
 
 ## レビュー手順（フル形のみ）
 
