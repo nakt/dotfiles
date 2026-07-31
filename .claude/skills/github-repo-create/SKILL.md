@@ -8,7 +8,6 @@ disable-model-invocation: true
 allowed-tools:
   - Bash(gh:*)
   - Bash(ghq:*)
-  - Bash(git:*)
   - Bash(bash:*)
   - Bash(ls:*)
   - Bash(jq:*)
@@ -34,7 +33,7 @@ GitHub リポジトリを対話的に作成するスキル。ヒアリングか�
 - 使用言語/フレームワーク（gitignore テンプレート選択に使う）
 - 公開/非公開の希望（デフォルト: private。聞かれなければ private で進める）
 
-owner は上記 Current state の Owner を使用する。
+owner は上記 Current state の Owner を使用する。対応するのは個人アカウントのみで、org は権限管理が複雑になるためスコープ外とする。
 
 ### Phase 2: リポジトリ名・description の提案
 
@@ -139,13 +138,3 @@ local directory FAIL: `ghq get {owner}/{repo_name}` をリトライする。
 | Python | `/python-dev-guide` でガイド参照可能 |
 | React | `/react-dev-guide` でガイド参照可能 |
 | TypeScript | `/typescript-dev-guide` でガイド参照可能 |
-
-## Constraints
-
-- デフォルトは必ず `--private`。public にする場合はユーザーの明示的な確認を取る
-- visibility 検証が FAIL した場合は即座に警告する
-- gitignore テンプレート名は `gh api /gitignore/templates` で毎回検証してから使用する
-- ライセンスは指定しない（`--license` フラグは使わない）
-- `--add-readme` は常に付与する（空リポジトリだと default branch が未設定になるため）
-- owner は個人アカウントのみ対応（org は権限管理が複雑になるためスコープ外）
-- コミュニケーションは日本語で行う
