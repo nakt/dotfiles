@@ -24,16 +24,13 @@ allowed-tools:
 
 ## Current state
 
-base ブランチは `origin/HEAD` から解決する (取得できなければ `main` / `master` の存在で決める)。以下は 1 ブロックで解決し、Base branch / Branch / Uncommitted changes / Commits ahead of base / Diff stats をまとめて出力する。
+base ブランチは `origin/HEAD` から解決する (取得できなければ `main` / `master` の存在で決める)。各行は独立に解決するため、base 相対の比較は解決済みの名前ではなく `origin/HEAD` を直接使い、それが未設定のときだけ `main` / `master` へフォールバックする。
 
-```!
-git branch --show-current | sed 's|^|Branch: |' | grep . || echo "Branch: (detached HEAD)"
-base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1)
-echo "Base branch: $base"
-echo "Uncommitted changes:"; git status --porcelain
-echo "Commits ahead of base:"; git log "$base"..HEAD --oneline 2>/dev/null || true
-echo "Diff stats:"; git diff "$base"..HEAD --stat 2>/dev/null || true
-```
+- Branch: !`git branch --show-current | grep . || echo '(detached HEAD)'`
+- Base branch: !`git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1`
+- Uncommitted changes: !`git status --porcelain`
+- Commits ahead of base: !`git log --oneline origin/HEAD..HEAD 2>/dev/null || git log --oneline main..HEAD 2>/dev/null || git log --oneline master..HEAD 2>/dev/null || echo '(base unresolved)'`
+- Diff stats: !`git diff origin/HEAD..HEAD --stat 2>/dev/null || git diff main..HEAD --stat 2>/dev/null || git diff master..HEAD --stat 2>/dev/null || echo '(base unresolved)'`
 
 ## ワークフロー
 
