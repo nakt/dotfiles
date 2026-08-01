@@ -3,7 +3,18 @@ name: record-adr
 description: 設計・ロジック判断の決定記録(ADR)を docs/adr に起票するスキル。技術選定だけでなく処理フロー変更・アルゴリズム選択・データモデル・API 設計・検証や実験から得た方針の「決定とその理由」を記録する。docs/adr が存在しないプロジェクトでは初期化を行う。「この決定を ADR として残して」「設計判断を記録して」のような依頼、または重要な設計・ロジック判断が下された場面で使う。手動 `/record-adr [タイトル]` でも呼べる。
 disable-model-invocation: false
 argument-hint: "[decision title]"
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(grep:*), Bash(test:*), Bash(date:*), Bash(echo:*), Bash(mkdir:*)
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
+  - Bash(ls:*)
+  - Bash(grep:*)
+  - Bash(test:*)
+  - Bash(date:*)
+  - Bash(echo:*)
+  - Bash(mkdir:*)
 ---
 
 # Record ADR
