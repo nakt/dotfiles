@@ -1,7 +1,8 @@
 ---
 name: fable5-prompting
-description: Claude Fable 5 / Mythos 5 向けプロンプト設計の支援スキル。references/ 内のガイド（common.md / fable-5.md / parameters.md）をリファレンスとして参照し、レビュー・ドラフティング・アドバイスを行う。Claude Fable 5 / Mythos 5 向けプロンプトの新規作成、既存プロンプト（他モデル・GPT 系含む）からの移行・最適化、effort/adaptive thinking/max_tokens 等のパラメータ設定検討、長時間 autonomous run のスキャフォールディング設計、サブエージェント委譲・メモリシステム・send-to-user ツールの設計、refusal/fallback 対応、reasoning_extraction を避けるプロンプト監査、プロンプトが期待通りに動かない場合の原因特定に使用する。
-allowed-tools: Read
+description: Claude Fable 5 / Mythos 5 向けプロンプト設計の支援スキル（レビュー・ドラフティング・アドバイス）。新規作成、既存プロンプト（他モデル・GPT 系含む）からの移行・最適化、effort/adaptive thinking/max_tokens 等のパラメータ設定検討、長時間 autonomous run のスキャフォールディング設計、サブエージェント委譲・メモリシステム・send-to-user ツールの設計、refusal/fallback 対応、reasoning_extraction を避けるプロンプト監査、プロンプトが期待通りに動かない場合の原因特定に使用する。
+allowed-tools:
+  - Read
 ---
 
 # Claude Fable 5 / Mythos 5 プロンプティングガイド
@@ -16,19 +17,21 @@ allowed-tools: Read
 
 ## リファレンスの読み分け
 
-`common.md` は常に併読する。値の実体は references 側にあるので、下表で当たりをつけて該当章を Read してから答える。判断がつかなければ3ファイルすべてを Read する。
+`common.md` は常に併読する。下表でリクエストの焦点から入口を引き、該当章を Read してから答える。判断がつかなければ3ファイルすべてを Read する。
 
-| リクエストの焦点 / シグナル | 読む章 |
+ファイル名と章タイトルの実体は Review Checklist の「参照」列が持つので、そこに載っている焦点はチェック項目名で指す。Checklist に無い焦点だけ章を直接書く。
+
+| リクエストの焦点 / シグナル | 入口 |
 |---|---|
-| 長時間 autonomous run / 早期停止 / checkpoint / 境界設定 | fable-5.md「まれな早期停止」「境界を明示する」「強い指示遵守」 |
-| 進捗報告 / 可読性 / send-to-user | fable-5.md「進捗報告を根拠づける」「ユーザーとのコミュニケーションの可読性」「send-to-user ツールを作る」 |
-| サブエージェント / メモリ / 自己検証 | fable-5.md「並列サブエージェント」「メモリシステムを構築する」「推奨スキャフォールディング変更」、common.md「サブエージェント orchestration」 |
-| Opus 4.8 や GPT 系からの移行 / スキルのリファクタ / prescriptive すぎる指示 | fable-5.md「推奨スキャフォールディング変更」「ターンが長くなる」 |
-| effort のレベル一覧と運用方針 / max_tokens / コスト | parameters.md「effort パラメータ」「コスト制御」 |
-| adaptive thinking / thinking.display / omitted / summarized / thinking ブロックの往復 | parameters.md「adaptive thinking」 |
-| `stop_reason: refusal` / cyber / bio / frontier_llm / reasoning_extraction / fallback | parameters.md「Refusal と Fallback」 |
+| 長時間 autonomous run / 早期停止 / checkpoint / 境界設定 | Checklist「checkpoint / 早期停止」「境界の明示」 |
+| 進捗報告 / 可読性 / send-to-user | Checklist「進捗報告の根拠づけ」「可読性」「send-to-user」 |
+| サブエージェント / メモリ / 自己検証 | Checklist「サブエージェント委譲」「メモリシステム」「自己検証」 |
+| Opus 4.8 や GPT 系からの移行 / スキルのリファクタ / prescriptive すぎる指示 | Checklist「過度な prescriptive さ」、加えて fable-5.md「ターンが長くなる」 |
+| effort のレベル一覧と運用方針 / max_tokens / コスト | Checklist「effort 設定」「max_tokens」 |
+| adaptive thinking / thinking.display / omitted / summarized / thinking ブロックの往復 | Checklist「thinking 制御」 |
+| `stop_reason: refusal` / cyber / bio / frontier_llm / reasoning_extraction / fallback | Checklist「fallback 構成」「reasoning_extraction 誘発」 |
 | clear-and-direct / 例 / XML タグ / ロール / 長 context / prefill 移行 / hallucination | common.md「一般原則」「出力とフォーマット」 |
-| overthinking / 過剰エンジニアリング / 積極性の上げ下げ | common.md「overthinking の抑制」「過剰エンジニアリング（Overeagerness）」、fable-5.md「effort レベルを使い分ける」 |
+| overthinking / 過剰エンジニアリング / 積極性の上げ下げ | Checklist「overthinking 抑制」「過剰エンジニアリング」 |
 
 Fable 5 固有の最重要ポイント（判断に迷ったら優先的に確認）:
 

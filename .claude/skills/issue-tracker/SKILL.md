@@ -1,8 +1,21 @@
 ---
 name: issue-tracker
-description: 調査・検討の結果や、作業中に見つけた不具合・課題・TODO を、1 ファイル 1 件の Markdown issue として `issues/` に起票し、未完了 issue の棚卸し（一覧・優先度づけ・ピックアップ）と done 化を行うスキル。1 件でも複数件でもまとめて起票できる。1 issue = 1 ファイル、ステータスは inbox / done のディレクトリ 2 値のみで表現する。「この調査結果を issue で起票して」「未完了の issue を棚卸しして優先度が高そうなものをピックアップ」「issue-xxxx を done にして」のような依頼で使う。加えて、このセッションで着手した issue の作業が片付いた場面では、明示依頼が無くても done 化の提案・実行に使う。手動 `/issue-tracker` でも呼べる。GitHub issue の操作（gh issue / API）には使わない。
+description: 調査・検討の結果や、作業中に見つけた不具合・課題・TODO を Markdown issue として `issues/` に起票し、未完了 issue の棚卸し（一覧・優先度づけ・ピックアップ）と done 化を行うスキル。「この調査結果を issue で起票して」「未完了の issue を棚卸しして優先度が高そうなものをピックアップ」「issue-xxxx を done にして」のような依頼で使う。加えて、このセッションで着手した issue の作業が片付いた場面では、明示依頼が無くても done 化の提案・実行に使う。GitHub issue の操作（gh issue / API）には使わない。
 argument-hint: "[create|triage|done <id>] または自然文の依頼"
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash(ls:*), Bash(echo:*), Bash(test:*), Bash(date:*), Bash(mkdir:*), Bash(git mv:*), Bash(git rev-parse:*), Bash(mv:*)
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
+  - Bash(ls:*)
+  - Bash(echo:*)
+  - Bash(test:*)
+  - Bash(date:*)
+  - Bash(mkdir:*)
+  - Bash(git mv:*)
+  - Bash(git rev-parse:*)
+  - Bash(mv:*)
 ---
 
 # Issue Tracker

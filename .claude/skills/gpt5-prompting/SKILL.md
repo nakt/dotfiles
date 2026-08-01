@@ -1,7 +1,8 @@
 ---
 name: gpt5-prompting
-description: GPT-5/GPT-5.1/GPT-5.2/GPT-5.3 Codex/GPT-5.4/GPT-5.5 向けプロンプト設計の支援スキル。references/ 内のバージョン別ガイド（common.md / gpt-5-series.md / gpt-5-3-codex.md / gpt-5-4.md / gpt-5-5.md）をリファレンスとして参照し、レビュー・ドラフティング・アドバイスを行う。GPT-5 系モデル向けプロンプトの新規作成、既存プロンプトの最適化・移行、reasoning_effort/verbosity/phase 等のパラメータ設定検討、エージェント的ワークフローの積極性調整、outcome-first 構造への移行、ツール多用フローでの phase 設計、プロンプトが期待通りに動かない場合の原因特定に使用する。
-allowed-tools: Read
+description: GPT-5/GPT-5.1/GPT-5.2/GPT-5.3 Codex/GPT-5.4/GPT-5.5 向けプロンプト設計の支援スキル（レビュー・ドラフティング・アドバイス）。新規作成、既存プロンプトの最適化・移行、reasoning_effort/verbosity/phase 等のパラメータ設定検討、エージェント的ワークフローの積極性調整、outcome-first 構造への移行、ツール多用フローでの phase 設計、プロンプトが期待通りに動かない場合の原因特定に使用する。
+allowed-tools:
+  - Read
 ---
 
 # GPT-5 系プロンプティングガイド
@@ -100,21 +101,21 @@ allowed-tools: Read
 
 ## 参照索引
 
-値の実体は references 側に置く。ここは「どこを読むか」だけを持つので、回答前に該当章を Read する。
+「知りたいこと」から入口を引くための索引。ファイル名と章タイトルの実体は Review Checklist の「参照」列が持つので、そこに載っている主題はチェック項目名で指す。索引にしか無い主題だけ章を直接書く。回答前に該当章を Read するのは共通。
 
-| 知りたいこと | 読む章 |
+| 知りたいこと | 入口 |
 |---|---|
-| reasoning_effort のレベル一覧とバージョン別デフォルト | gpt-5-series.md「reasoning_effort パラメータ」（5 / 5.1 / 5.2）、gpt-5-4.md「Reasoning Effort 推奨」（5.4 / 5.5 の運用方針と `xhigh` の扱い） |
+| reasoning_effort のレベル一覧とバージョン別デフォルト | Checklist「reasoning_effort」 |
 | gpt-5.3-codex の reasoning_effort | gpt-5-4.md「Migration Path」（現行 effort の維持が推奨） |
-| verbosity の制御 | gpt-5-series.md「verbosity パラメータ」、gpt-5-4.md「Verbosity Controls」、gpt-5-5.md「Formatting」 |
-| phase の値・保持ルール・必須度 | gpt-5-3-codex.md「Phase Parameter (Codex 固有)」、gpt-5-4.md「Phase Parameter」、gpt-5-5.md「Phase parameter」 |
-| 積極性と永続性の制御 | gpt-5-series.md「エージェント積極性（Eagerness）の制御」、gpt-5-4.md「Default Follow-Through Policy」「Tool Persistence Rules」、gpt-5-3-codex.md「スタータープロンプトの構成ブロック」 |
-| プロンプト構成の骨格 | common.md「実務向けプロンプト構成テンプレート」、gpt-5-4.md「Suggested Prompt Structure」、gpt-5-5.md「Suggested prompt structure」 |
+| verbosity の制御 | Checklist「verbosity」。5.5 のプレーン散文志向は Checklist「Markdown 指示」 |
+| phase の値・保持ルール・必須度 | Checklist「Phase parameter」 |
+| 積極性と永続性の制御 | Checklist「積極性制御」「永続性指示」「Tool Persistence Rules」 |
+| プロンプト構成の骨格 | Checklist「成功基準の明示」、加えて gpt-5-4.md「Suggested Prompt Structure」、gpt-5-5.md「Suggested prompt structure」 |
 | ツール多用フロー向け XML ブロックの原文 | gpt-5-4.md「Output Contract」〜「BBox Extraction」の各章 |
-| Codex 固有のツール・編集制約・計画管理 | gpt-5-3-codex.md「推奨ツール」「Plan ツール（update_plan）の開閉ルール」「Editing Constraints 要点」 |
+| Codex 固有のツール・編集制約・計画管理 | Checklist「Codex ツール規約」「Plan ツールの開閉」 |
 | 小型モデル（gpt-5.4-mini / nano） | gpt-5-4.md「Small Model Guidance（gpt-5.4-mini / nano）」 |
-| 長時間セッションの Compaction | gpt-5-series.md「Compaction（コンテキスト拡張）」、gpt-5-4.md「Compaction for Long Sessions」、gpt-5-3-codex.md「Compaction サポート」 |
-| outcome-first 構造とプレーン散文 | gpt-5-5.md「Outcome-first prompts and stopping conditions」「Formatting」「Avoid unnecessary absolute rules」 |
+| 長時間セッションの Compaction | Checklist「Compaction」 |
+| outcome-first 構造とプレーン散文 | Checklist「Outcome-first 構造」「Markdown 指示」、加えて gpt-5-5.md「Avoid unnecessary absolute rules」 |
 
 ## References
 
