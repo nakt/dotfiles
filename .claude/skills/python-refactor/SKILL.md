@@ -26,7 +26,7 @@ Python プロジェクト専用の計測駆動リファクタリング支援。�
 | モード | 引数 | 目的 | 主要ツール | 参照 |
 | --- | --- | --- | --- | --- |
 | フル | (空) または `full` | 全フェーズ順次実行 | radon / lizard / vulture / pylint | 本ファイル全体 |
-| 複雑性削減 | `complexity` | cyclomatic / cognitive 削減 | radon, lizard, wily | [references/complexity.md](references/complexity.md) |
+| 複雑性削減 | `complexity` | 循環的複雑度 / 関数の大きさ の削減 | radon, lizard, wily | [references/complexity.md](references/complexity.md) |
 | コード健全性 | `code-health` | デッドコード除去・コメント整理 | vulture | [references/code-health.md](references/code-health.md) |
 | 類似処理共通化 | `dedupe` | パラメタライズ・設定駆動化・命名統一 | pylint, grep | [references/dedupe.md](references/dedupe.md) |
 | マジックナンバー定数化 | `magic-numbers` | 数値・文字列を定数 / Config 化 | grep, ruff | [references/magic-numbers.md](references/magic-numbers.md) |
@@ -46,9 +46,9 @@ Python プロジェクト専用の計測駆動リファクタリング支援。�
 → 不明なモード `complex` です。次のいずれかを指定してください: complexity / code-health / dedupe / magic-numbers / full
 ```
 
-引数なしまたは `full` の場合、Phase 0 → 5 を順に実行する。それ以外は Phase 0 (準備) → Phase 1 の該当モード計測のみ → Phase 2 の該当改善 → Phase 4 の該当モード検証 → Phase 5 (ドキュメント整合) を実行する。Phase 3 (横断適用順) はフルモードのみ。
+引数なしまたは `full` の場合、Phase 0 → 5 を順に実行する。それ以外は Phase 0 (準備) → Phase 1 の該当モード計測のみ → Phase 2 の該当改善 → Phase 4 (全モード共通の検証 + 該当モードの再計測) → Phase 5 (ドキュメント整合) を実行する。Phase 3 (横断適用順) はフルモードのみ。
 
-Phase 0 が入れるのは起動したモードの最小ツールセットだけなので、Phase 1 と Phase 4 も同じモードの範囲を超えるツールを実行しない。
+Phase 0 が入れるのは起動したモードの最小ツールセットだけなので、Phase 1 の計測と Phase 4 の再計測は同じモードの範囲を超えるツールを実行しない。Phase 4 の全モード共通の検証はこの制限の外で、そこで使うツールはどのモードでも入っている。
 
 ## Phase 0: 準備
 
@@ -69,9 +69,9 @@ Phase 0 が入れるのは起動したモードの最小ツールセットだけ
 
 出力例の解釈 (各モードの読み方):
 
-- complexity: 関数単位で C 以上のランクが付いた箇所を改善対象として要約
-- code-health: 信頼度別に分類し、80% 以上を主対象、60-70% は偽陽性候補として注意喚起
-- dedupe: 閾値 6 行で報告された重複ブロックを、出現箇所数 (pylint の `Similar lines in N files` の N) 付きでリスト化。この段階では統合候補の列挙であって統合の決定ではない
+- complexity: 閾値を超えたランクが付いた関数を改善対象として要約
+- code-health: 信頼度別に分類し、閾値以上を主対象、それ未満は偽陽性候補として注意喚起 (信頼度の読み分けは [references/code-health.md](references/code-health.md))
+- dedupe: 報告された重複ブロックを、出現箇所数 (pylint の `Similar lines in N files` の N) 付きでリスト化。この段階では統合候補の列挙であって統合の決定ではない
 - magic-numbers: ファイル × 行 × リテラル値で表化
 
 コマンドは [references/tools.md](references/tools.md) の「計測コマンド集」を参照。
@@ -131,7 +131,7 @@ def process_file(p, fmt): return parse(p, delimiter=FORMATS[fmt])
 
 → 詳細パターン: [references/dedupe.md](references/dedupe.md)
 
-Phase 1 が出すのは候補なので、統合するかどうかはここで決める。出現箇所が 3 箇所以上なら統合、2 箇所だけなら `dedupe.md` の「過抽象化への警戒」の条件を満たす場合のみ統合する。
+Phase 1 が出すのは候補なので、統合するかどうかはここで決める。判断基準は [references/dedupe.md](references/dedupe.md) の「過抽象化への警戒」に従う。
 
 ### magic-numbers モード例 (Extract to Constants)
 

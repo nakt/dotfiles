@@ -1,6 +1,6 @@
 # 複雑性削減パターン
 
-循環的・認知的複雑度を下げ、保守性指数を高めるためのリファクタリングパターン集。
+循環的複雑度と関数の大きさを下げ、保守性指数を高めるためのリファクタリングパターン集。
 
 計測・検証のコマンドと閾値は [tools.md](tools.md) の「complexity モード」に集約している。本ファイルは改善パターンのみを扱う。
 
@@ -126,13 +126,13 @@ def save(data: Data, cache_mode: CacheModeOption) -> None: ...
 
 コマンドは [tools.md](tools.md) の「検証コマンド集」を参照。ここでは合格条件のみを示す。
 
-- [ ] radon cc で C 以上の関数が報告されない（または対処済み）
-- [ ] lizard で認知的複雑度の警告が出ない
-- [ ] radon mi で保守性指数 < 65 のモジュールがない
-- [ ] 1 ファイル > 500 行は分割するか分割不可な理由を確認
+- [ ] radon cc の報告が空、または対処済み
+- [ ] lizard で CCN / 関数行数の警告が出ない
+- [ ] radon mi の報告が空
+- [ ] [tools.md](tools.md) の行数閾値を超えるファイルは、分割するか分割不可な理由を確認
 - [ ] テストグリーンを維持
 - [ ] wily diff で改善方向を確認
 
 ## 出典
 
-[l-mb/python-refactoring-skills](https://github.com/l-mb/python-refactoring-skills) (MIT) の py-complexity を Python 3.12+ に合わせて翻案。
+[l-mb/python-refactoring-skills](https://github.com/l-mb/python-refactoring-skills) (MIT) の py-complexity を Python 3.14+ に合わせて翻案。

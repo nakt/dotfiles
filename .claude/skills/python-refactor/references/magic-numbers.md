@@ -116,18 +116,30 @@ settings = AppSettings()
 
 `APP_SESSION_TIMEOUT_SECONDS=60` を環境変数で渡すだけで上書きされる。バリデーションが付いてくる利点もある。
 
-`pydantic-settings` は本スキルの最小ツールセットに含まれないので、依存追加と設定モジュールの新規作成はどちらもユーザー確認を取ってから行う。
+`pydantic-settings` は Phase 0 が入れるツールに含まれないので、このパターンを採るなら実行時に依存を追加することになる。追加はユーザー確認を取ってから行う。
 
 ### 5. テストでの定数置換
 
 テストでは `monkeypatch.setattr` で定数を一時的に置き換える。`importlib.reload` を避けられる。
 
+`frozen=True` の dataclass はフィールドへの代入を拒む (`FrozenInstanceError`) ので、フィールドではなくモジュール属性そのものを差し替える。`dataclasses.replace` で値を変えたインスタンスを作れる。
+
 ```python
 # tests/test_fees.py
+import dataclasses
+
 def test_small_fee_threshold(monkeypatch):
     from myapp import fees
-    monkeypatch.setattr(fees.FEE_CONFIG, "small_threshold", 200)
+    monkeypatch.setattr(
+        fees, "FEE_CONFIG", dataclasses.replace(fees.FEE_CONFIG, small_threshold=200)
+    )
     assert fees.calculate_fee(150) == fees.FEE_CONFIG.small_fee
+```
+
+frozen でない定数 (モジュールトップの `Final` 変数など) は、そのままモジュール属性を差し替える。
+
+```python
+monkeypatch.setattr(fees, "SMALL_AMOUNT_THRESHOLD", 200)
 ```
 
 `pydantic-settings` の場合はテスト用 fixture でインスタンスを差し替える:

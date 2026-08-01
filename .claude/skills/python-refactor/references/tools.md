@@ -2,17 +2,17 @@
 
 `python-refactor` で使用する計測ツールの一覧、閾値、インストール方法、コマンド集。
 
-コマンドと閾値の正典はこのファイル。SKILL.md と各パターン references (complexity / code-health / dedupe / magic-numbers) はコマンドと閾値を再掲せず、ここを参照する。
+計測・検証コマンドと、それらに渡す閾値はこのファイルが持つ。SKILL.md と各パターン references (complexity / code-health / dedupe / magic-numbers) は再掲せず、ここを参照する。出力の読み分けや統合可否の判断基準は各パターン references 側にある。
 
 ## ツール一覧
 
 | ツール | 用途 | 閾値 | 主要オプション |
 | --- | --- | --- | --- |
-| radon | 循環的複雑度 / 保守性指数 | cyclomatic ≥ 11 (C ランク以上)、MI < 65 | `cc -n C -s`、`mi -n B` |
-| lizard | 認知的複雑度 / 行数 | cognitive > 15、関数行数 > 50 | `-C 15 -L 50` |
+| radon | 循環的複雑度 / 保守性指数 | cyclomatic ≥ 11 (C ランク以上)、MI ランク B 以下 (MI ≤ 19) | `cc -n C -s`、`mi -n B` |
+| lizard | 循環的複雑度 / 関数行数 | CCN > 15、関数行数 > 50 | `-C 15 -L 50` |
 | wily | 複雑性トレンドの履歴追跡 | — | `build .` で初期化、`diff HEAD~1` で差分 |
 | vulture | デッドコード検出 (AST 解析) | confidence ≥ 80 で削除候補 | `--min-confidence 80` |
-| pylint | 重複コード検出 | duplicate-code-min-lines = 6 | `--disable=all --enable=duplicate-code` |
+| pylint | 重複コード検出 | min-similarity-lines = 6 | `--disable=all --enable=duplicate-code` |
 | ruff | Lint / Format / マジックナンバー検出 | PLR2004 の報告 0 件 | `check`、`format`、`check --select PLR2004` |
 | mypy | 型チェック | strict | `--strict` |
 | pytest | テスト実行 | 全テストグリーン | — |
@@ -22,7 +22,9 @@ ruff の `S` (セキュリティ) と `UP` (構文モダナイズ) は SKILL.md 
 ### 閾値の補足
 
 - 1 ファイル > 500 行で分割検討。専用ツールは使わず、lizard の NLOC 出力または目視で判断する
-- 重複コードの閾値は 6 行。pylint の既定は 4 行なので `--duplicate-code-min-lines=6` を必ず明示する
+- radon と lizard はどちらも循環的複雑度を測る。radon は C ランク (≥ 11) で拾い、lizard は関数行数と併せて 15 超で拾う。認知的複雑度を測るツールは本スキルには入っていない
+- radon の MI ランクは MI ≥ 20 が A、10〜19 が B、9 以下が C。`mi -n B` が報告するのは MI ≤ 19 のモジュール
+- 重複コードの閾値は 6 行。pylint の既定は 4 行なので `--min-similarity-lines=6` を必ず明示する (`--duplicate-code-min-lines` は存在しないオプション名で、指定すると pylint がエラー終了する)
 - 重複を統合するかどうかは行数だけでは決まらない。出現箇所数を含む判断基準は [dedupe.md](dedupe.md) の「過抽象化への警戒」を参照
 
 ## モード別の最小ツールセット
@@ -32,14 +34,14 @@ ruff の `S` (セキュリティ) と `UP` (構文モダナイズ) は SKILL.md 
 | complexity | radon, lizard, wily | `uv add --dev radon lizard wily` |
 | code-health | vulture | `uv add --dev vulture` |
 | dedupe | pylint | `uv add --dev pylint` |
-| magic-numbers | grep のみ (ruff は任意) | 不要 |
+| magic-numbers | grep, ruff | 不要 (ruff は python-dev-guide の dev グループに入っている) |
 | full | radon, lizard, wily, vulture, pylint | `uv add --dev radon lizard wily vulture pylint` |
 
 `ruff` / `mypy` / `pytest` は `python-dev-guide` のテンプレートで既に dev グループに入っている前提。入っていなければ Phase 0 で不足として提示する。
 
 ## 依存関係の追加
 
-`python-dev-guide` のテンプレート ([pyproject-toml.md](../../python-dev-guide/references/pyproject-toml.md)) の `[dependency-groups]` の `dev` は `ruff` / `mypy` / `pytest` / `pytest-cov` / `coverage` / `pre-commit` / `bandit`。本スキルはここに計測ツールを追記するだけで、既存エントリは削除しない。削除すると python-dev-guide 側のカバレッジ・pre-commit・bandit の手順が動かなくなる。
+本スキルは `python-dev-guide` のテンプレート ([pyproject-toml.md](../../python-dev-guide/references/pyproject-toml.md)) の `[dependency-groups]` の `dev` に計測ツールを追記するだけで、既存エントリは削除しない。削除すると python-dev-guide 側のカバレッジ・pre-commit・bandit の手順が動かなくなる。既存エントリの中身はテンプレート側を参照する (ここに写すと乖離する)。
 
 追記するエントリ (既存エントリはそのまま残す):
 
@@ -61,8 +63,8 @@ ruff の `S` (セキュリティ) と `UP` (構文モダナイズ) は SKILL.md 
 
 ```bash
 uv run radon cc . -n C -s                 # cyclomatic C ランク以上
-uv run radon mi . -n B                    # 保守性指数 B 未満
-uv run lizard -C 15 -L 50 .               # 認知的複雑度 / 関数行数
+uv run radon mi . -n B                    # 保守性指数 B 以下 (MI ≤ 19)
+uv run lizard -C 15 -L 50 .               # CCN / 関数行数
 uv run wily build .                       # 初回のみ
 uv run wily diff HEAD~1                   # 直前コミットからの差分
 ```
@@ -73,6 +75,11 @@ uv run wily diff HEAD~1                   # 直前コミットからの差分
 uv run vulture . --min-confidence 80                      # 信頼度 80% 以上
 uv run vulture . --min-confidence 80 --sort-by-size       # 大きい順
 uv run vulture . --min-confidence 80 --exclude tests,.venv
+```
+
+`whitelist.py` を作成済みのリポでは引数に加える (未作成のまま渡すと vulture が `could not be found` でエラー終了する)。作成自体は Phase 2 の改善ステップで、ユーザー確認を取ってから行う。
+
+```bash
 uv run vulture . whitelist.py --min-confidence 80         # 意図的な除外を whitelist で指定
 ```
 
@@ -80,7 +87,7 @@ uv run vulture . whitelist.py --min-confidence 80         # 意図的な除外�
 
 ```bash
 uv run pylint --disable=all --enable=duplicate-code \
-    --duplicate-code-min-lines=6 --recursive=y .
+    --min-similarity-lines=6 --recursive=y .
 ```
 
 出力の `Similar lines in N files` の N が、そのブロックの出現箇所数。統合するかどうかは N を使って判断する ([dedupe.md](dedupe.md) の「過抽象化への警戒」参照)。
@@ -98,9 +105,8 @@ grep -rnE 'def (process|handle|fetch|create|update|delete)_[a-z_]+' \
 # 2 桁以上の数値リテラル
 grep -rnE '\b[0-9]{2,}\b' --include='*.py' .
 
-# 短い文字列リテラル (キーやモード名の候補)
-grep -rnE '"[a-zA-Z_]{2,20}"' --include='*.py' . \
-    | grep -v 'docstring\|"""'
+# 短い文字列リテラル (キーやモード名の候補)。docstring 内も拾うので目視で除く
+grep -rnE '"[a-zA-Z_]{2,20}"' --include='*.py' .
 
 # ruff の magic value ルール
 uv run ruff check . --select PLR2004
@@ -116,7 +122,7 @@ uv run ruff check . --select PLR2004
 uv run pytest                              # テストグリーン維持
 uv run ruff check .                        # Lint
 uv run ruff format --check .               # フォーマット
-uv run mypy .                              # 型チェック
+uv run mypy src/                           # 型チェック
 ```
 
 ### モード別の追加検証
@@ -127,7 +133,7 @@ Phase 0 で導入したツールのみを実行する。導入していないモ
 | --- | --- |
 | complexity | `uv run radon cc . -n C`、`uv run radon mi . -n B`、`uv run lizard -C 15 .`、`uv run wily diff HEAD~1` |
 | code-health | `uv run vulture . --min-confidence 80` |
-| dedupe | `uv run pylint --disable=all --enable=duplicate-code --duplicate-code-min-lines=6 --recursive=y .` |
+| dedupe | `uv run pylint --disable=all --enable=duplicate-code --min-similarity-lines=6 --recursive=y .` |
 | magic-numbers | `uv run ruff check . --select PLR2004` |
 | full | 上記 4 モード分すべて |
 
