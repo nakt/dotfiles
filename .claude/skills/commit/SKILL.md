@@ -35,7 +35,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 - Status: !`git status --short`
 - Diff summary: !`git diff HEAD --stat 2>/dev/null || echo '(no commits yet)'`
 - Recent commits: !`git log --oneline -10 2>/dev/null || echo '(no commits yet)'`
-- Unpushed commits: !`git log --oneline @{upstream}..HEAD 2>/dev/null || echo '(no upstream)'`
+- Unpushed commits: !`git log --oneline "@{upstream}..HEAD" 2>/dev/null || echo '(no upstream)'`
 
 ## タスク
 
