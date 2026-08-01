@@ -5,7 +5,18 @@ description: >-
   「設計を詰めたい」「これどう作るか一緒に考えて」など、機能・実装・アーキテクチャに関わる要件のすり合わせに使う。事業アイデア・サービス案・
   新規事業提案の評価・投資判断は対象外(business-idea-review が担当)。
 argument-hint: "[検討したいトピック] または自然文の依頼"
-allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Skill, Bash(mkdir:*), Bash(date:*), Bash(ls:*), Bash(echo:*)
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
+  - AskUserQuestion
+  - Skill
+  - Bash(mkdir:*)
+  - Bash(date:*)
+  - Bash(ls:*)
+  - Bash(echo:*)
 ---
 
 # Brainstorm
@@ -64,8 +75,8 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Skill, Bash(mkdir
 
 ## write-plan への接続
 
-- 設計メモの「確定判断とその根拠」が、write-plan がフル形プランを書く際の `## 合意事項` の転記元になる。判断はこの設計メモの時点で確定させ、プラン段階で議論を再開しない。
-- 規模判定(短縮形 / フル形の選択)は write-plan 側が行う。brainstorm はここに関与しない。
+- 設計メモの「確定判断とその根拠」が、write-plan が合意事項ありのプランを書く際の `## 合意事項` の転記元になる。判断はこの設計メモの時点で確定させ、プラン段階で議論を再開しない。
+- 合意事項の要否の判定は write-plan 側が行う。brainstorm はここに関与しない。
 
 ## write-plan からの差し戻し
 

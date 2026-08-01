@@ -10,6 +10,7 @@ allowed-tools:
   - Bash(bash:*)
   - Bash(jq:*)
   - Bash(grep:*)
+  - AskUserQuestion
   - Read
 ---
 

@@ -1,10 +1,10 @@
 # Lint / Hook 言語別パターン
 
-`~/.claude/skills/execute-plan/references/implementer-prompt.md` の「実行手順」で規定した「対象ファイル明示 + fix→check 2 段 + 設定検出条件付き実行」の原則に対して、言語別の判定・実行コマンドを載せる。実装者 (implementer subagent) が Phase 3 で本ファイルを参照して、対象ファイルの言語系統に対応するセクションを選び、記載のコマンドを実行する。
+`~/.claude/skills/execute-plan/references/implementer-prompt.md` の「実行手順」で規定した「対象ファイル明示 + fix→check 2 段 + 設定検出条件付き実行」の原則に対して、言語別の判定・実行コマンドを載せる。実装者 (implementer subagent) が「実行手順」のステップ 3 で本ファイルを参照して、対象ファイルの言語系統に対応するセクションを選び、記載のコマンドを実行する。
 
 全言語共通で、リポ全体に対する `--check` (`ruff format --check .` / `biome check .` / `pre-commit run --all-files` 等) だけで pass 判定しないこと。他ファイルの pass に紛れて自分の編集ファイルの fail を見落とす原因になる。以下の各言語セクションのコマンドはすべて対象ファイルを引数で明示する前提で書いてある。
 
-未収載言語 (Rust / Go / Elixir 等) は、原則に従って implementer が対象リポのツールチェーンから判断すること。判断がついたら本ファイルに新セクションを追加すると次回以降が楽になる (末尾「新言語追加時のフォーマット」を参照)。
+未収載言語 (Rust / Go / Elixir 等) は、原則に従って implementer が対象リポのツールチェーンから判断し、判断した内容を報告に含める。本ファイルへの言語追加はユーザーが行う (末尾「新言語追加時のフォーマット」を参照)。
 
 ## Python
 
@@ -108,11 +108,7 @@ prettier が検出された場合:
 [<pm> exec] prettier --check <対象ファイル>
 ```
 
-husky / lint-staged が検出された場合 (pre-commit 相当の hook を回す):
-
-```bash
-[<pm> exec] lint-staged --diff=HEAD --files <対象ファイル>
-```
+husky / lint-staged が検出された場合は、implementer 側では回さない。lint-staged は staged なファイルを対象にする設計でファイルを引数で受け取るオプションが無く (`--help` にあるのは `--diff` / `--cwd` など)、implementer は `git add` をしないため対象を渡せない。上の biome / eslint / prettier を対象ファイル明示で通しておけば、lint-staged が実際に走る controller のコミット時点で引っ掛かる確率は下がる。それでも hook が落ちた場合は execute-plan の「pre-commit hook fail 時の扱い」が拾う。
 
 ### スキップ時の報告文言テンプレ
 

@@ -3,7 +3,23 @@ name: commit
 description: 未コミットの変更を分析し、論理的なグループに分類して適切な粒度でコミットするスキル。
 disable-model-invocation: true
 effort: low
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git checkout:*), Bash(git branch:*), Bash(git diff:*), Bash(git log:*), Bash(git symbolic-ref:*), Bash(git rev-parse:*), Bash(pre-commit:*), Bash(uv:*), Bash(grep:*), Bash(echo:*), Bash(test:*)
+allowed-tools:
+  - AskUserQuestion
+  - Bash(git add:*)
+  - Bash(git status:*)
+  - Bash(git commit:*)
+  - Bash(git checkout:*)
+  - Bash(git branch:*)
+  - Bash(git diff:*)
+  - Bash(git log:*)
+  - Bash(git symbolic-ref:*)
+  - Bash(pre-commit:*)
+  - Bash(uv:*)
+  - Bash(sed:*)
+  - Bash(grep:*)
+  - Bash(head:*)
+  - Bash(echo:*)
+  - Bash(test:*)
 ---
 
 # Git Commit
@@ -15,10 +31,11 @@ allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git
 base ブランチは `origin/HEAD` から解決する（取得できなければ `main` / `master` の存在で決める）。
 
 - Branch: !`git branch --show-current`
-- Base branch: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; echo "${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}"`
+- Base branch: !`git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1`
 - Status: !`git status --short`
 - Diff summary: !`git diff HEAD --stat 2>/dev/null || echo '(no commits yet)'`
 - Recent commits: !`git log --oneline -10 2>/dev/null || echo '(no commits yet)'`
+- Unpushed commits: !`git log --oneline @{upstream}..HEAD 2>/dev/null || echo '(no upstream)'`
 
 ## タスク
 
@@ -30,9 +47,17 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
      c. ルートコミットを作成する（通常は `chore: initial commit` などとする）
      d. その後 Step 6（`pre-commit フックの更新確認`）に進み、Step 3-5（ブランチ推定・分類・通常のコミット粒度）はスキップする
    - それ以外の場合: Step 3 に進む
-3. フィーチャーブランチを確保する
-   - Branch が Base branch と同じ場合: フィーチャーブランチを作成する。名前は上記の Status と Diff summary から推定し、作成後にブランチ名をユーザーに報告する
-   - それ以外の場合: 何もせず進む
+3. フィーチャーブランチを確保する。Branch が Base branch と同じ場合のみ扱い、それ以外は何もせず進む
+   - Status に変更がある場合: `AskUserQuestion` で続行確認し、「はい」ならフィーチャーブランチを作成して名前をユーザーに報告する。名前は上記の Status と Diff summary から推定する。「いいえ」なら中止する
+   - Status が空で Unpushed commits に中身がある場合: base ブランチ上でコミットまで済んでいる。`AskUserQuestion` で「コミットをフィーチャーブランチへ移して base を push 済みの位置に戻しますか」を確認し、「はい」なら次を実行して Step 6 へ進む（Step 4-5 はコミット対象が無いのでスキップする）。「いいえ」なら中止する
+
+     ```bash
+     git checkout -b <Unpushed commits のメッセージから推定した名前>
+     git branch -f <Base branch> @{upstream}
+     ```
+
+     `git branch -f` は base のローカル参照を push 済みの位置へ戻すだけで、コミット自体は新しいブランチに残る。Unpushed commits が `(no upstream)` の場合は戻す先が決まらないので、ブランチ作成だけ行い base はそのままにする
+   - Status が空で Unpushed commits も空の場合: コミットするものが無い旨を報告して終了する
 4. 変更を論理的なグループに分類する
 5. 適切な粒度でコミットする
    - 何を変更したかではなく、なぜ変更したかを説明する
