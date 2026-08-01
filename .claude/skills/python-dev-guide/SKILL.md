@@ -8,7 +8,6 @@ allowed-tools:
   - Glob
   - Bash(uv:*)
   - Bash(git:*)
-  - Bash(mkdir:*)
 ---
 
 # Python Development Guide
@@ -20,7 +19,7 @@ uv + ruff を標準とし、Python 3.14+ を対象として最新の言語機能
 ## Common Commands
 
 ```bash
-uv run python src/main.py        # 実行
+uv run python -m {package_name}  # 実行
 uv run pytest                    # テスト実行
 uv run ruff check .              # Lint チェック
 uv run ruff format .             # フォーマット
@@ -37,7 +36,8 @@ uv run mypy src/                 # 型チェック
 {project_name}/
 ├── src/
 │   └── {package_name}/
-│       └── __init__.py
+│       ├── __init__.py
+│       └── __main__.py      # エントリーポイント (`python -m {package_name}`)
 ├── tests/
 │   ├── __init__.py
 │   └── conftest.py
@@ -143,8 +143,8 @@ uv run pytest tests/test_feature.py
 # 3. リファクタリング
 uv run ruff format . && uv run ruff check --fix .
 
-# 4. カバレッジ確認
-uv run pytest --cov=src/
+# 4. カバレッジ確認 (pyproject の addopts で常に付くのでレポートを読むだけ)
+uv run pytest
 ```
 
 ## Project Init Workflow
@@ -187,8 +187,9 @@ uv run --directory {project_name} pre-commit install
 
 ## Security
 
+bandit はテンプレートの dev グループに入っているのでそのまま実行できる。pip-audit だけは入っていないので、依存関係の監査をする回に追加する。
+
 ```bash
-uv add --dev bandit pip-audit
 uv run bandit -r src/                   # コードのセキュリティ脆弱性
-uv run pip-audit                        # 依存関係の脆弱性
+uv add --dev pip-audit && uv run pip-audit   # 依存関係の脆弱性
 ```

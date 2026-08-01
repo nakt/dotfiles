@@ -1,7 +1,12 @@
 ---
 name: react-dev-guide
 description: bun + Vite + Biome を使った React 開発の支援スキル。プロジェクト固有の構成、コーディング規約、推奨ツールのガイドラインを提供する。React プロジェクトの新規作成、コンポーネント設計方針の確認、状態管理・スタイリング・テスト等の技術選定、Biome 設定やプロジェクト構成の整備に使用する。
-allowed-tools: Write, Read, Glob, Edit, Bash(bun:*)
+allowed-tools:
+  - Write
+  - Read
+  - Glob
+  - Edit
+  - Bash(bun:*)
 ---
 
 # React Development Guide
@@ -14,6 +19,7 @@ bun + Vite + Biome を標準とする。
 
 ```bash
 bun create vite my-app --template react-ts
+# my-app/bunfig.toml を置いてから install する (../typescript-dev-guide/references/bun-workflow.md のサプライチェーン対策)
 bun install --cwd my-app
 bun run --cwd my-app dev
 ```
@@ -36,7 +42,7 @@ bun run test                   # テスト実行
 
 ### 型チェック
 
-`cd` を含む複合コマンドは実行のたびに権限プロンプトを誘発し、シェルの作業ディレクトリも呼び出しをまたいで保持されない。React プロジェクトがリポジトリのサブディレクトリにある場合は、`cd` せずに `--cwd` か `--project` で対象を指定する。
+`cd` を含む複合コマンドは実行のたびに権限プロンプトを誘発し、シェルの作業ディレクトリも呼び出しをまたいで保持されない。React プロジェクトがリポジトリのサブディレクトリにある場合は、`cd` せずに bun の `--cwd` でプロジェクトを指定する。依存がリポジトリルートに hoist されていて bun をルートで動かせるなら、tsc 側の `--project` で tsconfig を指す形でもよい。
 
 ```bash
 # Good（React プロジェクトが apps/web/ にある場合）
