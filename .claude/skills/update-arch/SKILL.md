@@ -2,7 +2,23 @@
 name: update-arch
 description: アーキテクチャドキュメント(docs/arch)の更新・初期化スキル。コード変更時に処理概要・処理フロー・データフローのドキュメント更新要否を判断し、必要に応じて更新する。docs/arch が存在しないプロジェクトでは初期化を行う。ユーザーがアーキテクチャドキュメントの作成・更新を求めたとき、または手動 `/update-arch` で呼び出されたときに使用する。
 argument-hint: "[target directory]"
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git merge-base:*), Bash(git rev-parse:*), Bash(git symbolic-ref:*), Bash(test:*), Bash(echo:*)
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
+  - Bash(git diff:*)
+  - Bash(git log:*)
+  - Bash(git merge-base:*)
+  - Bash(git rev-parse:*)
+  - Bash(git symbolic-ref:*)
+  - Bash(git branch:*)
+  - Bash(sed:*)
+  - Bash(grep:*)
+  - Bash(head:*)
+  - Bash(test:*)
+  - Bash(echo:*)
 ---
 
 # Update Architecture Docs
@@ -18,7 +34,7 @@ Default branch は `origin/HEAD` から解決する（取得できなければ `
 - Unstaged changes: !`git diff --stat 2>/dev/null || true`
 - Recent commits: !`git log --oneline -10 2>/dev/null || echo '(none)'`
 - Current branch: !`git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '(none)'`
-- Default branch: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; echo "${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}"`
+- Default branch: !`git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1`
 
 ## モード判定
 

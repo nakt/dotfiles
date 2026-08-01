@@ -11,7 +11,9 @@ allowed-tools:
   - Bash(gh:*)
   - Bash(cat:*)
   - Bash(awk:*)
+  - Bash(sed:*)
   - Bash(grep:*)
+  - Bash(head:*)
   - Bash(echo:*)
   - AskUserQuestion
 ---
@@ -22,13 +24,16 @@ allowed-tools:
 
 ## Current state
 
-base ブランチは `origin/HEAD` から解決する (取得できなければ `main` / `master` の存在で決める)。以下の各行は同じ解決式をそれぞれ実行する。
+base ブランチは `origin/HEAD` から解決する (取得できなければ `main` / `master` の存在で決める)。以下は 1 ブロックで解決し、Base branch / Branch / Uncommitted changes / Commits ahead of base / Diff stats をまとめて出力する。
 
-- Base branch: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; echo "${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}"`
-- Branch: !`git branch --show-current`
-- Uncommitted changes: !`git status --porcelain`
-- Commits ahead of base: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; b=${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}; git log "$b"..HEAD --oneline 2>/dev/null || true`
-- Diff stats: !`b=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); b=${b#origin/}; b=${b:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}; git diff "$b"..HEAD --stat 2>/dev/null || true`
+```!
+git branch --show-current | sed 's|^|Branch: |' | grep . || echo "Branch: (detached HEAD)"
+base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1)
+echo "Base branch: $base"
+echo "Uncommitted changes:"; git status --porcelain
+echo "Commits ahead of base:"; git log "$base"..HEAD --oneline 2>/dev/null || true
+echo "Diff stats:"; git diff "$base"..HEAD --stat 2>/dev/null || true
+```
 
 ## ワークフロー
 
@@ -36,13 +41,15 @@ base ブランチは `origin/HEAD` から解決する (取得できなければ 
 
 上記の Current state を確認し、以下の条件に該当する場合は終了する:
 
-- Branch が Base branch と同じ場合: 「`/commit` を先に実行するとブランチが自動作成されます」と案内
+- Branch が Base branch と同じ場合: 「`/commit` を先に実行してください。未コミットの変更があればコミットし、base 上にコミットが積まれているだけなら、確認のうえフィーチャーブランチへ移します」と案内
 - Uncommitted changes がある場合: 「`/commit` を先に実行してください」と案内
 - Commits ahead of base が空の場合: 「base ブランチに対する新しいコミットがありません」と報告
 - 既存 PR を確認: `gh pr list --head {branch} --json number,url,title`
   - 既存 PR がある場合: PR 作成をスキップし、push のみ実行する旨を報告
 
 ### Phase 2: PR 情報の生成
+
+既存 PR がある場合はこの Phase を丸ごとスキップして Phase 3 の push へ進む (生成したタイトル・本文は Phase 3 で使われないため)。
 
 上記の Commits ahead of base と Diff stats を分析して PR のタイトルと本文を自動生成する。
 
@@ -95,7 +102,7 @@ gh pr merge {pr-number} --merge
 git push origin --delete {branch}
 ```
 
-`git push origin --delete` が非ゼロ終了した場合は「リモート削除に失敗しました」と報告して Phase 4 を中止する。`git ls-remote` による確認はステップ 4 の子 worktree ケースで付加表示するのみ。
+`git push origin --delete` が非ゼロ終了した場合は「リモート削除に失敗しました」と報告して Phase 4 を中止する。
 
 #### ステップ 4: ローカル cleanup
 
@@ -109,9 +116,7 @@ parent_worktree=$(git worktree list --porcelain | awk '/^worktree /{print $2; ex
 current_worktree=$(git rev-parse --show-toplevel)
 
 if git rev-parse --git-dir | grep -q 'worktrees/'; then
-  # 子 worktree: リモート削除の付加確認 + cleanup 案内
-  echo "リモート残存チェック（出力があれば削除失敗の可能性）:"
-  git ls-remote --heads origin "$branch"
+  # 子 worktree: cleanup 案内のみ（リモート削除はステップ 3 で成否を確認済み）
   cat <<EOM
 
 ローカル cleanup は親 worktree 側で後日実行してください:
