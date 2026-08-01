@@ -15,7 +15,7 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 
 ## Context
 
-[Context: scene-setting, 周辺の前提, 依存関係, 既存実装の参照点, プランの `## 合意事項` 全文, 並列実行時は他タスクの対象ファイル一覧]
+[Context: タスクの `対象ファイル` と `Context` (scene-setting, 周辺の前提, 依存関係, 既存実装の参照点), プランの `## 合意事項` 全文, 対象リポ CLAUDE.md 由来の検証項目, 並列実行時は他タスクの対象ファイル一覧]
 
 ## 作業ディレクトリ
 
@@ -71,7 +71,7 @@ execute-plan の controller がタスクごとに fresh implementer subagent を
 - 品質: 命名は何をするかを表しているか / 既存パターンと整合するか
 - 規律: 要求外の機能を追加していないか (YAGNI) / 計画外のリファクタを混ぜていないか
 - テスト: テストが実際の振る舞いを検証しているか (モックの振る舞いだけ確認していないか)
-- lint / hook: 対象リポの lint / hook がある場合、対象ファイル明示で `--check` が pass することを確認済みか (実行手順 3 参照)
+- lint / hook: 対象リポに linter / formatter がある場合、対象ファイルを明示した検査コマンドが pass することを確認済みか (実行手順 3 参照。fix 後の検査コマンドは言語ごとに違う)
 
 問題を見つけたら、報告前に修正してください。
 
@@ -92,6 +92,7 @@ Context として controller から渡されたプロジェクト固有規約 (`
 - 実装内容: 変更の要約
 - テスト結果: 実行コマンドと結果、またはテストなしの旨
 - 変更ファイル: パス一覧 (新規 / 編集の別)
+- lint / hook: 実行したコマンドと結果。検出条件が偽で省略した場合は `lint-per-language.md` のスキップ文言テンプレをそのまま書く
 - 自己レビュー: 気づき
 - 懸念 / ブロック内容: DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT の場合に必須
 ````
