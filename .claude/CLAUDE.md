@@ -16,7 +16,7 @@ Rules は 7 件で固定的なので下表を台帳として置く。Skills は�
 | -------------------- | ----------------------- | --------------------------------------------- | ------------- |
 | workspace-management | All files               | .workspace ディレクトリの運用ルール            | 常時ロード    |
 | git-workflow         | All files               | コミット規約、ブランチ戦略、worktree 運用、PR ガイドライン、禁止事項 | 常時ロード    |
-| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | 常時ロード    |
+| markdown-style       | `**/*.md`               | Markdown 作成時のスタイルガイド                | path-scoped   |
 | plan-workflow        | All files               | プラン必須の原則と brainstorm / write-plan / execute-plan への振り分け | 常時ロード    |
 | python-development   | `**/*.py`               | → `/python-dev-guide` スキルへのポインタ       | path-scoped   |
 | react-coding         | `**/*.tsx`, `**/*.jsx`  | → `/react-dev-guide` スキルへのポインタ        | path-scoped   |
