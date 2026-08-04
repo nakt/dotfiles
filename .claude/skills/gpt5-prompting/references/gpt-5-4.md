@@ -2,7 +2,7 @@
 
 GPT-5.4 は long-running multi-step タスク、強いパーソナリティ/トーン遵守、エビデンス豊富な合成、規律的な実行に特化した世代。本ファイルは公式 [Prompt Guidance](https://developers.openai.com/api/docs/guides/prompt-guidance) の GPT-5.4 セクションをベースに、XML ブロックを原文で掲載する。
 
-共通原則は [common.md](common.md)、初期世代は [gpt-5-series.md](gpt-5-series.md)、Codex は [gpt-5-3-codex.md](gpt-5-3-codex.md)、最新世代は [gpt-5-5.md](gpt-5-5.md) を参照。
+共通原則は [common.md](common.md)、Codex は [codex.md](codex.md)、5.5 は [gpt-5-5.md](gpt-5-5.md)、最新世代は [gpt-5-6.md](gpt-5-6.md) を参照。
 
 ## 目次
 

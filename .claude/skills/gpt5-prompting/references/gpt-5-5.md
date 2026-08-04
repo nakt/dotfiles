@@ -2,7 +2,7 @@
 
 GPT-5.5 は "outcome-first" 哲学を打ち出し、プロセス指示を積み重ねるよりゴール定義 + 停止条件で短く書くことを推奨する世代。本ファイルは公式 [Prompt Guidance](https://developers.openai.com/api/docs/guides/prompt-guidance) の GPT-5.5 セクションをベースに、推奨プロンプトを原文で掲載する。
 
-共通原則は [common.md](common.md)、初期世代は [gpt-5-series.md](gpt-5-series.md)、Codex は [gpt-5-3-codex.md](gpt-5-3-codex.md)、5.4 は [gpt-5-4.md](gpt-5-4.md) を参照。
+共通原則は [common.md](common.md)、Codex は [codex.md](codex.md)、5.4 は [gpt-5-4.md](gpt-5-4.md)、最新世代は [gpt-5-6.md](gpt-5-6.md) を参照。
 
 ## 目次
 

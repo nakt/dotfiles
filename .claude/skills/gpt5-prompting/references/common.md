@@ -123,7 +123,7 @@ The desired behavior from this prompt is for the agent to [DO DESIRED BEHAVIOR],
 
 長い会話では 3-5 メッセージごとに Markdown 指示を再挿入すると遵守率が維持される。
 
-GPT-5.5 ではプレーン散文をデフォルト推奨に振り切っている（gpt-5-5.md「Formatting」参照）。
+GPT-5.5 ではプレーン散文をデフォルト推奨に振り切っている（gpt-5-5.md「Formatting」参照）。この方針は GPT-5.6 でも継続している（gpt-5-6.md 参照）。
 
 ---
 
@@ -190,7 +190,7 @@ GPT-5 系は要求以上のコードや機能を生成する場合がある。�
 </long_context_handling>
 ```
 
-長時間のマルチターン会話・大量ツール呼び出しでは Compaction（gpt-5-series.md / gpt-5-4.md「Compaction」）の活用を検討する。
+長時間のマルチターン会話・大量ツール呼び出しでは Compaction（gpt-5-4.md「Compaction」）の活用を検討する。
 
 ---
 

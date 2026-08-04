@@ -1,33 +1,25 @@
-# GPT-5.3 Codex プロンプティングガイド（最小限）
+# Codex プロンプティングガイド（最小限）
 
-agentic coding 特化モデル。本ファイルは Codex 固有のポインタに留め、共通原則は [common.md](common.md)、コーディング・Frontend Tasks・Verification 等の標準パターンは [gpt-5-4.md](gpt-5-4.md) を参照する。
+Codex ハーネス規約（`apply_patch` / `update_plan` / `shell` 等のツール仕様、Editing Constraints、Plan の開閉ルール）。モデル世代に依存しない規約で、現行の推奨モデルは GPT-5.6 系（Sol / Terra / Luna）。本ファイルは Codex 固有のポインタに留め、共通原則は [common.md](common.md)、コーディング・Frontend Tasks・Verification 等の標準パターンは [gpt-5-4.md](gpt-5-4.md)、最新世代は [gpt-5-6.md](gpt-5-6.md) を参照する。
 
 公式: <https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide>
 
 ## 目次
 
-- [GPT-5.3 Codex プロンプティングガイド（最小限）](#gpt-53-codex-プロンプティングガイド最小限)
+- [Codex プロンプティングガイド（最小限）](#codex-プロンプティングガイド最小限)
   - [目次](#目次)
-  - [1. 改善点の概要（vs 旧 Codex）](#1-改善点の概要vs-旧-codex)
-  - [2. スタータープロンプトの構成ブロック](#2-スタータープロンプトの構成ブロック)
-  - [3. 推奨ツール](#3-推奨ツール)
-  - [4. Plan ツール（update\_plan）の開閉ルール](#4-plan-ツールupdate_planの開閉ルール)
-  - [5. Editing Constraints 要点](#5-editing-constraints-要点)
-  - [6. Phase Parameter (Codex 固有)](#6-phase-parameter-codex-固有)
-  - [7. Mid-Rollout Updates の取り扱い](#7-mid-rollout-updates-の取り扱い)
-  - [8. Frontend "AI slop" 回避](#8-frontend-ai-slop-回避)
-  - [9. Compaction サポート](#9-compaction-サポート)
+  - [1. スタータープロンプトの構成ブロック](#1-スタータープロンプトの構成ブロック)
+  - [2. 推奨ツール](#2-推奨ツール)
+  - [3. Plan ツール（update\_plan）の開閉ルール](#3-plan-ツールupdate_planの開閉ルール)
+  - [4. Editing Constraints 要点](#4-editing-constraints-要点)
+  - [5. Phase Parameter (Codex 固有)](#5-phase-parameter-codex-固有)
+  - [6. Mid-Rollout Updates の取り扱い](#6-mid-rollout-updates-の取り扱い)
+  - [7. Frontend "AI slop" 回避](#7-frontend-ai-slop-回避)
+  - [8. Compaction サポート](#8-compaction-サポート)
 
 ---
 
-## 1. 改善点の概要（vs 旧 Codex）
-
-- 高速化・トークン効率改善
-- 困難なコード作業での長時間自律性向上
-- マルチアワー推論向け Compaction の標準サポート
-- ロールアウト中断を避けるため、事前計画と前置きを最小化する設計
-
-## 2. スタータープロンプトの構成ブロック
+## 1. スタータープロンプトの構成ブロック
 
 公式スタータープロンプトは以下のブロック構成:
 
@@ -41,7 +33,7 @@ agentic coding 特化モデル。本ファイルは Codex 固有のポインタ�
 
 詳細な Autonomy & Persistence / User Updates / Terminal Tool Hygiene の XML パターンは gpt-5-4.md「Coding Tasks」を参照。
 
-## 3. 推奨ツール
+## 2. 推奨ツール
 
 | ツール | 用途 | 備考 |
 |---|---|---|
@@ -52,7 +44,7 @@ agentic coding 特化モデル。本ファイルは Codex 固有のポインタ�
 
 セマンティック検索・MCP・カスタムツールはモデルに合わせたチューニングが必要。
 
-## 4. Plan ツール（update_plan）の開閉ルール
+## 3. Plan ツール（update_plan）の開閉ルール
 
 開く判断:
 
@@ -66,7 +58,7 @@ agentic coding 特化モデル。本ファイルは Codex 固有のポインタ�
 - 終了時に全アイテムを Done / Blocked / Cancelled いずれかに確定
 - in_progress 状態のままでターンを終えない
 
-## 5. Editing Constraints 要点
+## 4. Editing Constraints 要点
 
 - ASCII 優先（非 ASCII 採用には正当化が必要）
 - 自動説明的コメントを避け、複雑ブロックのみコメント
@@ -74,11 +66,11 @@ agentic coding 特化モデル。本ファイルは Codex 固有のポインタ�
 - git dirty 状態ではユーザー変更を保持（破壊的操作禁止）
 - `git reset --hard` など破壊的シェル操作はユーザー承認なしに実行しない
 
-## 6. Phase Parameter (Codex 固有)
+## 5. Phase Parameter (Codex 固有)
 
-Responses API の `phase` パラメータは gpt-5.3-codex と同時に導入された。Codex Prompting Guide の「currently only supported with `gpt-5.3-codex`」は導入時点の記述で、その後 gpt-5.4 / gpt-5.5 にも拡大している（API リファレンスの表現は「`gpt-5.3-codex` and beyond」）。
+Responses API の `phase` パラメータは `gpt-5.3-codex` と同時に導入された。API リファレンスの現在の記述は「`gpt-5.3-codex` and beyond」であり、`gpt-5.3-codex` で導入されて以降の世代に一律で及ぶ。現行の GPT-5.6 系（Sol / Terra / Luna）も対象に含まれる。
 
-Codex 固有なのは対応可否ではなく必須度。gpt-5.4 / 5.5 では optional かつ推奨だが、gpt-5.3-codex では正しい実装がパフォーマンスに必須で、履歴再構築で assistant アイテムの `phase` を落とすと大きく劣化する。
+Codex ハーネスでは特にこの保持が効く。フォローアップリクエストで履歴を再構築して送り直す際、assistant メッセージの `phase` を落とすと性能が劣化しうるため、正しい実装が前提になる。user メッセージには付けない。
 
 | 値 | 用途 |
 |---|---|
@@ -88,11 +80,11 @@ Codex 固有なのは対応可否ではなく必須度。gpt-5.4 / 5.5 では op
 
 ユースケース・assistant アイテム再生時の保持ルール等の詳細は [gpt-5-4.md](gpt-5-4.md)「Phase Parameter」と共通。
 
-## 7. Mid-Rollout Updates の取り扱い
+## 6. Mid-Rollout Updates の取り扱い
 
-GPT-5.3 Codex 以降、ロールアウト中の更新メッセージはシステム生成からプロンプト可能に移行。他の GPT-5 系モデルと同様のプロンプト方式（[gpt-5-4.md](gpt-5-4.md)「User Updates Spec」）が適用できる。
+ロールアウト中の更新メッセージ（Mid-Rollout Updates）はプロンプトで制御する。他の GPT-5 系モデルと同様のプロンプト方式（[gpt-5-4.md](gpt-5-4.md)「User Updates Spec」）が適用できる。
 
-## 8. Frontend "AI slop" 回避
+## 7. Frontend "AI slop" 回避
 
 Codex でも frontend タスクを扱う場合、"AI slop" 回避ルール（typography / color / motion / background の各原則）が適用される。Codex 固有の差分は少なく、ルール本体は [gpt-5-4.md](gpt-5-4.md)「Frontend Tasks」（`<frontend_tasks>` ブロック原文）を参照。
 
@@ -104,7 +96,7 @@ Codex でも frontend タスクを扱う場合、"AI slop" 回避ルール（typ
 - 単色フラット背景を避け、グラデーション・図形・微細パターンを活用
 - 既存デザインシステム内では既成パターンを保持
 
-## 9. Compaction サポート
+## 8. Compaction サポート
 
 - エンドポイント: `/responses/compact`
 - ZDR 互換、`encrypted_content` を返却
