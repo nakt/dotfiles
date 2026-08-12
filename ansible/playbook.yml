@@ -23,6 +23,7 @@
       - rustup
       - bun
       - glow
+      - pandoc
 
     homebrew_cask_packages:
       - font-plemol-jp-nf
