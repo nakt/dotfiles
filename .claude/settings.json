@@ -123,7 +123,7 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/check-docs.sh",
-            "if": "Bash(git push *)",
+            "if": "Bash(gh pr create *)",
             "timeout": 10
           }
         ]
