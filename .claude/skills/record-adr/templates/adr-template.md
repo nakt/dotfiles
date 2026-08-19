@@ -3,6 +3,7 @@ status: Accepted
 date: YYYY-MM-DD
 supersedes: ""
 superseded_by: ""
+deprecated_date: ""
 ---
 
 # NNNN: タイトル
