@@ -79,3 +79,4 @@ docs/workflow/memo/
 !.gemini/.gitkeep
 
 **/.claude/settings.local.json
+issues/
