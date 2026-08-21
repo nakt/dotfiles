@@ -3,6 +3,7 @@ status: Accepted
 date: YYYY-MM-DD
 supersedes: ""
 superseded_by: ""
+deprecated_date: ""
 ---
 
 # 0001: Record architecture decisions
@@ -21,6 +22,7 @@ superseded_by: ""
 
 ## Consequences
 
-- ADR は append-only とし、本文は書き換えない
-- 方針変更時は新規 ADR を起票し、旧 ADR の superseded_by を更新する
-- Accepted な ADR を読めば現在の方針が一意に定まる
+- ADR は append-only とし、本文は既存の記述を書き換えず、末尾への追記は Deprecation 節に限る。フロントマターは状態を表す機械可読値なので対象外とする
+- 方針変更時は新規 ADR を起票し、旧 ADR の status を Superseded に変更して superseded_by を更新する
+- 後継方針を持たない無効化では旧 ADR の status を Deprecated に変更し、deprecated_date を設定して、やめた理由を Deprecation 節に残す
+- Accepted な ADR の集合が現在有効な方針であり、Superseded / Deprecated は履歴として残る

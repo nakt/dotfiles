@@ -70,6 +70,7 @@ allowed-tools:
 - 空提案をしない: update-arch / update-readme は処理フローやアプリコードの変化を前提とする。会話にその変化が無ければ arch / readme へは振り分けない。設定・スクリプト主体のリポジトリ（dotfiles、CI 設定、ドキュメント集など。Current state の `docs/arch` が `no` で、会話の変更対象が設定ファイルや Markdown に偏っていれば該当と見なせる）では特に該当が少ないので、無理に行き先を埋めない。
 - 重複回避: Current state の `issues/inbox` / `docs/adr` を読み、既に起票・記録済みのテーマは再起票しない。
 - 逆方向(クローズ)も提案: セッション中に既存の inbox issue が決着したなら done を提案に含める。委譲時は会話から抽出した決着メモ(決着理由 + 学び・経緯)を添えて、issue-tracker の done に渡す。これにより、クローズ時に学びを残して「issue-tracker の履歴をナレッジに活用」を双方向化する。
+- Deprecated 化も提案: セッション中に既存 ADR の方針を後継方針なしでやめたなら、Deprecated 化を提案に含める(代わりの方針を立てて乗り換えた場合は従来どおり新規起票として扱う)。委譲時は対象 ADR 番号とやめた理由を record-adr に渡す。
 
 ## 3. 提案(Propose)
 
@@ -81,18 +82,18 @@ allowed-tools:
 
 承認された項目について、`Skill` ツールで同一会話の中でそのまま対応スキルを続けて起動する。このスキルの `allowed-tools` には読み取り系と `Skill` しか無く書き込みツールを持たないが、起動された各スキルは自分の `allowed-tools` で書き込むため、wrapup-dispatch 自身は何も書かないまま実体が作られる。Claude Code にはスキル間で引数を渡す正式 API が無いので、振り分け提案で確定した抽出内容を、続く各スキル起動の入力(直近会話の文脈)として渡す形で橋渡しする。
 
-バッチ方針: 承認された項目は行き先スキルごとにグルーピングし、1 スキルにつき 1 回でまとめて委譲する(1 件ずつ起動して往復を増やさない)。具体的には issue-tracker create は複数件を 1 回、issue-tracker done も別途 1 回、update-arch / update-readme / record-adr もそれぞれ 1 回。
+バッチ方針: 承認された項目は行き先ごと(スキル × モード)にグルーピングし、1 つにつき 1 回でまとめて委譲する(1 件ずつ起動して往復を増やさない)。具体的には issue-tracker create は複数件を 1 回、issue-tracker done も別途 1 回、record-adr の起票も複数件を 1 回、record-adr の Deprecated 化も別途 1 回、update-arch / update-readme はそれぞれ 1 回。
 
 - issue-tracker → create モードで起票(反省・摩擦点は「ルールを追加/強化して再発防止」の TODO として起票する) / done モードで決着メモ付きクローズ(決着理由 + 学び・経緯を渡す)
 - update-arch → 更新 / 初期化
 - update-readme → 更新
-- record-adr → タイトルと Context / Decision / Rationale の素案を渡して同一会話で起動
+- record-adr → 起票: タイトルと Context / Decision / Rationale の素案を渡して同一会話で起動 / Deprecated 化: 対象 ADR 番号と、後継方針を立てずにやめたこと・その理由を渡して同一会話で起動
 
 ## 5. 完了マニフェスト(Report)
 
 Dispatch が終わったら、最終サマリを行き先スキル別の `###` サブ見出し + パス一覧の箇条書きで提示する。ラップアップの出口として「どこに何を書いたか / 何を保留にしたか」を一望できる形にする。
 
-- `### issue-tracker (create)` / `### issue-tracker (done)` / `### update-arch` / `### update-readme` / `### record-adr` の節に、書き込まれたパス一覧(例: `issues/inbox/20260707-xxx.md`, `docs/arch/flow.md`, `docs/adr/NNNN-*.md` 等)を箇条書き。
+- `### issue-tracker (create)` / `### issue-tracker (done)` / `### update-arch` / `### update-readme` / `### record-adr (起票)` / `### record-adr (Deprecated 化)` の節に、書き込まれたパス一覧(例: `issues/inbox/20260707-xxx.md`, `docs/arch/flow.md`, `docs/adr/NNNN-*.md` 等)を箇条書き。
 - `### 保留` の節に、承認されず保留になった項目を「1 行サマリ + 保留理由」で列挙。
 
 抽出が空、または承認された委譲が無かった場合はマニフェスト自体を省略してよい。
