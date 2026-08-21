@@ -3,7 +3,8 @@
   "cleanupPeriodDays": 120,
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-    "CLAUDE_CODE_DISABLE_MOUSE_CLICKS": "1"
+    "CLAUDE_CODE_DISABLE_MOUSE_CLICKS": "1",
+    "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1"
   },
   "attribution": {
     "commit": "",
