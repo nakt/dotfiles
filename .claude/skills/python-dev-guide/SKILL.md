@@ -28,7 +28,7 @@ uv run mypy src/                 # 型チェック
 
 ## pyproject.toml
 
-[references/pyproject-toml.md](references/pyproject-toml.md) を唯一の定義とする。uv / ruff / mypy / pytest / coverage / bandit / build-system / dependency-groups の設定はすべてそこにある。
+[references/pyproject-toml.md](references/pyproject-toml.md) を唯一の定義とする。uv / ruff / mypy / pyright / pytest / coverage / bandit / build-system / dependency-groups の設定はすべてそこにある。
 
 ## Project Structure
 

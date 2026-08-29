@@ -50,6 +50,14 @@ python_version = "3.14"
 strict = true
 exclude = ["tests/", "template/", ".workspace/"]
 
+[tool.pyright]
+pythonVersion = "3.14"
+venvPath = "."
+venv = ".venv"
+include = ["src", "tests"]
+exclude = ["**/__pycache__", "template", ".workspace"]
+typeCheckingMode = "standard"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
@@ -83,6 +91,14 @@ skips = ["B101"]
 ## exclude-newer
 
 `exclude-newer` が相対期間（`1 week`、`3 days`、`P3D`）を受け付けるのは uv 0.9.17 以降。それ以前の uv では解析に失敗した旨の警告が出るだけで設定は無視され、cooldown が効かないまま解決が進む。uv を固定できない環境では `2026-07-01` のような日付か RFC 3339 タイムスタンプを指定する。
+
+## mypy と pyright の分担
+
+`[tool.pyright]` は pyright-lsp がエディタ内で読む設定で、コミット前や CI のゲートは従来どおり `[tool.mypy]` の strict が担う。両方を strict にすると、判定が食い違う箇所で二重に指摘が出て片方向けの ignore コメントが増えるため、pyright は `standard` に留める。
+
+`include` に `tests` を入れているのは mypy の `exclude` と意図的にずらしている。strict ではないぶんテストコードに過剰な指摘は出ず、存在しない属性へのアクセスのような明確な誤りだけを編集中に拾える。
+
+`venvPath` / `venv` は uv が作る `.venv` を指す。指定しないと pyright が実行環境を見つけられず、サードパーティの import がすべて未解決として並ぶことがある。`pythonVersion` も同様に明示が要る（pyright は `requires-python` を参照しない）。
 
 ## ruff と bandit の分担
 
