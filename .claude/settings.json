@@ -193,7 +193,8 @@
     "skill-creator@claude-plugins-official": true,
     "codex@openai-codex": false,
     "modern-web-guidance@googlechrome": true,
-    "document-tools@nakt-tools": true
+    "document-tools@nakt-tools": true,
+    "pyright-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {

@@ -16,6 +16,7 @@
       - pre-commit
       - uv
       - node
+      - pyright
       - gh
       - ripgrep
       - markdownlint-cli2
