@@ -193,7 +193,10 @@
     "skill-creator@claude-plugins-official": true,
     "codex@openai-codex": false,
     "modern-web-guidance@googlechrome": true,
-    "document-tools@nakt-tools": true
+    "document-tools@nakt-tools": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
@@ -223,6 +226,7 @@
       "autoUpdate": true
     }
   },
+  "outputStyle": "Concise",
   "language": "japanese",
   "sandbox": {
     "enabled": false
@@ -234,7 +238,6 @@
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
   "editorMode": "vim",
-  "outputStyle": "Concise",
   "verbose": false,
   "agentPushNotifEnabled": true
 }

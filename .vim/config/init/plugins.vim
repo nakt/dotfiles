@@ -5,10 +5,6 @@ if !isdirectory(s:plug_dir)
 endif
 
 call plug#begin()
-Plug 'prabirshrestha/asyncomplete.vim'
-Plug 'prabirshrestha/vim-lsp'
-Plug 'prabirshrestha/asyncomplete-lsp.vim'
-Plug 'mattn/vim-lsp-settings'
 Plug 'arcticicestudio/nord-vim'
 Plug 'vim-airline/vim-airline'
 Plug 'airblade/vim-gitgutter'
