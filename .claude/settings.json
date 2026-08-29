@@ -195,8 +195,9 @@
     "modern-web-guidance@googlechrome": true,
     "document-tools@nakt-tools": true,
     "pyright-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": false,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "typescript-native-lsp@nakt-tools": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
