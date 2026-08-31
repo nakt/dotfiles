@@ -17,6 +17,7 @@
       - uv
       - node
       - pyright
+      - typescript
       - gh
       - ripgrep
       - markdownlint-cli2
@@ -63,3 +64,28 @@
             HOMEBREW_CASK_OPTS: "--appdir=/Applications"
           loop: "{{ homebrew_cask_packages }}"
       tags: ['brew']
+
+    - name: Install the rust-analyzer language server
+      # Not a Homebrew package: the brew build would shadow the
+      # toolchain-matched binary on PATH, so it comes from rustup instead.
+      block:
+        - name: List the installed Rust toolchains
+          command: rustup toolchain list
+          register: rustup_toolchains
+          changed_when: false
+
+        - name: Install the stable Rust toolchain
+          # Only when none exists: rustup would otherwise upgrade the
+          # toolchain on every run, which this playbook does not own.
+          command: rustup toolchain install stable
+          when: "'no installed toolchains' in rustup_toolchains.stdout"
+
+        - name: List the installed rustup components
+          command: rustup component list --installed
+          register: rustup_components
+          changed_when: false
+
+        - name: Add the rust-analyzer component
+          command: rustup component add rust-analyzer
+          when: "'rust-analyzer' not in rustup_components.stdout"
+      tags: ['rust']
