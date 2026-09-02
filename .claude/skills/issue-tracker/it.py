@@ -26,7 +26,6 @@ import argparse
 import json
 import os
 import re
-import socket
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -34,6 +33,12 @@ from pathlib import Path
 ROOT_NAME = "issues"
 INBOX, WIP, DONE = "inbox", "wip", "done"
 PRIORITY_ORDER = {"high": 0, "med": 1, "low": 2}
+VALID_PRIORITIES = tuple(PRIORITY_ORDER)
+# wip first so triage sees what is already in hand before the backlog.
+STATUS_ORDER = {WIP: 0, INBOX: 1, DONE: 2}
+TAG_RE = re.compile(r"[a-z0-9-]+")
+TEMPLATE_PATH = Path(__file__).parent / "templates" / "issue-template.md"
+GIT_HINT = "hint: git add -A issues/ でステージしてください（移動元の削除と移動先の追加は対で扱う）"
 
 
 # --------------------------------------------------------------------------
@@ -92,6 +97,7 @@ def find_one(root: Path, key: str) -> tuple[str, Path]:
 # --------------------------------------------------------------------------
 
 FM_RE = re.compile(r"\A---\n(.*?)\n---\n?(.*)\Z", re.DOTALL)
+LOG_HEADING_RE = re.compile(r"^##[ \t]*ログ[ \t]*$", re.MULTILINE)
 # Shared by parse and set_fields on purpose: reading and deleting block-style
 # continuation lines must agree, or set_fields leaves orphans behind.
 BLOCK_ITEM_RE = re.compile(r"^\s+- ")
@@ -205,7 +211,7 @@ def append_log(path: Path, line: str) -> None:
     for example) does not swallow the line.
     """
     text = path.read_text(encoding="utf-8").rstrip("\n")
-    m = re.search(r"^##[ \t]*ログ[ \t]*$", text, re.MULTILINE)
+    m = LOG_HEADING_RE.search(text)
     if not m:
         path.write_text(f"{text}\n\n## ログ\n\n{line}\n", encoding="utf-8")
         return
@@ -237,6 +243,13 @@ def write_section(path: Path, name: str, text: str, replace: bool) -> None:
     body = "" if replace else doc[m.end() : end].strip()
     merged = f"{body}\n\n{text}".strip() if body else text
     path.write_text(f"{doc[: m.end()]}\n\n{merged}\n\n{doc[end:].lstrip()}".rstrip("\n") + "\n", encoding="utf-8")
+
+
+def tag_list(fm: dict) -> list[str]:
+    """Frontmatter tags as a list. A lone bare tag parses as a string, and a
+    key with no value parses as an empty list."""
+    tags = fm.get("tags") or []
+    return [tags] if isinstance(tags, str) else list(tags)
 
 
 def touch(path: Path) -> None:
@@ -297,7 +310,13 @@ def parse_duration(s: str) -> timedelta:
 
 
 def agent_name(explicit: str | None) -> str:
-    return explicit or os.environ.get("IT_AGENT") or f"{socket.gethostname()}-{os.getpid()}"
+    """--agent, then $IT_AGENT, then the working directory name.
+
+    A pid would differ on every invocation, so it could never answer "what is
+    this agent holding right now". One task per worktree makes the working
+    directory name line up with whoever is working.
+    """
+    return explicit or os.environ.get("IT_AGENT") or Path.cwd().name
 
 
 # --------------------------------------------------------------------------
@@ -307,14 +326,16 @@ def agent_name(explicit: str | None) -> str:
 
 def summarize(status: str, path: Path) -> dict:
     fm, _, body = parse(path)
-    tags = fm.get("tags") or []
-    if isinstance(tags, str):
-        tags = [tags]
+    tags = tag_list(fm)
+    # A hand-edited `priority:` written as a YAML list parses to a list, which
+    # sort_key cannot hash. Degrade to blank here; cmd_check reads the raw
+    # frontmatter and still reports it.
+    priority = fm.get("priority")
     return {
         "id": path.stem,
         "status": status,
         "title": fm.get("title", path.stem),
-        "priority": fm.get("priority") or "",
+        "priority": priority if isinstance(priority, str) else "",
         "tags": tags,
         "hold": "hold" in tags,
         "owner": fm.get("owner") or "",
@@ -327,13 +348,26 @@ def summarize(status: str, path: Path) -> dict:
 
 
 def sort_key(item: dict) -> tuple:
-    return (PRIORITY_ORDER.get(item["priority"], 1), item["id"])
+    """Order by status group, then priority, then id.
+
+    A blank priority sorts with med rather than below low: triage infers one
+    for it later, so it is unranked, not deprioritized.
+    """
+    return (STATUS_ORDER.get(item["status"], len(STATUS_ORDER)), PRIORITY_ORDER.get(item["priority"], 1), item["id"])
 
 
 def cmd_list(args, root: Path) -> None:
-    items = [summarize(st, p) for st, p in all_files(root, args.status)]
-    if not args.include_hold and args.status != DONE:
-        items = [i for i in items if not i["hold"]]
+    """Default to inbox + wip; done only when --status done asks for it.
+
+    SKILL.md runs this in its Current state block, so it executes on every
+    invocation. Including done would put the whole archive into context each
+    time, which is what splitting done into year-month directories avoids.
+    """
+    statuses = [args.status] if args.status else [WIP, INBOX]
+    items = [summarize(st, p) for st in statuses for _, p in all_files(root, st)]
+    if not args.include_hold:
+        # hold means "not now" inside inbox; something already claimed stays visible.
+        items = [i for i in items if not (i["status"] == INBOX and i["hold"])]
     items.sort(key=sort_key)
 
     if args.json:
@@ -344,8 +378,9 @@ def cmd_list(args, root: Path) -> None:
         return
     for i in items:
         owner = f" @{i['owner']}" if i["owner"] else ""
+        hold = " [hold]" if i["hold"] else ""
         pri = i["priority"] or "-"
-        print(f"{i['id']}  [{i['status']}] {pri:<4}{owner}  {i['title']}")
+        print(f"{i['id']}  [{i['status']}]{hold} {pri:<4}{owner}  {i['title']}")
         if i["tldr"]:
             print(f"    {i['tldr']}")
 
@@ -394,6 +429,7 @@ def cmd_claim(args, root: Path) -> None:
         set_fields(dst, owner=who, claimed_at=stamp(), updated=today())
         append_log(dst, f"- {today()} claim: {who}")
         print(json.dumps(summarize(WIP, dst), ensure_ascii=False) if args.json else dst)
+        print(GIT_HINT, file=sys.stderr)  # stderr so --json output stays machine-readable
         return
 
     sys.exit("error: claim できる issue がありません")
@@ -415,35 +451,54 @@ def cmd_release(args, root: Path) -> None:
 def cmd_done(args, root: Path) -> None:
     """inbox|wip -> done/YYYY-MM/.
 
-    With --note, writes the note before moving. Move and record are combined
-    into one call because a separate pair of commands could leave only one
-    of the two applied. The note's content can only come from conversation
-    context, so this script never generates it.
+    Releasing hold, writing the note, logging, and moving are one call
+    because a separate sequence of commands could leave only some of them
+    applied. The note's content can only come from conversation context, so
+    this script never generates it -- it only copies what it is handed.
     """
     st, path = find_one(root, args.id)
     if st == DONE:
         sys.exit(f"error: {path.stem} は既に done です")
-    if args.note is not None:
-        text = read_text_arg(None if args.note == "-" else args.note)
+
+    fm, _, _ = parse(path)
+    tags = tag_list(fm)
+    if "hold" in tags:  # closing an issue overrides "not now"
+        set_fields(path, tags="[" + ", ".join(t for t in tags if t != "hold") + "]")
+        append_log(path, f"- {today()} unhold: done に向けて解除")
+
+    text = read_text_arg(None if args.note == "-" else args.note) if args.note is not None else ""
+    if text.strip():
         write_section(path, args.section, text, replace=False)
+    # Logged whether or not a note was given, so the closing shows up in the
+    # timeline like claim / release / reap do. The headline is the note's own
+    # first line, not a generated summary of it.
+    headline = text.split("\n", 1)[0].strip()
+    append_log(path, f"- {today()} done: {headline}" if headline else f"- {today()} done")
+
     dst = bucket(root, DONE) / datetime.now().strftime("%Y-%m") / path.name
     if not move(path, dst):
         sys.exit("error: 移動に失敗しました")
     set_fields(dst, owner=None, claimed_at=None, updated=today())
     print(dst)
+    print(GIT_HINT, file=sys.stderr)
 
 
 def cmd_reap(args, root: Path) -> None:
     """Return abandoned wip issues to inbox.
 
-    Reclaims issues left held by an agent that crashed. Falls back to mtime
-    when claimed_at is missing (i.e. the agent crashed mid-claim).
+    Reclaims issues left held by an agent that crashed. Staleness is the
+    later of claimed_at and mtime: log / note / set all rewrite updated and
+    so move mtime, and an agent still recording progress must not be
+    reclaimed out from under itself. mtime alone covers a crash mid-claim,
+    where claimed_at was never written.
     """
     limit = datetime.now() - parse_duration(args.stale)
     reaped = []
     for _, path in all_files(root, WIP):
         fm, _, _ = parse(path)
-        at = parse_stamp(fm.get("claimed_at", "")) or datetime.fromtimestamp(path.stat().st_mtime)
+        claimed = parse_stamp(fm.get("claimed_at", ""))
+        mtime = datetime.fromtimestamp(path.stat().st_mtime)
+        at = max(claimed, mtime) if claimed else mtime
         if at > limit:
             continue
         if args.dry_run:
@@ -468,7 +523,8 @@ def cmd_new(args, root: Path) -> None:
 
     id = YYYYMMDD-slug. Same-day slug collisions get -2, -3 suffixes.
     Collision checking is done here rather than by the LLM to avoid extra
-    Read calls.
+    Read calls. --body writes the whole body in the same call, so nothing
+    else has to rewrite the frontmatter this just produced.
     """
     slug = re.sub(r"[^a-z0-9-]+", "-", args.slug.lower()).strip("-")
     if not slug:
@@ -482,25 +538,32 @@ def cmd_new(args, root: Path) -> None:
             break
         issue_id = f"{base}-{n}"
 
-    tpl_path = Path(args.template).expanduser() if args.template else None
+    tpl_path = Path(args.template).expanduser() if args.template else TEMPLATE_PATH
+    if not tpl_path.exists():
+        sys.exit(f"error: テンプレートが見つかりません: {tpl_path}")
+    text = tpl_path.read_text(encoding="utf-8")
     title = json.dumps(args.title, ensure_ascii=False)  # quoted so a "#" in it isn't read as a comment
-    if tpl_path and tpl_path.exists():
-        text = tpl_path.read_text(encoding="utf-8")
-        for k, v in {"{id}": issue_id, "{title}": title, "{created}": today(), "{updated}": today()}.items():
-            text = text.replace(k, v)
-    else:
-        text = (
-            f"---\nid: {issue_id}\ntitle: {title}\n"
-            f"created: {today()}\nupdated: {today()}\n"
-            f"priority: {args.priority or ''}\ntags: []\nrelated: []\n---\n\n"
-            f"## TL;DR\n\n## 結論 / プラン\n\n## 調査結果\n\n## 未解決の論点\n\n## ログ\n"
-        )
+    for k, v in {"{id}": issue_id, "{title}": title, "{created}": today(), "{updated}": today()}.items():
+        text = text.replace(k, v)
+
+    if args.body is not None:
+        # Keep the frontmatter this just filled in and replace only what follows,
+        # so the caller never has to rewrite `---` blocks by hand.
+        m = FM_RE.match(text)
+        if not m:
+            sys.exit(f"error: テンプレートに frontmatter がありません: {tpl_path}")
+        body = read_text_arg(None if args.body == "-" else args.body)
+        text = f"---\n{m.group(1)}\n---\n\n{body.strip()}\n"
 
     dst = bucket(root, INBOX) / f"{issue_id}.md"
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(text, encoding="utf-8")
     if args.priority:
         set_fields(dst, priority=args.priority)
+    if args.body is not None and not LOG_HEADING_RE.search(text):
+        # A body given without a log section would leave mtime as the only
+        # trace that the issue was filed.
+        append_log(dst, f"- {today()} created")
     print(dst)
 
 
@@ -535,10 +598,7 @@ def cmd_set(args, root: Path) -> None:
         changes["priority"] = args.priority
 
     if args.add_tag or args.rm_tag:
-        tags = fm.get("tags") or []
-        if isinstance(tags, str):
-            tags = [tags]
-        tags = [t for t in tags if t not in (args.rm_tag or [])]
+        tags = [t for t in tag_list(fm) if t not in (args.rm_tag or [])]
         for t in args.add_tag or []:
             if t not in tags:
                 tags.append(t)
@@ -563,8 +623,8 @@ def cmd_log(args, root: Path) -> None:
 def cmd_note(args, root: Path) -> None:
     """Write into a body section. Appends by default; --replace overwrites.
 
-    Writing the initial body right after filing is more naturally done with
-    Write, so this is meant for adding findings to an existing issue.
+    The initial body goes in through `new --body`, so this is for adding
+    findings to an issue that already exists.
     """
     _, path = find_one(root, args.id)
     write_section(path, args.section, read_text_arg(args.text), args.replace)
@@ -575,7 +635,9 @@ def cmd_note(args, root: Path) -> None:
 def cmd_check(args, root: Path) -> None:
     """Validate every issue's frontmatter.
 
-    Catches damage from a stray Edit here, before it surfaces during triage.
+    Catches damage from a stray Edit here, before it surfaces during triage,
+    and doubles as the gate for migrating an existing issues/ tree onto this
+    layout.
     """
     bad = []
     for st, path in all_files(root):
@@ -588,8 +650,20 @@ def cmd_check(args, root: Path) -> None:
                 bad.append(f"{path}: {key} がありません")
         if fm.get("id") and fm["id"] != path.stem:
             bad.append(f"{path}: id ({fm['id']}) がファイル名と一致しません")
+        # An unset priority parses as [] (a valueless key assumes a block list follows).
+        pri = fm.get("priority")
+        if pri and pri not in VALID_PRIORITIES:
+            bad.append(f"{path}: priority が不正です: {pri}（{'|'.join(VALID_PRIORITIES)} か空）")
+        for t in tag_list(fm):
+            if not TAG_RE.fullmatch(t):
+                bad.append(f"{path}: tag が不正です: {t}")
         if st == WIP and not fm.get("owner"):
             bad.append(f"{path}: wip なのに owner がありません")
+        if st != WIP:
+            # Key presence, not truthiness: a leftover `owner:` with no value parses as [].
+            for key in ("owner", "claimed_at"):
+                if key in fm:
+                    bad.append(f"{path}: {st} なのに {key} が残っています")
 
     if bad:
         print("\n".join(bad))
@@ -602,10 +676,18 @@ def cmd_init(args, root: Path) -> None:
 
     Reusing the upward-search logic for init would grab a parent's issues/
     if one exists, creating it somewhere other than where the caller meant.
+    A parent copy is reported instead, because that is the one every other
+    subcommand would have resolved to from here.
     """
     for name in (INBOX, WIP, DONE):
         (root / name).mkdir(parents=True, exist_ok=True)
     print(f"initialized: {root}")
+    for d in Path.cwd().resolve().parents:
+        if (d / ROOT_NAME / INBOX).is_dir():
+            print(
+                f"warning: 上位にも {d / ROOT_NAME} があります。置き場所が意図どおりか確認してください", file=sys.stderr
+            )
+            break
 
 
 def cmd_path(args, root: Path) -> None:
@@ -637,7 +719,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("slug")
     sp.add_argument("--title", required=True)
     sp.add_argument("--priority", choices=["high", "med", "low"])
-    sp.add_argument("--template")
+    sp.add_argument("--template", help=f"既定: {TEMPLATE_PATH}")
+    sp.add_argument("--body", nargs="?", const="-", help="本文（frontmatter 以降）。値を省くと標準入力から読む")
 
     sp = add("claim", cmd_claim, "inbox → wip（原子的に着手する）")
     sp.add_argument("--id", help="省略時は優先度順に自動で選ぶ")
@@ -650,8 +733,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = add("done", cmd_done, "→ done/YYYY-MM/")
     sp.add_argument("id")
-    sp.add_argument("--note", nargs="?", const="-", help="決着メモ。値を省くと標準入力から読む")
-    sp.add_argument("--section", default="決着", help="決着メモを書く節の名前")
+    sp.add_argument("--note", nargs="?", const="-", help="完了メモ。値を省くと標準入力から読む")
+    sp.add_argument("--section", default="完了メモ", help="完了メモを書く節の名前")
 
     sp = add("set", cmd_set, "frontmatter を書き換える")
     sp.add_argument("id")
