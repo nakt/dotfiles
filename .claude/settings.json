@@ -227,7 +227,7 @@
       "autoUpdate": true
     }
   },
-  "outputStyle": "Concise",
+  "outputStyle": "Concise Polite",
   "language": "japanese",
   "sandbox": {
     "enabled": false
