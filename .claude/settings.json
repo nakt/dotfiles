@@ -240,5 +240,7 @@
   "skipWorkflowUsageWarning": true,
   "editorMode": "vim",
   "verbose": false,
-  "agentPushNotifEnabled": true
+  "remoteControlAtStartup": false,
+  "agentPushNotifEnabled": true,
+  "advisorModel": "fable"
 }
