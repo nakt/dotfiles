@@ -16,8 +16,8 @@ same filesystem and fails when the source is gone, so double-claims are
 prevented without a lock file.
 
 State is represented by directory (inbox / wip / done). owner and claimed_at
-are kept in frontmatter, but since they record "who, when" rather than
-state, this isn't the same kind of double bookkeeping.
+are kept in frontmatter, but they record "who, when" rather than state,
+so it isn't duplicate state tracking.
 """
 
 from __future__ import annotations
@@ -92,14 +92,49 @@ def find_one(root: Path, key: str) -> tuple[str, Path]:
 # --------------------------------------------------------------------------
 
 FM_RE = re.compile(r"\A---\n(.*?)\n---\n?(.*)\Z", re.DOTALL)
+# Shared by parse and set_fields on purpose: reading and deleting block-style
+# continuation lines must agree, or set_fields leaves orphans behind.
+BLOCK_ITEM_RE = re.compile(r"^\s+- ")
+
+
+def strip_comment(val: str) -> str:
+    """Strip a YAML trailing comment (whitespace, then `#`).
+
+    Quoted values are returned untouched -- a `#` inside quotes is part of the
+    value. Requiring leading whitespace keeps `#` inside a bare value (a URL
+    fragment, for instance) out of the match.
+    """
+    if val[:1] in ('"', "'"):
+        return val
+    return re.sub(r"(^|\s+)#.*$", "", val).strip()
+
+
+def read_scalar(val: str) -> str:
+    """Decode a scalar value.
+
+    `title` is written as a JSON string by `it new` / `it set` to keep a `#`
+    in it out of comment stripping, so a value starting with `"` is read back
+    with json. raw_decode rather than loads: strip_comment leaves a
+    trailing comment attached to a quoted value, and raw_decode ignores
+    whatever follows the string. Everything else is a bare value.
+    """
+    if val.startswith('"'):
+        try:
+            decoded, _ = json.JSONDecoder().raw_decode(val)
+            if isinstance(decoded, str):
+                return decoded
+        except ValueError:
+            pass
+    return val.strip("'\"")
 
 
 def parse(path: Path) -> tuple[dict, str, str]:
     """Return (frontmatter dict, raw frontmatter text, body).
 
-    No YAML library (keeps dependencies at zero). Only needs to read the two
-    forms this skill uses: `key: value`, and block/inline lists for
-    tags / related. Writes go back line by line, so unparsed lines survive.
+    No YAML library (keeps dependencies at zero). Only needs to read the three
+    forms this skill uses: `key: value`, and inline or block lists for
+    tags / related / sources. Trailing comments are stripped from unquoted
+    values. Writes go back line by line, so unparsed lines survive.
     """
     text = path.read_text(encoding="utf-8")
     m = FM_RE.match(text)
@@ -110,18 +145,22 @@ def parse(path: Path) -> tuple[dict, str, str]:
     data: dict = {}
     key = None
     for line in raw.split("\n"):
-        if line.startswith("  - ") and key:  # block-style list
-            data.setdefault(key, []).append(line[4:].strip())
+        if not line.strip():  # a blank line ends a block, as it does for set_fields
+            key = None
+            continue
+        if key and BLOCK_ITEM_RE.match(line):  # block-style list
+            if isinstance(data.get(key), list):
+                data[key].append(strip_comment(line.lstrip()[1:].strip()))
             continue
         if ":" not in line:
             continue
         key, _, val = line.partition(":")
-        key, val = key.strip(), val.strip()
+        key, val = key.strip(), strip_comment(val.strip())
         if val.startswith("[") and val.endswith("]"):  # inline-style list
             items = [x.strip().strip("'\"") for x in val[1:-1].split(",")]
             data[key] = [x for x in items if x]
         elif val:
-            data[key] = val.strip("'\"")
+            data[key] = read_scalar(val)
         else:
             data[key] = []  # assume a list follows
     return data, raw, body
@@ -132,7 +171,9 @@ def set_fields(path: Path, **fields) -> None:
 
     Never regenerates the whole file, so comments, key order, and any
     notation this parser doesn't understand survive untouched. Pass None
-    for a value to delete that line.
+    for a value to delete the key line. Block-style continuation lines that
+    follow the key line go with it -- left behind, the next parse would read
+    the old items back in and duplicate them.
     """
     text = path.read_text(encoding="utf-8")
     m = FM_RE.match(text)
@@ -143,34 +184,46 @@ def set_fields(path: Path, **fields) -> None:
     for key, val in fields.items():
         pat = re.compile(rf"^{re.escape(key)}\s*:")
         idx = next((i for i, ln in enumerate(lines) if pat.match(ln)), None)
-        if val is None:
-            if idx is not None:
-                del lines[idx]
-        elif idx is not None:
-            lines[idx] = f"{key}: {val}"
-        else:
-            lines.append(f"{key}: {val}")
+        if idx is None:
+            if val is not None:
+                lines.append(f"{key}: {val}")
+            continue
+        end = idx + 1
+        while end < len(lines) and BLOCK_ITEM_RE.match(lines[end]):
+            end += 1
+        lines[idx:end] = [] if val is None else [f"{key}: {val}"]
 
     path.write_text("---\n" + "\n".join(lines) + "\n---\n" + m.group(2), encoding="utf-8")
 
 
 def append_log(path: Path, line: str) -> None:
-    """Append one line to the end of the log section, creating it if absent."""
+    """Insert one line at the end of the log section, creating the section at
+    the end of the file when it is absent.
+
+    The insertion point is just before the next `## ` heading rather than the
+    end of the file, so a section written after the log (a completion note,
+    for example) does not swallow the line.
+    """
     text = path.read_text(encoding="utf-8").rstrip("\n")
-    if re.search(r"^##[ \t]*ログ[ \t]*$", text, re.MULTILINE):
-        if text.endswith("## ログ"):
-            text += "\n"  # blank line after the heading only when the section is still empty
-        text += f"\n{line}\n"
-    else:
-        text += f"\n\n## ログ\n\n{line}\n"
-    path.write_text(text, encoding="utf-8")
+    m = re.search(r"^##[ \t]*ログ[ \t]*$", text, re.MULTILINE)
+    if not m:
+        path.write_text(f"{text}\n\n## ログ\n\n{line}\n", encoding="utf-8")
+        return
+
+    nxt = re.search(r"^##\s", text[m.end() :], re.MULTILINE)
+    end = (m.end() + nxt.start()) if nxt else len(text)
+    section = text[m.end() : end].rstrip()  # keeps the newlines after the heading
+    body = f"{section}\n{line}" if section else f"\n\n{line}"  # blank line when still empty
+    tail = text[end:].strip("\n")
+    path.write_text(text[: m.end()] + body + (f"\n\n{tail}\n" if tail else "\n"), encoding="utf-8")
 
 
 def write_section(path: Path, name: str, text: str, replace: bool) -> None:
-    """Append to the given `## ` section (replace=True overwrites it instead).
+    """Append to the given `## <name>` section (replace=True overwrites it).
 
-    Creates the section at the end if missing. Never inserts before the log
-    section -- ordering logic like that is hard to debug once it breaks.
+    An existing section is edited in place; a missing one is created at the
+    end of the file, which puts it after the log section. append_log knows
+    about that and still writes inside the log section.
     """
     doc = path.read_text(encoding="utf-8").rstrip("\n")
     pat = re.compile(rf"^(##[ \t]*{re.escape(name)}[ \t]*)$", re.MULTILINE)
@@ -195,10 +248,12 @@ def touch(path: Path) -> None:
 def tldr(body: str) -> str:
     """First non-blank line of the TL;DR section, or "" if it's empty.
 
-    Lets triage skip reading the whole file. Always stops at the next
-    heading -- otherwise an empty TL;DR would fall through and pick up
-    content from a later section (e.g. the log).
+    Lets triage skip reading the whole file. HTML comments are dropped
+    first so a template placeholder is not mistaken for content. Always
+    stops at the next heading -- otherwise an empty TL;DR would fall through
+    and pick up content from a later section (e.g. the log).
     """
+    body = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
     m = re.search(r"^##\s*TL;?DR.*$", body, re.MULTILINE | re.IGNORECASE)
     tail = body[m.end() :] if m else body
     for line in tail.split("\n"):
@@ -428,13 +483,14 @@ def cmd_new(args, root: Path) -> None:
         issue_id = f"{base}-{n}"
 
     tpl_path = Path(args.template).expanduser() if args.template else None
+    title = json.dumps(args.title, ensure_ascii=False)  # quoted so a "#" in it isn't read as a comment
     if tpl_path and tpl_path.exists():
         text = tpl_path.read_text(encoding="utf-8")
-        for k, v in {"{id}": issue_id, "{title}": args.title, "{created}": today(), "{updated}": today()}.items():
+        for k, v in {"{id}": issue_id, "{title}": title, "{created}": today(), "{updated}": today()}.items():
             text = text.replace(k, v)
     else:
         text = (
-            f"---\nid: {issue_id}\ntitle: {args.title}\n"
+            f"---\nid: {issue_id}\ntitle: {title}\n"
             f"created: {today()}\nupdated: {today()}\n"
             f"priority: {args.priority or ''}\ntags: []\nrelated: []\n---\n\n"
             f"## TL;DR\n\n## 結論 / プラン\n\n## 調査結果\n\n## 未解決の論点\n\n## ログ\n"
@@ -474,7 +530,7 @@ def cmd_set(args, root: Path) -> None:
 
     changes: dict = {}
     if args.title:
-        changes["title"] = args.title
+        changes["title"] = json.dumps(args.title, ensure_ascii=False)
     if args.priority:
         changes["priority"] = args.priority
 
