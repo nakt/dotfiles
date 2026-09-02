@@ -81,10 +81,17 @@ def all_files(root: Path, status: str | None = None) -> list[tuple[str, Path]]:
 
 
 def find_one(root: Path, key: str) -> tuple[str, Path]:
-    """Resolve to exactly one issue by exact id match, falling back to a prefix match."""
+    """Resolve to exactly one issue by exact id match, falling back to a prefix match.
+
+    all_files scans the buckets in turn, so a claim landing mid-scan can list
+    the same issue under both its old and its new bucket. Dropping entries that
+    have since moved keeps that race from being reported as an ambiguous id.
+    """
     hits = [(st, p) for st, p in all_files(root) if p.stem == key]
     if not hits:
         hits = [(st, p) for st, p in all_files(root) if p.stem.startswith(key)]
+    if len(hits) > 1:
+        hits = [(st, p) for st, p in hits if p.exists()]
     if not hits:
         sys.exit(f"error: {key} に一致する issue がありません")
     if len(hits) > 1:

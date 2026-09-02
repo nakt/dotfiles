@@ -21,8 +21,8 @@ allowed-tools:
 
 ## Current state
 
-- issues: !`uv run --script ~/.claude/skills/issue-tracker/scripts/it.py path 2>&1`
-- 一覧: !`uv run --script ~/.claude/skills/issue-tracker/scripts/it.py list --include-hold 2>&1`
+- issues: !`uv run --script ~/.claude/skills/issue-tracker/scripts/it.py path 2>&1 || true`
+- 一覧: !`uv run --script ~/.claude/skills/issue-tracker/scripts/it.py list --include-hold 2>&1 || true`
 - Today: !`date +%Y%m%d`
 
 一覧は各 issue の frontmatter と TL;DR 1 行だけを返す。既定で wip → inbox の順に並び、done は含まない（done を見るときだけ `--status done` を明示する）。`@<owner>` が付いているものが着手中、`[hold]` が付いているものが保留。issues 行に「見つかりません」と出ていれば `issues/` は未作成。
