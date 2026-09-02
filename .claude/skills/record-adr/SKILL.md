@@ -19,7 +19,8 @@ allowed-tools:
 
 # Record ADR
 
-設計・ロジック判断の決定記録(ADR: Architecture Decision Record)を起票する。技術選定に限らず、処理フロー・アルゴリズム選択・データモデル・API 設計、および検証・実験から得た方針の「何を決めたか」と「なぜか」を append-only で残す。
+設計・ロジック判断の決定記録(ADR: Architecture Decision Record)を起票する。
+技術選定に限らず、処理フロー・アルゴリズム選択・データモデル・API 設計、および検証・実験から得た方針の「何を決めたか」と「なぜか」を append-only で残す。
 
 ## Current state
 
@@ -29,14 +30,17 @@ allowed-tools:
 
 ## モード判定
 
-Deprecated 化モードだけは Current state のシェル実行結果では判定できない。既存 ADR を対象とする以上 docs/adr exists は必ず `yes` になり、機械的に分けると追記モードに落ちるため、判定材料は依頼内容側にしかない。そこで次の順で判定する。
+Deprecated 化モードだけは Current state のシェル実行結果では判定できない。
+既存 ADR を対象とする以上 docs/adr exists は必ず `yes` になり、機械的に分けると追記モードに落ちるため、判定材料は依頼内容側にしかない。
+そこで次の順で判定する。
 
 1. Deprecated 化モード: 依頼が既存 ADR を後継方針なしで無効化するもの(「この決定はもうやめた」「対象の機能ごと廃止した」など、代わりの方針を新しく立てない依頼)の場合
 2. それ以外は従来どおり Current state の docs/adr exists で分ける
    - 初期化モード: `no` の場合
    - 追記モード: `yes` の場合
 
-引数(`$ARGUMENTS`)は初期化モード / 追記モードでは起票する決定のタイトルとして扱う。Deprecated 化モードは起票を行わないため引数をタイトルとしては使わず、対象 ADR は Deprecated 化モードの手順 1 で特定する(依頼文に番号やファイル名があればそれを手掛かりにする)。
+引数(`$ARGUMENTS`)は初期化モード / 追記モードでは起票する決定のタイトルとして扱う。
+Deprecated 化モードは起票を行わないため引数をタイトルとしては使わず、対象 ADR は Deprecated 化モードの手順 1 で特定する(依頼文に番号やファイル名があればそれを手掛かりにする)。
 
 ## 初期化モード
 
@@ -49,7 +53,8 @@ Deprecated 化モードだけは Current state のシェル実行結果では判
 
 `docs/adr/` 直下に template.md は置かない(ADR 一覧のノイズを避ける)。
 
-引数(`$ARGUMENTS`)でタイトルが渡されている場合は、初期化後そのまま追記モードへ進み 0002 を起票する。引数がなければ初期化のみで完了報告する。
+引数(`$ARGUMENTS`)でタイトルが渡されている場合は、初期化後そのまま追記モードへ進み 0002 を起票する。
+引数がなければ初期化のみで完了報告する。
 
 ## 追記モード
 
@@ -70,7 +75,7 @@ Deprecated 化モードだけは Current state のシェル実行結果では判
    - status はテンプレート既定の `Accepted` のまま起票する(status は `Accepted` / `Superseded` / `Deprecated` の 3 値。`Superseded` は手順 6 で後継 ADR を伴って既存 ADR を置き換えるときに、`Deprecated` は Deprecated 化モードで後継方針なしに無効化するときにのみ使う)
    - 対話で Context / Decision / Rationale / Consequences を埋める。検証・実験に基づく決定なら Rationale に実測値や比較を具体的に書く。Alternatives がなければ削除してよい
    - 検証・実験で使った `.workspace/` の一時ファイルは参照せず、根拠となる実測値・比較結果を Rationale 本文に転記する(`.workspace/` は使い捨てのため)
-   - 本文の各段落は 1 段落 1 行で書く。途中でハードラップしない
+   - 本文の段落は 1 文 1 行にする。文の途中では折らない
 5. `docs/adr/README.md` の一覧テーブルを再生成する
    - 既存の `docs/adr/README.md` を Read で読み込み、既存行の「サマリ」列の文言を把握する
    - 全 ADR のフロントマター status と H1 タイトルを以下で収集する
@@ -92,7 +97,8 @@ Deprecated 化モードだけは Current state のシェル実行結果では判
 
 ## Deprecated 化モード
 
-後継方針のない決定を無効化する。新規 ADR の起票と採番は行わない。
+後継方針のない決定を無効化する。
+新規 ADR の起票と採番は行わない。
 
 1. 対象 ADR を特定する
    - `docs/adr/README.md` の一覧で Status が `Accepted` の行から候補を挙げ、複数あれば番号でユーザーに確認する
@@ -105,10 +111,11 @@ Deprecated 化モードだけは Current state のシェル実行結果では判
    - 本文の最終節として追記し、既存の節は書き換えない
    - 見出し直下に 1 段落でやめた理由を書き、後継方針がないことを明記する
    - 日付は本文に書かず `deprecated_date` のみで表す
-   - 段落は 1 段落 1 行で書く。途中でハードラップしない
+   - 段落は 1 文 1 行にする。文の途中では折らない
 4. `docs/adr/README.md` を更新する
    - 一覧テーブルを再生成する。手順は追記モードの手順 5 と同じで、`status: Deprecated` も同じ grep でそのまま拾える
    - 「運用」セクションが `Deprecated` や `## Deprecation` に触れていない旧記述のままなら、`~/.claude/skills/record-adr/templates/readme.md` を Read し、現行の「運用」セクションの記述へ更新する
 5. Deprecated 化の結果を報告する
 
-status の遷移は `Accepted` からの一方向のみで、`Superseded` / `Deprecated` からの逆行と横移動はしない。Deprecated 化の後に後継方針が出てきた場合は追記モードで新規 ADR を起票し、旧 ADR は `Deprecated` のまま残す。
+status の遷移は `Accepted` からの一方向のみで、`Superseded` / `Deprecated` からの逆行と横移動はしない。
+Deprecated 化の後に後継方針が出てきた場合は追記モードで新規 ADR を起票し、旧 ADR は `Deprecated` のまま残す。
