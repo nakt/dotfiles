@@ -37,7 +37,7 @@ VALID_PRIORITIES = tuple(PRIORITY_ORDER)
 # wip first so triage sees what is already in hand before the backlog.
 STATUS_ORDER = {WIP: 0, INBOX: 1, DONE: 2}
 TAG_RE = re.compile(r"[a-z0-9-]+")
-TEMPLATE_PATH = Path(__file__).parent / "templates" / "issue-template.md"
+TEMPLATE_PATH = Path(__file__).parent.parent / "templates" / "issue-template.md"
 GIT_HINT = "hint: git add -A issues/ でステージしてください（移動元の削除と移動先の追加は対で扱う）"
 
 
