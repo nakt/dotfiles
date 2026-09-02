@@ -9,6 +9,7 @@ allowed-tools:
   - Edit
   - Bash(uv run --script ~/.claude/skills/issue-tracker/scripts/it.py:*)
   - Bash(date:*)
+  - Bash(git check-ignore:*)
 ---
 
 # Issue Tracker
@@ -31,7 +32,7 @@ allowed-tools:
 
 - 実行するコマンドは常に `uv run --script ~/.claude/skills/issue-tracker/scripts/it.py <サブコマンド>` の完全形で書く。 以下の説明文に出てくる `it` はこの完全形の略記で、そのまま実行しない。Bash の許可はコマンド文字列の前方一致で判定されるため、略記や `cd ... &&` のような前置きを付けると許可にマッチせず毎回確認を求められる。
 - 長い散文（本文・完了メモ・ログ）は引数ではなく標準入力で渡す。 ヒアドキュメントの区切りは必ずクォートする（`<<'EOF'`）。issue の本文にはバッククォートや `$` が入るため、クォートしないとシェルが展開する。
-- issue の移動を伴う操作（`claim` / `release` / `done` / `reap`）の後は、コミット時に `git add -A issues/` で移動元の削除と移動先の追加を対にしてステージする。 `commit` スキルは `git status --short` を見て選択的にステージするため、対にしないと片方だけがコミットに乗る。`claim` と `done` は同じ案内を標準エラーに出す（`--json` 出力を壊さないため。出力例を採るときは `2>&1` が要る）。このスキル自身は git を実行しない。
+- issue の移動を伴う操作（`claim` / `release` / `done` / `reap`）の後は、コミット時に `git add -A issues/` で移動元の削除と移動先の追加を対にしてステージする。 `commit` スキルは `git status --short` を見て選択的にステージするため、対にしないと片方だけがコミットに乗る。`claim` と `done` は同じ案内を標準エラーに出す（`--json` 出力を壊さないため。出力例を採るときは `2>&1` が要る）。このスキル自身はコミットもステージもしない（初期化時の `git check-ignore` だけが例外で、これは読み取り専用）。
 - `it` は判断をしない。 何を起票するか・どれが優先か・完了したか・メモに何を書くかは、すべてこのスキルが決めて渡す。
 
 ## モード判定
@@ -54,6 +55,14 @@ uv run --script ~/.claude/skills/issue-tracker/scripts/it.py init
 ```
 
 カレントディレクトリに `issues/{inbox,wip,done}` を作る。上位への遡り探索を打ち切ってカレントに作るのが要点で、そうしないと親に `issues/` があるとき別の場所を掴む。上位にも `issues/` があれば警告が出るので、置き場所が意図どおりか確認する。
+
+作った直後に、そのリポジトリで `issues/` が追跡対象になっているかを確かめる。 global の `core.excludesFile` が `issues/` を無視しているため、リポジトリ側で打ち消していないと issue が git に乗らず、`git add -A issues/` も「ignored」で失敗する。決着の記録が PR の差分に残ることがこの置き場所を選んでいる理由なので、無視されていたらリポジトリの `.gitignore` に `!issues/` を足す。
+
+```bash
+git check-ignore -v issues/inbox
+```
+
+何か出力されれば無視されている（何も出なければ追跡対象）。
 
 `issues/research/` は調査ログが巨大化したとき初めて作る。最初から空ディレクトリは作らない。索引ファイル（`issues/README.md` 等）は常設しない（陳腐化するため。必要時に triage でその場生成するに留める）。
 
