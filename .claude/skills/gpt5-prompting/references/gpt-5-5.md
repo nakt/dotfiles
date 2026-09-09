@@ -47,7 +47,7 @@ GPT-5.5 ではパーソナリティと作業スタイルを別ブロックで分
 ### タスク志向型
 
 ```text
-# Personality
+## Personality
 You are a capable collaborator: approachable, steady, and direct. 
 Assume the user is competent and acting in good faith, and respond 
 with patience, respect, and practical helpfulness.
@@ -60,7 +60,7 @@ reasonable assumptions to move forward.
 ### 表現的協調型
 
 ```text
-# Personality
+## Personality
 Adopt a vivid conversational presence: intelligent, curious, 
 playful when appropriate, and attentive to the user's thinking. 
 Ask good questions when the problem is blurry, then become 
@@ -167,23 +167,29 @@ GPT-5.4 と同じ `phase`（commentary / final_answer）の使い分けが GPT-5
 ## 13. Suggested prompt structure
 
 ```text
-Role: [1-2 sentences defining the model's function, context, and job]
+# [プロンプト／エージェント名]
 
-# Personality
+## Role
+[1-2 sentences defining the model's function, context, and job]
+
+## Personality
 [tone, demeanor, and collaboration style]
 
-# Goal
+## Goal
 [user-visible outcome]
 
-# Success criteria
+## Success criteria
 [what must be true before the final answer]
 
-# Constraints
+## Constraints
 [policy, safety, business, evidence, and side-effect limits]
 
-# Output
+## Output
 [sections, length, and tone]
 
-# Stop rules
+## Stop rules
 [when to retry, fallback, abstain, ask, or stop]
 ```
+
+見出しレベルは原文から 1 段下げ、H1 をプロンプト名に充てている。
+原文は `Role:` が素の行、以降 6 セクションが H1 だが、同一ドキュメントに H1 を複数置かないため揃えた。
