@@ -3,8 +3,48 @@
 # gh pr create 前に、コード変更を見て docs/arch / docs/adr の更新・起票を促す。
 # 発火は gh pr create 時の 1 回のみ。PR 作成後の追加 push は捕捉しない（1 PR = 1 回の促しに抑えるための意図的な設計）。
 # どちらのディレクトリも無ければ何もしない。
+# settings.json 側の if フィルタに依存せず、発火判定はここで完結させる。
+# コストの低い順（文字列判定 → ディレクトリ存在チェック → jq）に判定する。
+
+# stdin の JSON は一度だけ読む。
+input=$(cat)
+
+# gh pr create という語順で一致する可能性が無い入力（gh を含まない入力を含む）は
+# jq を呼ぶ前に安価な文字列判定で弾く。トークンがこの順に現れるなら、その文字列自体も
+# 必ずこの順の部分文字列として現れるため、この判定で正しい一致を取りこぼすことはない。
+case "$input" in
+  *gh*pr*create*) ;;
+  *) exit 0 ;;
+esac
 
 if [ ! -d "docs/arch" ] && [ ! -d "docs/adr" ]; then
+  exit 0
+fi
+
+# tool_input.command を取り出す。
+COMMAND=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
+
+if [ -z "$COMMAND" ]; then
+  exit 0
+fi
+
+# gh pr create がこの順の語（トークン）として現れる場合のみ処理を続ける。
+# 語の間に他のトークン（cd sub && ... やグローバルフラグ等）が入るのは許容する。
+# unquoted な単語分割でパス名展開が起きないよう、走査中だけ noglob にする。
+GH_PR_CREATE=0
+STATE=0
+set -f
+for TOKEN in $COMMAND; do
+  case "$STATE" in
+    0) [ "$TOKEN" = "gh" ] && STATE=1 ;;
+    1) [ "$TOKEN" = "pr" ] && STATE=2 ;;
+    2) [ "$TOKEN" = "create" ] && STATE=3 ;;
+  esac
+done
+set +f
+[ "$STATE" -eq 3 ] && GH_PR_CREATE=1
+
+if [ "$GH_PR_CREATE" -ne 1 ]; then
   exit 0
 fi
 
@@ -23,7 +63,7 @@ if [ -z "$RANGE" ]; then
 fi
 
 # 範囲内のコード系ファイルの変更を抽出
-CODE_EXTENSIONS="ts|tsx|js|jsx|py|go|rs|java|rb|php|swift|kt"
+CODE_EXTENSIONS="ts|tsx|js|jsx|py|go|rs|java|rb|php|swift|kt|sh|bash|zsh|vim|lua|tf|sql"
 CHANGED_CODE=$(git diff "$RANGE" --name-only 2>/dev/null | grep -E "\.($CODE_EXTENSIONS)$")
 
 if [ -z "$CHANGED_CODE" ]; then
