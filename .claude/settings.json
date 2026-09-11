@@ -92,6 +92,7 @@
       "Bash(gh pr merge *)"
     ]
   },
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -234,6 +235,7 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
+  "advisorModel": "fable",
   "plansDirectory": ".claude/plans",
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
@@ -241,6 +243,5 @@
   "editorMode": "vim",
   "verbose": false,
   "remoteControlAtStartup": false,
-  "agentPushNotifEnabled": true,
-  "advisorModel": "fable"
+  "agentPushNotifEnabled": true
 }
