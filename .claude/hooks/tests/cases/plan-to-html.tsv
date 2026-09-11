@@ -1,0 +1,21 @@
+# plan-to-html.sh: only a .md under .claude/plans/ is turned into HTML.
+#
+# Format: <expect>TAB<tool>TAB<cwd>TAB<payload>
+#   expect   `|` separated .html paths relative to the fixture root that must
+#            exist after the call, or `-` when no HTML may be produced
+#   tool     the tool_name put in the JSON
+#   cwd      directory put in the JSON, relative to the fixture root (`.` = root)
+#   payload  tool_input.command for Bash, tool_input.file_path otherwise
+#
+# Fields are separated by a single TAB; `-` stands in for an empty field.
+# In the payload, \n becomes a newline, \t a tab and @FX@ the fixture root.
+# Generated HTML is removed and the fixtures are re-touched before every case.
+
+.claude/plans/p1.html	Write	.	@FX@/.claude/plans/p1.md
+.claude/plans/p1.html	Edit	.	@FX@/.claude/plans/p1.md
+.claude/plans/p1.html	Bash	.	cat > .claude/plans/p1.md <<'EOF'\n# Plan One\n\nbody text\nEOF
+-	Write	.	@FX@/docs/other.md
+-	Bash	.	cat > docs/other.md <<'EOF'\n# Other\n\nbody text\nEOF
+-	Bash	.	git checkout -- .claude/plans/p1.md
+-	Bash	.	cat .claude/plans/p1.md
+-	Read	.	@FX@/.claude/plans/p1.md

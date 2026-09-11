@@ -1,0 +1,44 @@
+# lint-markdown.sh: PostToolUse feedback for a Markdown file that was written.
+#
+# Format: <exit>TAB<stderr>TAB<tool>TAB<cwd>TAB<payload>
+#   exit     expected exit status: 0 for silence, 2 for feedback
+#   stderr   `|` separated substrings that must appear in stderr, or `-` when
+#            stderr has to stay empty
+#   tool     the tool_name put in the JSON
+#   cwd      directory put in the JSON, relative to the fixture root (`.` = root)
+#   payload  tool_input.command for Bash, tool_input.file_path otherwise
+#
+# Fields are separated by a single TAB; `-` stands in for an empty field.
+# In the payload, \n becomes a newline, \t a tab and @FX@ the fixture root.
+#
+# Fixtures: bad1.md violates MD022/MD047, bad2.md violates MD012/MD047,
+# good.md is clean, old.md violates but carries an mtime from 2020, and
+# .claude/plans/p1.md violates but is excluded as a plan file.
+
+# --- a violating .md written through a heredoc reaches exit 2 ---
+2	bad1.md	Bash	.	cat > bad1.md <<'EOF'\n# Bad One\nText right after heading.\nEOF
+0	-	Bash	.	cat > good.md <<'EOF'\n# Good\n\nAll fine here.\nEOF
+
+# --- the other write shapes ---
+2	bad1.md	Bash	.	sed -i '' -e s/x/y/ bad1.md
+2	bad2.md	Bash	.	printf x >> bad2.md
+2	bad1.md|bad2.md	Bash	.	printf x >> bad1.md ; printf x >> bad2.md
+
+# --- nothing was written, so nothing is linted ---
+0	-	Bash	.	cat bad1.md
+0	-	Bash	.	echo hi > note.txt
+0	-	Bash	.	git checkout -- bad1.md
+0	-	Bash	.	git show HEAD:bad1.md > bad1.md
+
+# --- excluded on purpose ---
+0	-	Bash	.	cat > old.md <<'EOF'\n# Old\nNo blank line.\nEOF
+0	-	Bash	.	cat > .claude/plans/p1.md <<'EOF'\n# Plan\nNo blank line.\nEOF
+
+# --- Edit / Write ---
+2	bad1.md	Write	.	@FX@/bad1.md
+2	bad2.md	Edit	.	@FX@/bad2.md
+0	-	Write	.	@FX@/good.md
+0	-	Write	.	@FX@/.claude/plans/p1.md
+0	-	Write	.	@FX@/nope.md
+0	-	Write	.	@FX@/note.txt
+0	-	Read	.	@FX@/bad1.md

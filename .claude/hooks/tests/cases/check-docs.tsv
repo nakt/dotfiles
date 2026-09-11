@@ -1,0 +1,35 @@
+# check-docs.sh: inject a documentation reminder, but only for gh pr create.
+#
+# Format: <expect>TAB<docs>TAB<repo>TAB<command>
+#   expect   fire  = additionalContext is injected
+#            quiet = nothing is printed at all
+#   docs     which directories exist in the sandbox repository for this case:
+#            both | arch | adr | none. A fired reminder has to name exactly the
+#            directories that exist.
+#   repo     code   = the unpushed commit changes app.sh
+#            nocode = the unpushed commit changes only README.md
+#   command  tool_input.command; \n becomes a newline and \t a tab
+#
+# Fields are separated by a single TAB. The hook reads the process working
+# directory, so the harness runs it inside the sandbox repository.
+
+# --- the reminder fires ---
+fire	both	code	gh pr create --title guard --body summary
+fire	both	code	cd sub && gh pr create --fill
+fire	both	code	gh --repo owner/name pr create --fill
+fire	arch	code	gh pr create --fill
+fire	adr	code	gh pr create --fill
+
+# --- another gh subcommand must stay silent ---
+quiet	both	code	gh pr list
+quiet	both	code	gh pr view 123
+quiet	both	code	gh pr create-draft --fill
+quiet	both	code	gh create pr --fill
+quiet	both	code	git push origin HEAD
+
+# --- the three words have to be tokens, not a substring ---
+quiet	both	code	echo "gh pr create"
+
+# --- the preconditions of the hook ---
+quiet	none	code	gh pr create --fill
+quiet	both	nocode	gh pr create --fill

@@ -1,0 +1,106 @@
+# validate-rm.sh: commands that MUST be blocked.
+#
+# Format: <expect>TAB<command>          expect is always "deny" in this file.
+# In the command, \n becomes a newline, \t a tab and @HOME@ the value of $HOME.
+# A line starting with # is a comment.
+
+# --- the twelve judgement cases the hook exists for ---
+deny	rm -rf ~
+deny	cd /tmp && rm -rf ~
+deny	echo hi\nrm -rf ~
+deny	ls | xargs rm -rf /
+deny	rm -r -f /
+deny	rm --recursive $HOME
+deny	rm -rf "$HOME"
+deny	rm -rf $HOME/
+deny	rm -rf ../
+deny	rm -rf ~/*
+deny	sh -c 'rm -rf ~'
+deny	find ~ -name '*' -delete
+
+# --- ways of spelling the home directory ---
+deny	rm -rf ~/
+deny	rm -rf '~'
+deny	rm -rf ${HOME}
+deny	rm -rf "${HOME}/"
+deny	rm -rf @HOME@
+deny	rm -rf @HOME@/
+deny	rm -rf ~someuser
+deny	rm -rf \~
+deny	rm -rf \$HOME
+deny	rm -rf $(echo ~)
+deny	rm -rf ~/.*
+deny	rm -rf $HOME/*
+deny	rm -rf "$HOME"/*
+
+# --- parent and current directory ---
+deny	rm -rf ~/..
+deny	rm -rf $HOME/..
+deny	rm -rf ~/Documents/../..
+deny	rm -rf ../../
+deny	rm -rf .//
+deny	rm -rf "."
+deny	cd ~ && rm -rf .
+deny	cd ~ && rm -rf *
+deny	cd .. && rm -rf *
+
+# --- recursive flag spellings ---
+deny	rm -fR /
+deny	rm -vrf ~
+deny	rm -r --force ~
+deny	rm --force --recursive /
+deny	rm -rf -- ~
+deny	rm -rf /**
+
+# --- several targets, only one of them dangerous ---
+deny	rm -rf ~ ~/Downloads
+deny	rm -rf build ~
+
+# --- prefixes and wrappers the library strips ---
+deny	\rm -rf ~
+deny	/bin/rm -rf ~
+deny	sudo rm -rf /
+deny	sudo -u root rm -rf /
+deny	env rm -rf ~
+deny	command rm -rf ~
+deny	time rm -rf ~
+deny	timeout 5 rm -rf ~
+deny	nohup rm -rf ~ &
+deny	xargs -I {} rm -rf ~
+deny	RM=1 rm -rf ~
+deny	bash -c "rm -rf \$HOME"
+deny	bash -lc 'rm -rf ~'
+deny	bash -c 'cd / && rm -rf *'
+
+# --- shell keywords and grouping in front of the command ---
+deny	exec rm -rf ~
+deny	! rm -rf ~
+deny	(cd /tmp; rm -rf ~)
+deny	{ rm -rf ~; }
+deny	for d in a b; do rm -rf ~; done
+deny	if [ -d ~ ]; then rm -rf ~; fi
+
+# --- the dangerous segment is not the first one ---
+deny	true && rm -rf ~ || echo failed
+deny	git status && rm -rf ~ && git log
+deny	cd /tmp; rm -rf ~
+deny	ls -la\nrm -rf /\necho done
+deny	rm -rf ~ || true
+deny	yes | rm -rf ~
+
+# --- redirections, comments and line continuations glued to the target ---
+deny	rm -rf ~ > /dev/null 2>&1
+deny	rm -rf ~>/dev/null
+deny	rm -rf ~ # cleanup home
+deny	rm -rf \\\n  ~
+
+# --- find with a dangerous starting point ---
+deny	find / -delete
+deny	find -L / -delete
+deny	find .. -name '*.log' -delete
+deny	find $HOME -type f -delete
+deny	find ~ -exec rm -rf {} \;
+deny	find / -type d -exec rm -rf {} +
+deny	find / -name core -exec sudo rm -rf {} \;
+deny	find / -exec \rm -rf {} \;
+deny	find / -execdir rm -rf {} \;
