@@ -15,9 +15,6 @@ pass	TARGET=~; rm -rf "$TARGET"
 pass	rm -rf ${HOME:-/}
 pass	eval "rm -rf ~"
 
-# Long-form wrapper options are not stripped, so the first token stays `root`.
-pass	sudo --user root rm -rf /
-
 # `nice` is not in the list of wrappers the library strips.
 pass	nice rm -rf /
 

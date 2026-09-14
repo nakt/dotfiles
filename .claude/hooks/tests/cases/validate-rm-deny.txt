@@ -61,6 +61,29 @@ deny	\rm -rf ~
 deny	/bin/rm -rf ~
 deny	sudo rm -rf /
 deny	sudo -u root rm -rf /
+deny	sudo --user root rm -rf /
+deny	sudo --non-interactive --user root rm -rf /
+deny	timeout -s KILL 5 rm -rf /
+deny	env -C /tmp rm -rf /
+# Regression cases: these were already denied before this change. Each guards
+# against a different way of getting the option table wrong, and every one of
+# them fails by swallowing `rm` as if it were an option's own argument.
+#   --preserve-env  registering a long form whose argument is optional
+#   --user=root     matching with a wildcard (`--user*`) instead of exactly
+#   --signal=KILL   the same, for the timeout entries
+deny	sudo --preserve-env rm -rf /
+deny	sudo --user=root rm -rf /
+deny	timeout --signal=KILL 5 rm -rf /
+deny	xargs --replace rm -rf /
+deny	xargs --max-lines rm -rf /
+deny	xargs --eof rm -rf /
+# `env -S` and `--split-string` do take a separate argument, but that argument
+# is the command itself, so they must stay off the table. Registering them
+# opens a path that really runs: `env -S 'rm -rf ~'` deletes the home
+# directory.
+deny	env -S rm -rf /
+deny	env -S 'rm -rf /'
+deny	env --split-string 'rm -rf /'
 deny	env rm -rf ~
 deny	command rm -rf ~
 deny	time rm -rf ~

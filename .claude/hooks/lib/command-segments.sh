@@ -64,9 +64,16 @@
 #     put back together with the rest. That fails towards over-detection (an
 #     extra deny or lint), which is the safe direction for this library.
 #   - `eval` and command substitution are deliberately not unwrapped.
-#   - Only the short wrapper options listed above take their argument with them.
-#     Long forms such as `sudo --user root` leave `root` in front of the real
-#     command.
+#   - The short wrapper options listed above, and a fixed set of long forms
+#     that always take a separate-token argument, have their argument taken
+#     with them; see `_cmdseg_takes_arg` for the exact list (sudo, xargs, env
+#     and timeout options). `--opt=value` forms and options whose argument is
+#     optional (`sudo --preserve-env[=list]`, `xargs --replace[=str]`) are
+#     deliberately left off that list: registering them would swallow the
+#     real command as if it were their argument. Any long form not on the
+#     list is only dropped itself, so e.g.
+#     `xargs --process-slot-var X rm -rf /` leaves `rm` behind `X` instead of
+#     at the front.
 #   - `cd` option tokens (`cd -P docs`, `cd -L /etc`, `cd -- docs`) are skipped,
 #     but `cd -P` with no operand is treated like a bare `cd` and returns to
 #     <base_cwd> rather than to $HOME.
@@ -437,16 +444,29 @@ _cmdseg_takes_arg() {
     sudo)
       case "$flag" in
         -u|-g|-C|-p|-U|-r|-t|-T|-h|-R|-D) return 0 ;;
+        --user|--group|--prompt|--other-user|--role|--type|--command-timeout|--host|--chroot|--chdir|--close-from) return 0 ;;
       esac
       ;;
     xargs)
       case "$flag" in
         -I|-L|-n|-P|-s|-E|-a|-d|-J) return 0 ;;
+        --max-args|--max-procs|--max-chars|--arg-file|--delimiter) return 0 ;;
       esac
       ;;
     env)
       case "$flag" in
-        -u) return 0 ;;
+        # `-S` / `--split-string` is left off on purpose even though it does
+        # take a separate argument: that argument IS the command
+        # (`env -S 'rm -rf /'` runs the deletion), so skipping it would carry
+        # the real command away exactly as registering an option that takes
+        # no argument would.
+        -u|-C) return 0 ;;
+        --unset|--chdir) return 0 ;;
+      esac
+      ;;
+    timeout)
+      case "$flag" in
+        -s|--signal|-k|--kill-after) return 0 ;;
       esac
       ;;
   esac
