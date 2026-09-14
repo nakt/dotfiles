@@ -1,0 +1,78 @@
+# validate-rm.sh: commands that MUST go through untouched.
+#
+# Format: <expect>TAB<command>          expect is always "pass" in this file.
+# In the command, \n becomes a newline, \t a tab and @HOME@ the value of $HOME.
+# A passing case also has to leave stdout and stderr empty and exit 0.
+
+# --- the six pass cases the hook exists for ---
+pass	rm -rf ./build
+pass	rm -rf ~/Downloads/tmp
+pass	rm file.txt
+pass	find . -name '*.tmp' -delete
+pass	cd /tmp && ls
+pass	cat > doc.md <<'EOF'\n# danger\nrm -rf ~\nEOF
+
+# --- everyday deletions inside a project ---
+pass	rm -rf node_modules
+pass	rm -rf node_modules/.cache
+pass	rm -rf .workspace/28_hook-tests
+pass	rm -rf .workspace/*
+pass	rm -rf ./build/*
+pass	rm -f dist/app.js
+pass	rm -rf ../sibling-project/build
+pass	rm -rf build ./dist
+pass	rm -rf a b c d e
+pass	rm -rf packages/*/dist
+pass	rm -- -weird-file
+pass	rm -i secret.txt
+pass	rmdir emptydir
+pass	git clean -fdx && rm -rf dist
+pass	npm run build && rm -rf coverage
+
+# --- deletions under the home directory, but not of it ---
+pass	rm -rf ~/.cache/foo
+pass	rm -rf ~/*.log
+pass	rm -rf ~/Library/Caches/*
+pass	rm -rf $HOME/Downloads/tmpdir
+pass	rm -rf "$HOME/tmp"
+pass	rm -rf ${HOME}/tmp
+pass	rm -rf "$TMPDIR"/bar
+pass	rm -rf "${TMPDIR}"/foo
+pass	rm -rf "$(pwd)/build"
+
+# --- a different command that merely contains the letters rm ---
+pass	docker rm -f mycontainer
+pass	trash ~/Downloads/x
+
+# --- writing or searching for the text of a dangerous command ---
+pass	echo "rm -rf ~"
+pass	echo "rm -rf ~ is dangerous"
+pass	# rm -rf ~ は危険
+pass	printf 'rm -rf ~' > note.txt
+pass	grep -rn "rm -rf" .claude/hooks
+pass	rg 'rm -rf ~' --glob '*.sh'
+pass	gh pr create --title "guard" --body "blocks rm -rf ~ now"
+pass	gh pr create --body "$(cat <<'EOF'\n## Summary\nblocks rm -rf ~ and find ~ -delete\nEOF\n)"
+pass	cat <<'EOF' > note.md && echo done\nrm -rf ~ is bad\nEOF
+pass	cat <<-EOF > note.md\n\trm -rf ~\n\tEOF
+
+# --- find that deletes from a safe starting point, or does not delete ---
+pass	find . -type d -name __pycache__ -exec rm -rf {} +
+pass	find ./node_modules -name '.bin' -exec rm -rf {} +
+pass	find . -exec rm -rf {} \;
+pass	find /var/log -name "*.log" -delete
+pass	find ./src -name '*.orig' -delete
+pass	find . -name '*.tmp' -o -name '*.bak' -delete
+pass	find . -newer ../ref -delete
+pass	find . -name '~$*' -delete
+pass	find ~/Documents -name '~*' -delete
+pass	find ~ -name '*.sh' -exec grep -n rm {} \;
+pass	find / -name '*.conf' -exec grep -l "rm -rf" {} \;
+pass	find ~ -name '*.log' -exec gzip {} \;
+pass	find ~ -type d -empty
+pass	find / -name mytool -type f
+pass	find .. -name '*.md'
+
+# --- no deletion at all ---
+pass	ls -la ~ && du -sh ~/Downloads
+pass	git log --oneline | head -20

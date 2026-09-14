@@ -1,0 +1,52 @@
+# validate-rm.sh: the known and accepted limits, pinned so that a change of
+# behaviour shows up here instead of going unnoticed.
+#
+# Format: <expect>TAB<command>
+# The expectation is what the hook does TODAY, not what would be ideal. Every
+# line is one of the limits listed in the header comment of validate-rm.sh.
+# If a fix makes one of these cases flip, update the expectation here and the
+# header comment of the hook together.
+
+# --- dangerous, but deliberately not caught ---
+
+# The target is only known at run time, so it never appears as an argument.
+pass	rm -rf "$(cat target.txt)"
+pass	TARGET=~; rm -rf "$TARGET"
+pass	rm -rf ${HOME:-/}
+pass	eval "rm -rf ~"
+
+# Long-form wrapper options are not stripped, so the first token stays `root`.
+pass	sudo --user root rm -rf /
+
+# `nice` is not in the list of wrappers the library strips.
+pass	nice rm -rf /
+
+# `$PWD` is not in the list of dangerous positions.
+pass	rm -rf $PWD
+
+# A single `&` is not a segment separator, because it has to stay
+# distinguishable from `2>&1` and `&>`.
+pass	true & rm -rf ~
+
+# The path never reaches the command string.
+pass	find / -print0 | xargs -0 rm -rf
+
+# Piping the text of a command into a shell leaves no argument to judge.
+pass	echo 'rm -rf ~' | sh
+
+# A nested quote truncates the `-c` argument, so the target is cut off.
+pass	sh -c "rm -rf \"$HOME\""
+
+# find matches its starting point exactly, so these two forms slip through
+# (the same targets written for rm are denied).
+pass	find ~/.. -delete
+pass	find ~someuser -delete
+
+# --- safe, but deliberately denied ---
+
+# Segments are cut before quotes are parsed, so a shell operator inside a
+# quoted string still splits the command and exposes the `rm` that follows it.
+# Suppressing the split on quote pairs would let `sh -c 'rm -rf ~'` through,
+# which is the worse trade.
+deny	echo "cd /tmp && rm -rf ~"
+deny	git commit -m "feat(hooks): deny cd /tmp && rm -rf ~"

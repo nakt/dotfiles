@@ -101,7 +101,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/validate-rm.sh",
-            "if": "Bash(rm *)",
             "timeout": 5
           }
         ]
@@ -112,7 +111,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/check-docs.sh",
-            "if": "Bash(gh pr create *)",
             "timeout": 10
           }
         ]
@@ -151,7 +149,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|Write|Bash",
         "hooks": [
           {
             "type": "command",
@@ -161,7 +159,7 @@
         ]
       },
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|Write|Bash",
         "hooks": [
           {
             "type": "command",

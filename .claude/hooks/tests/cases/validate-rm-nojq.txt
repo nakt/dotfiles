@@ -1,0 +1,17 @@
+# validate-rm.sh with jq removed from PATH.
+#
+# Format: <expect>TAB<command>
+# The hook cannot read its input without jq, so it falls back to a substring
+# test on the raw JSON: anything mentioning rm or find is denied, everything
+# else goes through. The whole point of the fallback is that jq can still be
+# reinstalled through the tool, so the two `pass` cases matter as much as the
+# `deny` ones.
+
+pass	ls -la
+pass	brew install jq
+pass	git status
+deny	cd /tmp && rm -rf ~
+deny	rm -rf ~
+# Documented cost of the substring test: unrelated commands are denied too
+# while jq is missing.
+deny	npm run format

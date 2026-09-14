@@ -1,0 +1,70 @@
+# lib/md-targets.sh: which .md files did this tool call write?
+#
+# Format: <expect>TAB<tool>TAB<cwd>TAB<env>TAB<payload>
+#   expect   `|` separated paths relative to the fixture root, or `-` for none
+#   tool     the tool_name put in the JSON
+#   cwd      directory put in the JSON, relative to the fixture root (`.` = root)
+#   env      one NAME=VALUE exported for this case, or `-` for none
+#   payload  tool_input.command for Bash, tool_input.file_path otherwise
+#
+# Fields are separated by a single TAB and a run of tabs collapses into one, so
+# `-` is used instead of an empty field. In the payload, \n becomes a newline,
+# \t a tab and @FX@ the absolute fixture root.
+#
+# Every case also carries a tool_response mentioning .md files, which must never
+# become a target: only tool_input is allowed to decide.
+
+# --- the shape of a write ---
+out.md	Bash	.	-	echo hi > out.md
+out.md	Bash	.	-	echo hi >>out.md
+out.md	Bash	.	-	cmd 2>>out.md
+b.md	Bash	.	-	cat fresh.md | tee b.md
+t.md	Bash	.	-	echo x | xargs tee t.md
+a.md|b.md	Bash	.	-	sudo cp a.md b.md
+a.md|b.md	Bash	.	-	mv a.md b.md
+s.md	Bash	.	-	sed -i '' -e s/a/b/ s.md
+s.md	Bash	.	-	sed -i.bak s/a/b/ s.md
+s.md	Bash	.	-	sed --in-place s/a/b/ s.md
+t.md	Bash	.	-	tee t.md <<EOF\nother.md inside\nEOF
+out.md	Bash	.	-	cat > out.md <<'EOF'\nsee other.md for details\nEOF
+
+# --- not a write ---
+-	Bash	.	-	cat fresh.md
+-	Bash	.	-	sed -n p s.md
+-	Bash	.	-	grep x <<< fresh.md
+-	Bash	.	-	markdownlint-cli2 fresh.md
+-	Bash	.	-	ls docs/
+
+# --- a segment led by git is never a target, even when it redirects ---
+-	Bash	.	-	git checkout -- fresh.md
+-	Bash	.	-	git show HEAD:x > fresh.md
+-	Bash	.	-	git restore --source HEAD -- fresh.md > out.md
+-	Bash	.	-	git stash pop
+out.md	Bash	.	-	git status && echo hi > out.md
+
+# --- cd is tracked, so a relative path resolves against its own segment ---
+sub/y.md	Bash	.	-	cd sub && echo x > y.md
+out.md	Bash	sub	-	echo x > ../out.md
+sub/y.md	Bash	sub	-	sh -c 'cd nowhere && echo x > y.md'
+sub/y.md|all.md	Bash	.	-	cd sub\ncat > y.md <<'EOF'\nbody\nEOF\ncat ../fresh.md\necho done >> ../all.md
+
+# --- mtime: a file this call cannot have written is dropped ---
+-	Bash	.	-	echo x > old.md
+old.md	Bash	.	MD_TARGETS_RECENT_SEC=999999999	echo x > old.md
+-	Bash	.	MD_TARGETS_RECENT_SEC=abc	echo x > old.md
+out.md	Bash	.	MD_TARGETS_RECENT_SEC=abc	echo x > out.md
+
+# --- quoting, globs and duplicates ---
+out.md	Bash	.	-	echo x > 'out.md'
+all.md	Bash	.	-	cat *.md > all.md
+d.md	Bash	.	-	echo a > d.md && echo b >> ./d.md && echo c > "$(pwd)/d.md"
+
+# --- Edit / Write take the path straight from tool_input ---
+a.md	Write	.	-	@FX@/a.md
+a.md	Edit	.	-	@FX@/a.md
+a.md	Write	.	-	a.md
+old.md	Write	.	-	@FX@/old.md
+-	Write	.	-	@FX@/nope.md
+-	Write	.	-	@FX@/a.ts
+-	Read	.	-	@FX@/a.md
+-	MultiEdit	.	-	@FX@/a.md
