@@ -45,6 +45,9 @@ out.md	Bash	.	-	echo hi >& out.md
 a.md|out.md	Bash	.	-	cat a.md &> out.md
 out.md	Bash	.	-	echo hi 2>&1 > out.md
 
+# --- `>|` is a clobbering redirection, never a pipe ---
+out.md	Bash	.	-	echo hi >| out.md
+
 # --- not a write ---
 -	Bash	.	-	cat fresh.md
 -	Bash	.	-	sed -n p s.md

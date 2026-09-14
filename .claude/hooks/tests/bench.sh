@@ -42,17 +42,18 @@
 #     PATH instead reports numbers that are not comparable: a `${var//pat/rep}`
 #     whose pattern matches thousands of times is super-quadratic on 3.2.57
 #     and linear from 5.2 on, which is a factor of sixty on the `&&` join.
-#   - The acceptance number for the fork removal in command-segments.sh is
-#     under 2000 ms at 2000 segments on the newline join. The `&&` join is not
-#     held to it while `split_segments` still splits with `${body//&&/$nl}`:
-#     that substitution alone, not any fork, accounts for nearly all of the
-#     minute and a half a 2000 segment `&&` command takes on 3.2.57, so the
-#     default run is slow until the splitting is done in one pass instead.
-#     Pass smaller counts (`bash bench.sh 250 500`) while that is still true.
-#   - The cost of that substitution is set by how many times the pattern
+#   - The acceptance number is under 2000 ms at 2000 segments, and both joins
+#     are held to it. The `&&` join was exempt for as long as split_segments
+#     cut with `${body//&&/$nl}`: that one substitution, not any fork,
+#     accounted for nearly all of the minute and a half a 2000 segment `&&`
+#     command took on 3.2.57. The operators are cut in a single awk pass now,
+#     so the two joins land within a few hundred milliseconds of each other.
+#   - What `${var//pat/rep}` costs is set by how many times the pattern
 #     matches, not by how long the string is: 34 KB holding no `&&` at all
-#     takes the same 16 ms as an empty one. An ordinary command carrying a
-#     handful of operators is therefore unaffected.
+#     took the same 16 ms as an empty one. One such substitution still runs
+#     ahead of the awk pass (the `\` + newline line continuation), and the
+#     fallback split runs the whole chain, so a machine with no awk on PATH is
+#     back on the old numbers.
 #   - The built command holds no `cd`, so the directory-resolving subshell of
 #     split_segments is deliberately not part of what is measured.
 

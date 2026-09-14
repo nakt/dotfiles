@@ -112,6 +112,11 @@ deny	rm -rf ~ || true
 deny	yes | rm -rf ~
 deny	true & rm -rf ~
 deny	ls 2>&1 & rm -rf ~
+# The operator scan reads the body once from the left instead of parking
+# `\;` and the non-operator `&` on sentinels first. This one needs the bare
+# `&` to still cut and the `;` after it to cut again, so that `rm -rf ~` is a
+# segment of its own rather than an argument of `true`.
+deny	true & rm -rf ~ ; echo done
 
 # --- redirections, comments and line continuations glued to the target ---
 deny	rm -rf ~ > /dev/null 2>&1
@@ -129,3 +134,9 @@ deny	find / -type d -exec rm -rf {} +
 deny	find / -name core -exec sudo rm -rf {} \;
 deny	find / -exec \rm -rf {} \;
 deny	find / -execdir rm -rf {} \;
+# `\;` terminates -exec and is not a separator, so the operator scan has to
+# read it as two ordinary characters. It used to be parked on a sentinel
+# before the `;` split and put back afterwards; the scan decides on the spot.
+# A starting point of `.` is deliberately allowed for find (see the pass
+# file), so this one starts at `~`.
+deny	find ~ -name '*.tmp' -exec rm -rf ~ \;

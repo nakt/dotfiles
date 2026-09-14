@@ -21,6 +21,16 @@
 #     `<&` is not an operator and does not split. Consumers must split each
 #     line on its FIRST tab, since a segment may legitimately contain further
 #     tabs.
+#     The split is a single left-to-right awk scan of the body: at each
+#     position the scan decides on the spot whether what stands there is an
+#     operator, so nothing has to be parked on a sentinel and put back. It
+#     needs `awk` on PATH. Without one, or when awk answers nothing for a body
+#     that holds something, the function falls back to the chain of
+#     `${body//op/$nl}` substitutions the scan replaced, which does park `\;`,
+#     `>|` and the non-operator `&` before splitting. The fallback is only a
+#     safety net: bash 3.2.57 runs `${var//pat/rep}` in time cubic in the
+#     number of matches, so a command holding a few hundred `&&` takes minutes
+#     on that path and milliseconds on the awk one.
 #     `cd` is tracked so that later segments report the directory they run in;
 #     a `cd` segment itself carries the directory it was issued from. `cd` with
 #     no operand and `cd -` return to <base_cwd>, and a directory that cannot
@@ -57,6 +67,18 @@
 # Known and accepted limits
 #   - Quoting is not fully parsed. A `&&`, `||`, `;`, `|` or `&` inside a
 #     quoted string is treated as an operator.
+#   - The awk scan and the substitution-chain fallback answer differently for
+#     five sequences, each an operator glued straight onto another: `\&&`,
+#     `>&&`, `<&&`, `&>&` and `&>|`. The chain turns `&&` into a boundary
+#     before it parks the `&` of `\&` `>&` `<&`, and parks `>|` before it
+#     looks at `&>`, so it cuts where the scan reads the first two characters
+#     as one non-operator and cuts at the next character instead. The scan
+#     agrees with bash itself on the reachable one: bash runs `echo a\&&rm x`
+#     as `echo a\&` `&` `rm x`, which is what the scan reports and not what
+#     the chain reports. Neither reading drops a command from the segment
+#     list. Every other input tried - the recorded corpus, the case files and
+#     every string up to five characters over `\ ; > < | & <newline> <space>
+#     a` - comes out byte for byte the same on both paths.
 #   - A `<<WORD` inside a quoted string is still read as a heredoc marker. Its
 #     body is put back only when no terminator line follows, so a string that
 #     happens to be followed by a line equal to WORD still loses those lines.
@@ -273,8 +295,10 @@ strip_heredoc_bodies() {
 split_segments() {
   local command="${1-}"
   local base_cwd="${2-}"
-  local body cwd line seg dir resolved tok cd_guard
+  local body cwd line seg dir resolved tok cd_guard split
   local nl=$'\n'
+  # Sentinels and patterns for the fallback split only. The awk pass needs
+  # none of them: it judges on the spot whether a character is an operator.
   local sep=$'\001'
   local sep2=$'\002'
   # As a glob the first backslash escapes the second, so this pattern matches a
@@ -295,23 +319,108 @@ split_segments() {
   body=$(strip_heredoc_bodies "$command")
   # A backslash-newline is a line continuation, not a segment boundary.
   body="${body//\\$nl/ }"
-  # Keep `find ... -exec rm {} \;` and `cat >| out` in one piece across the
-  # `;` and `|` splits.
-  body="${body//$esc_semi_pat/$sep}"
-  body="${body//$clobber/$sep2}"
-  body="${body//&&/$nl}"
-  # Only a standalone `&` backgrounds a command. Park the `&` character of
-  # `\&`, `2>&1`, `&>out` and `<&0` so that the split below leaves them alone.
-  # This runs after the `&&` replacement, because parking first would break
-  # `&&` and with it every segment boundary.
-  body="${body//$esc_amp_pat/\\$amp}"
-  body="${body//>&/>$amp}"
-  body="${body//&>/$amp>}"
-  body="${body//<&/<$amp}"
-  body="${body//&/$nl}"
-  body="${body//||/$nl}"
-  body="${body//;/$nl}"
-  body="${body//|/$nl}"
+
+  # Cut the body at every operator in one left-to-right awk pass, writing a
+  # newline where a segment ends. awk reads one line per record, so a newline
+  # already in the body is a boundary without a rule of its own. At each
+  # position the scan tries, in this order: `\;` `>|` keep, `&&` cut, `\&`
+  # `>&` `&>` `<&` keep, `&` cut, `||` `;` `|` cut. Every two-character form is
+  # keyed by its first character, so the six branches below hold that order.
+  # The trailing newline of the last record is dropped by the command
+  # substitution, which matches what the `<<<` below adds back.
+  if split=$(printf '%s' "$body" | LC_ALL=C awk '
+    {
+      line = $0
+      n = length(line)
+      i = 1
+      s = 1
+      while (i <= n) {
+        c = substr(line, i, 1)
+        if (c == "\\") {
+          d = substr(line, i + 1, 1)
+          if (d == ";" || d == "&") { i = i + 2 } else { i = i + 1 }
+          continue
+        }
+        if (c == ">") {
+          d = substr(line, i + 1, 1)
+          if (d == "|" || d == "&") { i = i + 2 } else { i = i + 1 }
+          continue
+        }
+        if (c == "&") {
+          d = substr(line, i + 1, 1)
+          if (d == ">") { i = i + 2; continue }
+          w = 1
+          if (d == "&") { w = 2 }
+          printf "%s\n", substr(line, s, i - s)
+          i = i + w
+          s = i
+          continue
+        }
+        if (c == "<") {
+          d = substr(line, i + 1, 1)
+          if (d == "&") { i = i + 2 } else { i = i + 1 }
+          continue
+        }
+        if (c == "|") {
+          d = substr(line, i + 1, 1)
+          w = 1
+          if (d == "|") { w = 2 }
+          printf "%s\n", substr(line, s, i - s)
+          i = i + w
+          s = i
+          continue
+        }
+        if (c == ";") {
+          printf "%s\n", substr(line, s, i - s)
+          i = i + 1
+          s = i
+          continue
+        }
+        i = i + 1
+      }
+      printf "%s\n", substr(line, s, n - s + 1)
+    }
+  ' 2>/dev/null) && { [ -n "$split" ] || [ -z "$body" ]; }; then
+    body="$split"
+  else
+    # No usable awk. Fall back to the substitution chain this pass replaced.
+    # An empty result on a non-empty body counts as unusable too: a caller that
+    # sees no segment reads the command as carrying nothing to judge, so this
+    # branch must never be reached with the segments silently dropped.
+    # Keep `find ... -exec rm {} \;` and `cat >| out` in one piece across the
+    # `;` and `|` splits.
+    body="${body//$esc_semi_pat/$sep}"
+    body="${body//$clobber/$sep2}"
+    body="${body//&&/$nl}"
+    # Only a standalone `&` backgrounds a command. Park the `&` character of
+    # `\&`, `2>&1`, `&>out` and `<&0` so that the split below leaves them alone.
+    # This runs after the `&&` replacement, because parking first would break
+    # `&&` and with it every segment boundary.
+    body="${body//$esc_amp_pat/\\$amp}"
+    body="${body//>&/>$amp}"
+    body="${body//&>/$amp>}"
+    body="${body//<&/<$amp}"
+    body="${body//&/$nl}"
+    body="${body//||/$nl}"
+    body="${body//;/$nl}"
+    body="${body//|/$nl}"
+    # Put the parked characters back. None of `\;`, `>|` and `&` is whitespace
+    # and none is a paren or a brace, so restoring them on the whole body here
+    # leaves the per-segment trimming below with exactly the same work it would
+    # have had if each segment were restored after being trimmed.
+    body="${body//$sep/$esc_semi_rep}"
+    body="${body//$sep2/$clobber}"
+    # An `&` in the replacement of ${var//pat/rep} means "the matched text" on
+    # bash 5.2 and newer (patsub_replacement), so ${body//$amp/&} restores
+    # nothing there, while `\&` leaves a literal backslash behind on 3.2.
+    # Rebuild the string instead: `&` in an assignment is literal everywhere.
+    while :; do
+      case "$body" in
+        *"$amp"*) body="${body%%"$amp"*}&${body#*"$amp"}" ;;
+        *) break ;;
+      esac
+    done
+  fi
 
   while IFS= read -r line; do
     _cmdseg_trim_into seg "$line"
@@ -329,18 +438,6 @@ split_segments() {
       *'('*) : ;;
       *')') _cmdseg_trim_into seg "${seg%\)}" ;;
     esac
-    seg="${seg//$sep/$esc_semi_rep}"
-    seg="${seg//$sep2/$clobber}"
-    # An `&` in the replacement of ${var//pat/rep} means "the matched text" on
-    # bash 5.2 and newer (patsub_replacement), so ${seg//$amp/&} restores
-    # nothing there, while `\&` leaves a literal backslash behind on 3.2.
-    # Rebuild the string instead: `&` in an assignment is literal everywhere.
-    while :; do
-      case "$seg" in
-        *"$amp"*) seg="${seg%%"$amp"*}&${seg#*"$amp"}" ;;
-        *) break ;;
-      esac
-    done
     if [ -z "$seg" ]; then
       continue
     fi
