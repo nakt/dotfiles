@@ -9,23 +9,24 @@
 #   1. tool_name が Bash で、コマンドに語としての rm / find が現れるかを見る
 #      (ここを抜けるコマンドは以降の処理をしない)
 #   2. lib/command-segments.sh でヒアドキュメント本文を除去し、`&&` `||` `;`
-#      `|` 改行でセグメントへ分割する
+#      `|` `&` 改行でセグメントへ分割する
 #   3. 各セグメントから前置きコマンド (sudo / xargs / sh -c など) を剥がし、
 #      先頭トークンが rm または find のものだけを判定する
 #
 # 既知の制限 (危険だが通過する形)
-#   - `sudo --user root rm -rf /` のような長形式オプションはライブラリが剥がせず、
-#     先頭トークンが root になるため通過する。「セグメント内のどこかに rm があれば
-#     判定する」方式は、シェル演算子を含まない引用符やコメントの中の記述
+#   - `xargs --process-slot-var X rm -rf /` のように、ライブラリが引数を取ると
+#     認識していないオプションは剥がせず、その引数だった値が先頭トークンになるため
+#     通過する。`sudo -h rm -rf /` は結果は同じだが機構が逆で、`-h` を常に引数を
+#     取る側に倒しているため `rm` のほうが読み飛ばされる (sudo の man では `-h` が
+#     `--help` と `--host host` の両義)。
+#     「セグメント内のどこかに rm があれば判定する」方式は、シェル演算子
+#     を含まない引用符やコメントの中の記述
 #     (`echo "rm -rf ~"` と `# rm -rf ~ は危険` はどちらも現状通過する) まで
 #     deny してしまい、ヒアドキュメント本文を除去している方針
 #     (危険コマンドを説明する文書は書ける) と衝突するため採らない。
 #   - 削除対象が実行時にしか決まらない形は捕捉しない。実測で通過するのは
 #     `rm -rf "$(cat target.txt)"` / `TARGET=~; rm -rf "$TARGET"` /
 #     `rm -rf ${HOME:-/}` / `eval "rm -rf ~"` など。
-#   - ライブラリは単独の `&` でセグメントを分割しないため `true & rm -rf ~` は
-#     通過する。`2>&1` や `&>` と区別する必要があり、分割はライブラリ側の
-#     責務なのでここでは扱わない。
 #   - パスがコマンド文字列に現れない間接的な削除は捕捉しない
 #     (`find / -print0 | xargs -0 rm -rf`)。
 #   - `sh -c "rm -rf \"$HOME\""` のような入れ子の引用符はライブラリが
@@ -41,8 +42,10 @@
 # 既知の制限 (安全だが deny してしまう形)
 #   - 引用符の中にシェル演算子と rm の記述が同時にあると deny する。実測例は
 #     `echo "cd /tmp && rm -rf ~"` と
-#     `git commit -m "feat(hooks): deny cd /tmp && rm -rf ~"`。
-#     引用符を解釈する前にセグメントへ分割するため、引用符の中の `&&` で切れる。
+#     `git commit -m "feat(hooks): deny cd /tmp && rm -rf ~"` と
+#     `echo "a & rm -rf ~"`。
+#     引用符を解釈する前にセグメントへ分割するため、引用符の中の `&&` や
+#     単独の `&` で切れる。
 #     引用符の対で分割を抑止すると `sh -c 'rm -rf ~'` が通過するので採らない。
 
 set -euo pipefail
@@ -116,11 +119,14 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd) || SCRI
 LIB="$SCRIPT_DIR/lib/command-segments.sh"
 # source 前に構文チェックする。壊れたファイルを source すると
 # シェル自体が終了コード 2 で落ち、何も出力できなくなるため
+# 検査するのはこのフックが実際に呼ぶ関数だけにする。呼ばない関数を検査すると、
+# 呼ぶ側の関数が欠けていても素通りし、未定義コマンドの終了コード 127 で終わる。
+# PreToolUse は 2 以外の非ゼロをブロックしないため、それは deny ではなく通過になる
 if [ -n "$SCRIPT_DIR" ] && [ -r "$LIB" ] \
   && "${BASH:-/bin/bash}" -n "$LIB" 2>/dev/null \
   && . "$LIB" 2>/dev/null \
   && [ "$(type -t split_segments 2>/dev/null || true)" = "function" ] \
-  && [ "$(type -t strip_prefixes 2>/dev/null || true)" = "function" ]; then
+  && [ "$(type -t strip_prefixes_into 2>/dev/null || true)" = "function" ]; then
   :
 else
   emit_deny "削除チェック用ライブラリを読み込めませんでした: ${LIB}。安全のためコマンドをブロックします"
@@ -235,9 +241,9 @@ while IFS=$'\t' read -r SEG_CWD SEGMENT; do
     continue
   fi
   if [ "$KEYWORD_SKIPPED" -eq 1 ]; then
-    STRIPPED=$(strip_prefixes "$*")
+    strip_prefixes_into STRIPPED "$*"
   else
-    STRIPPED=$(strip_prefixes "$SEGMENT")
+    strip_prefixes_into STRIPPED "$SEGMENT"
   fi
   set -- $STRIPPED
   if [ $# -eq 0 ]; then
@@ -306,7 +312,7 @@ while IFS=$'\t' read -r SEG_CWD SEGMENT; do
               esac
               EXEC_ARGS="$EXEC_ARGS $NEXT"
             done
-            EXEC_CMD=$(strip_prefixes "$EXEC_ARGS")
+            strip_prefixes_into EXEC_CMD "$EXEC_ARGS"
             EXEC_CMD="${EXEC_CMD%%[[:space:]]*}"
             if [ "${EXEC_CMD##*/}" = "rm" ] && [ -z "$ACTION" ]; then
               ACTION="$EXEC_TOK rm"

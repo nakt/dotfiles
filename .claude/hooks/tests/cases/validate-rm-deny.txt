@@ -61,6 +61,29 @@ deny	\rm -rf ~
 deny	/bin/rm -rf ~
 deny	sudo rm -rf /
 deny	sudo -u root rm -rf /
+deny	sudo --user root rm -rf /
+deny	sudo --non-interactive --user root rm -rf /
+deny	timeout -s KILL 5 rm -rf /
+deny	env -C /tmp rm -rf /
+# Regression cases: these were already denied before this change. Each guards
+# against a different way of getting the option table wrong, and every one of
+# them fails by swallowing `rm` as if it were an option's own argument.
+#   --preserve-env  registering a long form whose argument is optional
+#   --user=root     matching with a wildcard (`--user*`) instead of exactly
+#   --signal=KILL   the same, for the timeout entries
+deny	sudo --preserve-env rm -rf /
+deny	sudo --user=root rm -rf /
+deny	timeout --signal=KILL 5 rm -rf /
+deny	xargs --replace rm -rf /
+deny	xargs --max-lines rm -rf /
+deny	xargs --eof rm -rf /
+# `env -S` and `--split-string` do take a separate argument, but that argument
+# is the command itself, so they must stay off the table. Registering them
+# opens a path that really runs: `env -S 'rm -rf ~'` deletes the home
+# directory.
+deny	env -S rm -rf /
+deny	env -S 'rm -rf /'
+deny	env --split-string 'rm -rf /'
 deny	env rm -rf ~
 deny	command rm -rf ~
 deny	time rm -rf ~
@@ -87,6 +110,13 @@ deny	cd /tmp; rm -rf ~
 deny	ls -la\nrm -rf /\necho done
 deny	rm -rf ~ || true
 deny	yes | rm -rf ~
+deny	true & rm -rf ~
+deny	ls 2>&1 & rm -rf ~
+# The operator scan reads the body once from the left instead of parking
+# `\;` and the non-operator `&` on sentinels first. This one needs the bare
+# `&` to still cut and the `;` after it to cut again, so that `rm -rf ~` is a
+# segment of its own rather than an argument of `true`.
+deny	true & rm -rf ~ ; echo done
 
 # --- redirections, comments and line continuations glued to the target ---
 deny	rm -rf ~ > /dev/null 2>&1
@@ -104,3 +134,9 @@ deny	find / -type d -exec rm -rf {} +
 deny	find / -name core -exec sudo rm -rf {} \;
 deny	find / -exec \rm -rf {} \;
 deny	find / -execdir rm -rf {} \;
+# `\;` terminates -exec and is not a separator, so the operator scan has to
+# read it as two ordinary characters. It used to be parked on a sentinel
+# before the `;` split and put back afterwards; the scan decides on the spot.
+# A starting point of `.` is deliberately allowed for find (see the pass
+# file), so this one starts at `~`.
+deny	find ~ -name '*.tmp' -exec rm -rf ~ \;

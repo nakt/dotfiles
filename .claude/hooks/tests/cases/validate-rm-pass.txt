@@ -29,6 +29,11 @@ pass	rmdir emptydir
 pass	git clean -fdx && rm -rf dist
 pass	npm run build && rm -rf coverage
 
+# --- redirections whose `&` is not a segment boundary ---
+pass	rm -rf build 2>&1 && ls
+pass	rm -f x &> /dev/null
+pass	rm -f x >& /dev/null
+
 # --- deletions under the home directory, but not of it ---
 pass	rm -rf ~/.cache/foo
 pass	rm -rf ~/*.log
@@ -39,6 +44,13 @@ pass	rm -rf ${HOME}/tmp
 pass	rm -rf "$TMPDIR"/bar
 pass	rm -rf "${TMPDIR}"/foo
 pass	rm -rf "$(pwd)/build"
+
+# --- wrapper long-form options that leave a harmless command behind ---
+# These pin that stripping the option does not turn a safe command into a
+# denial. The matching guard against stripping too much lives in the deny
+# file, because a swallowed `rm` also reads as a pass here.
+pass	sudo --user root ls
+pass	xargs --replace rm
 
 # --- a different command that merely contains the letters rm ---
 pass	docker rm -f mycontainer

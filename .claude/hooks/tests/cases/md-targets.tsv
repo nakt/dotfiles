@@ -18,21 +18,42 @@
 out.md	Bash	.	-	echo hi > out.md
 out.md	Bash	.	-	echo hi >>out.md
 out.md	Bash	.	-	cmd 2>>out.md
+out.md	Bash	.	-	cmd 2> out.md
 b.md	Bash	.	-	cat fresh.md | tee b.md
 t.md	Bash	.	-	echo x | xargs tee t.md
-a.md|b.md	Bash	.	-	sudo cp a.md b.md
-a.md|b.md	Bash	.	-	mv a.md b.md
 s.md	Bash	.	-	sed -i '' -e s/a/b/ s.md
 s.md	Bash	.	-	sed -i.bak s/a/b/ s.md
 s.md	Bash	.	-	sed --in-place s/a/b/ s.md
 t.md	Bash	.	-	tee t.md <<EOF\nother.md inside\nEOF
 out.md	Bash	.	-	cat > out.md <<'EOF'\nsee other.md for details\nEOF
 
+# --- only a redirection whose target ends in .md marks a write ---
+# Every `>` of the segment is scanned, so one inside a quoted string cannot
+# hide the real one. The source of `cat a.md > out.md` is still collected.
+out.md	Bash	.	-	echo "a > b" > out.md
+a.md|out.md	Bash	.	-	cat a.md > out.md
+
+# --- cp / mv report the destination only ---
+b.md	Bash	.	-	sudo cp a.md b.md
+b.md	Bash	.	-	mv a.md b.md
+sub/fresh.md	Bash	.	-	cp fresh.md sub/
+b.md	Bash	.	-	cp a.md b.md > log.txt
+
+# --- the `&` of `\&`, `>&`, `&>` and `2>&1` is not a segment boundary ---
+s.md	Bash	.	-	sed -i '' 's/a/\&/' s.md
+out.md	Bash	.	-	echo hi >& out.md
+a.md|out.md	Bash	.	-	cat a.md &> out.md
+out.md	Bash	.	-	echo hi 2>&1 > out.md
+
+# --- `>|` is a clobbering redirection, never a pipe ---
+out.md	Bash	.	-	echo hi >| out.md
+
 # --- not a write ---
 -	Bash	.	-	cat fresh.md
 -	Bash	.	-	sed -n p s.md
 -	Bash	.	-	grep x <<< fresh.md
 -	Bash	.	-	markdownlint-cli2 fresh.md
+-	Bash	.	-	markdownlint-cli2 fresh.md 2>/dev/null
 -	Bash	.	-	ls docs/
 
 # --- a segment led by git is never a target, even when it redirects ---
