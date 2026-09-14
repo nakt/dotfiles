@@ -17,8 +17,10 @@
 #
 #   split_segments <command> <base_cwd>
 #     Print one `<cwd><TAB><segment>` line per segment after splitting on
-#     `&&`, `||`, `;`, `|` and newlines. Consumers must split each line on its
-#     FIRST tab, since a segment may legitimately contain further tabs.
+#     `&&`, `||`, `;`, `|`, `&` and newlines. The `&` of `\&`, `>&`, `&>` and
+#     `<&` is not an operator and does not split. Consumers must split each
+#     line on its FIRST tab, since a segment may legitimately contain further
+#     tabs.
 #     `cd` is tracked so that later segments report the directory they run in;
 #     a `cd` segment itself carries the directory it was issued from. `cd` with
 #     no operand and `cd -` return to <base_cwd>, and a directory that cannot
@@ -45,8 +47,8 @@
 #   arguments.
 #
 # Known and accepted limits
-#   - Quoting is not fully parsed. A `&&`, `||`, `;` or `|` inside a quoted
-#     string is treated as an operator.
+#   - Quoting is not fully parsed. A `&&`, `||`, `;`, `|` or `&` inside a
+#     quoted string is treated as an operator.
 #   - A `<<WORD` inside a quoted string is still read as a heredoc marker. Its
 #     body is put back only when no terminator line follows, so a string that
 #     happens to be followed by a line equal to WORD still loses those lines.
@@ -241,6 +243,9 @@ split_segments() {
   local esc_semi_rep='\;'
   # `>|` is a redirection, not a pipe.
   local clobber='>|'
+  local amp=$'\003'
+  # Same glob trick as esc_semi_pat: this matches a literal `\&` only.
+  local esc_amp_pat='\\&'
 
   if [ -z "$base_cwd" ]; then
     base_cwd="$PWD"
@@ -255,6 +260,15 @@ split_segments() {
   body="${body//$esc_semi_pat/$sep}"
   body="${body//$clobber/$sep2}"
   body="${body//&&/$nl}"
+  # Only a standalone `&` backgrounds a command. Park the `&` character of
+  # `\&`, `2>&1`, `&>out` and `<&0` so that the split below leaves them alone.
+  # This runs after the `&&` replacement, because parking first would break
+  # `&&` and with it every segment boundary.
+  body="${body//$esc_amp_pat/\\$amp}"
+  body="${body//>&/>$amp}"
+  body="${body//&>/$amp>}"
+  body="${body//<&/<$amp}"
+  body="${body//&/$nl}"
   body="${body//||/$nl}"
   body="${body//;/$nl}"
   body="${body//|/$nl}"
@@ -277,6 +291,16 @@ split_segments() {
     esac
     seg="${seg//$sep/$esc_semi_rep}"
     seg="${seg//$sep2/$clobber}"
+    # An `&` in the replacement of ${var//pat/rep} means "the matched text" on
+    # bash 5.2 and newer (patsub_replacement), so ${seg//$amp/&} restores
+    # nothing there, while `\&` leaves a literal backslash behind on 3.2.
+    # Rebuild the string instead: `&` in an assignment is literal everywhere.
+    while :; do
+      case "$seg" in
+        *"$amp"*) seg="${seg%%"$amp"*}&${seg#*"$amp"}" ;;
+        *) break ;;
+      esac
+    done
     if [ -z "$seg" ]; then
       continue
     fi

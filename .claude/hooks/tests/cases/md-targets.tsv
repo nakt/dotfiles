@@ -28,6 +28,12 @@ s.md	Bash	.	-	sed --in-place s/a/b/ s.md
 t.md	Bash	.	-	tee t.md <<EOF\nother.md inside\nEOF
 out.md	Bash	.	-	cat > out.md <<'EOF'\nsee other.md for details\nEOF
 
+# --- the `&` of `\&`, `>&`, `&>` and `2>&1` is not a segment boundary ---
+s.md	Bash	.	-	sed -i '' 's/a/\&/' s.md
+out.md	Bash	.	-	echo hi >& out.md
+a.md|out.md	Bash	.	-	cat a.md &> out.md
+out.md	Bash	.	-	echo hi 2>&1 > out.md
+
 # --- not a write ---
 -	Bash	.	-	cat fresh.md
 -	Bash	.	-	sed -n p s.md

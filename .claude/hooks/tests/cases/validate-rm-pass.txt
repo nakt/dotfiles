@@ -29,6 +29,11 @@ pass	rmdir emptydir
 pass	git clean -fdx && rm -rf dist
 pass	npm run build && rm -rf coverage
 
+# --- redirections whose `&` is not a segment boundary ---
+pass	rm -rf build 2>&1 && ls
+pass	rm -f x &> /dev/null
+pass	rm -f x >& /dev/null
+
 # --- deletions under the home directory, but not of it ---
 pass	rm -rf ~/.cache/foo
 pass	rm -rf ~/*.log

@@ -24,10 +24,6 @@ pass	nice rm -rf /
 # `$PWD` is not in the list of dangerous positions.
 pass	rm -rf $PWD
 
-# A single `&` is not a segment separator, because it has to stay
-# distinguishable from `2>&1` and `&>`.
-pass	true & rm -rf ~
-
 # The path never reaches the command string.
 pass	find / -print0 | xargs -0 rm -rf
 
@@ -50,3 +46,7 @@ pass	find ~someuser -delete
 # which is the worse trade.
 deny	echo "cd /tmp && rm -rf ~"
 deny	git commit -m "feat(hooks): deny cd /tmp && rm -rf ~"
+
+# A standalone `&` is a segment separator too, so the same trade applies to
+# a `&` written inside a quoted string.
+deny	echo "a & rm -rf ~"

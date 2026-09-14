@@ -87,6 +87,8 @@ deny	cd /tmp; rm -rf ~
 deny	ls -la\nrm -rf /\necho done
 deny	rm -rf ~ || true
 deny	yes | rm -rf ~
+deny	true & rm -rf ~
+deny	ls 2>&1 & rm -rf ~
 
 # --- redirections, comments and line continuations glued to the target ---
 deny	rm -rf ~ > /dev/null 2>&1

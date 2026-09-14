@@ -74,6 +74,15 @@
 #     Over-detection is the safe direction here.
 #   - Heredoc bodies are removed before the tokens are read, so a `.md` name
 #     mentioned inside the written text is not reported.
+#   - A standalone `&` splits a segment, and that cut is made before quotes are
+#     parsed, so a `&` inside a quoted string splits too. Both directions of
+#     the resulting error are accepted:
+#       missed    `sed -i 's/x/&y/' notes.md` is cut at the `&` (only `\&` is
+#                 parked), so the segment holding `notes.md` no longer looks
+#                 like a `sed -i` and notes.md is not linted.
+#       extra     `git log --format="%h & %s" > out.md` is cut at the `&`, so
+#                 the segment holding `> out.md` no longer starts with `git`
+#                 and the git guard stops applying to out.md.
 #   - Everything command-segments.sh cannot do is inherited: quoting is not
 #     fully parsed, `eval` and command substitution are not unwrapped, and a
 #     `cd` inside `sh -c '...'` is not tracked.
