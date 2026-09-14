@@ -347,7 +347,7 @@ setup_md_fixtures() {
   rm -rf "$FXMD"
   mkdir -p "$FXMD/sub" || return 1
   local f
-  for f in a.md b.md out.md other.md fresh.md s.md t.md d.md all.md sub/y.md; do
+  for f in a.md b.md out.md other.md fresh.md s.md t.md d.md all.md sub/y.md sub/fresh.md; do
     printf 'fixture\n' > "$FXMD/$f" || return 1
   done
   printf 'not markdown\n' > "$FXMD/note.txt" || return 1

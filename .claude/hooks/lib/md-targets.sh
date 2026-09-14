@@ -26,13 +26,15 @@
 #                     is the proof that the file was just written.
 #       Bash          `tool_input.command`, split into segments by
 #                     `split_segments`. A segment is a candidate when it has
-#                     the shape of a write (`>` / `>>`, a heredoc marker, or a
-#                     first command of `tee` / `cp` / `mv` / `sed -i`) and its
-#                     first command is not `git`. Every `.md` token of such a
-#                     segment is unquoted, `~` / `$HOME` expanded, resolved
-#                     against that segment's own directory, and kept only when
-#                     the file exists and its mtime is within
-#                     MD_TARGETS_RECENT_SEC seconds of now.
+#                     the shape of a write (a `>` / `>>` whose target ends in
+#                     `.md`, a heredoc marker, or a first command of `tee` /
+#                     `cp` / `mv` / `sed -i`) and its first command is not
+#                     `git`. Every `.md` token of such a segment is unquoted,
+#                     `~` / `$HOME` expanded, resolved against that segment's
+#                     own directory, and kept only when the file exists and
+#                     its mtime is within MD_TARGETS_RECENT_SEC seconds of
+#                     now. `cp` and `mv` are the exception: only their
+#                     destination is reported, never the sources.
 #       anything else nothing.
 #
 #     Duplicates are folded to a single line. Order follows the segments.
@@ -45,11 +47,19 @@
 #                          mtime in the future always passes.
 #
 # Known and accepted limits
-#   - Any `>` in the segment marks it as a write, including `2>/dev/null`. So
-#     `markdownlint a.md 2>/dev/null` reports a.md when a.md is recent. Failing
-#     towards an extra lint is the safe direction.
-#   - `cp a.md b.md` and `mv a.md b.md` report the source as well as the
-#     destination when both are recent.
+#   - A write whose redirection target is not a `.md` path is not detected, so
+#     `gen --out a.md > log.txt` reports nothing.
+#   - `cat a.md > b.md` reports the source as well as the destination. Only
+#     `cp` / `mv` narrow their report down to the destination; the token scan
+#     itself still reads the whole segment.
+#   - The destination-first flags of GNU `cp` / `mv` (`cp -t dir a.md`) are not
+#     handled: the destination is always taken to be the last operand.
+#   - A `cp` / `mv` segment reports its destination and nothing else, so a
+#     redirection in the same segment is dropped with the sources:
+#     `cp a.md b.md > out.md` reports b.md, never out.md. A redirection
+#     written before the last operand takes that operand with it, which can
+#     leave a source as the apparent destination: `cp a.md >log.txt b.md`
+#     reports a.md.
 #   - A segment whose first command is `git` is never reported, even when it
 #     redirects: `git show HEAD:a.md > a.md` returns nothing. This is
 #     deliberate, so that restore operations do not lint files this call did
@@ -220,6 +230,45 @@ _mdt_has_inplace_flag() {
   return 1
 }
 
+# Report whether the segment redirects into a path that ends in `.md`.
+#
+# Every `>` of the segment is scanned and one hit is enough: a `2>/dev/null`
+# must not turn the segment into a write, and an operator that only appears
+# inside a quoted string (`echo "a > b" > out.md`) must not hide the real one.
+# The target is either glued to the operator (`>out.md`) or the next token
+# (`> out.md`), which is the same shape the token scan handles.
+_mdt_redirects_to_md() {
+  local rest="${1-}"
+  local tok
+  while :; do
+    case "$rest" in
+      *'>'*) ;;
+      *) return 1 ;;
+    esac
+    # Each round drops at least this `>`, so the scan always terminates.
+    rest="${rest#*>}"
+    # `>>`, `>&` and `>|` glue further operator characters to the first one.
+    while :; do
+      case "$rest" in
+        [\>\&\|]*) rest="${rest#?}" ;;
+        *) break ;;
+      esac
+    done
+    while :; do
+      case "$rest" in
+        [[:space:]]*) rest="${rest#?}" ;;
+        *) break ;;
+      esac
+    done
+    tok="${rest%%[[:space:]]*}"
+    tok="${tok//\'/}"
+    tok="${tok//\"/}"
+    case "$tok" in
+      *.md) return 0 ;;
+    esac
+  done
+}
+
 # Report whether the segment has the shape of a write.
 #
 # The first-command tests run on the segment AFTER strip_prefixes, so that
@@ -231,9 +280,9 @@ _mdt_is_write_segment() {
   local raw="${1-}"
   local name="${2-}"
   local stripped="${3-}"
-  case "$raw" in
-    *'>'*) return 0 ;;
-  esac
+  if _mdt_redirects_to_md "$raw"; then
+    return 0
+  fi
   if _mdt_has_heredoc "$raw"; then
     return 0
   fi
@@ -246,6 +295,74 @@ _mdt_is_write_segment() {
     fi
   fi
   return 1
+}
+
+# Print the candidate paths a `cp` / `mv` segment writes, one per line.
+#
+# The destination is the last operand. Option tokens are skipped, and a token
+# holding `<` or `>` takes the token after it out of the running as well, so
+# the destination of `cp a.md b.md > log.txt` is still b.md. A destination that
+# names an existing directory writes one file per `.md` source instead, which
+# keeps `cp a.md docs/` from being missed. <stripped> has to be the segment
+# after strip_prefixes and <base> that segment's own directory.
+_mdt_copy_targets() {
+  local rest="${1-}"
+  local base="${2-}"
+  local srcs='' dest='' tok abs src
+  local first=1 skip=0
+  local nl=$'\n'
+
+  while [ -n "$rest" ]; do
+    while :; do
+      case "$rest" in
+        [[:space:]]*) rest="${rest#?}" ;;
+        *) break ;;
+      esac
+    done
+    if [ -z "$rest" ]; then
+      break
+    fi
+    tok="${rest%%[[:space:]]*}"
+    rest="${rest:${#tok}}"
+    if [ "$first" -eq 1 ]; then
+      first=0
+      continue
+    fi
+    if [ "$skip" -eq 1 ]; then
+      skip=0
+      continue
+    fi
+    case "$tok" in
+      *[\<\>]*) skip=1; continue ;;
+      -*) continue ;;
+    esac
+    # A segment after the first can carry a stray closing quote, and
+    # `"$HOME"/a.md` has to keep expanding, so the quotes go entirely.
+    tok="${tok//\'/}"
+    tok="${tok//\"/}"
+    if [ -n "$dest" ]; then
+      srcs="$srcs$nl$dest"
+    fi
+    dest="$tok"
+  done
+
+  if [ -z "$dest" ]; then
+    return 0
+  fi
+  abs=$(_mdt_abspath "$dest" "$base")
+  if [ -n "$abs" ] && [ -d "$abs" ]; then
+    while IFS= read -r src; do
+      case "$src" in
+        # The destination goes back as written, not as `$abs`: the caller
+        # rescans this output on whitespace, so an absolute path would break
+        # apart on a repository whose path contains a space.
+        *.md) printf '%s/%s\n' "${dest%/}" "${src##*/}" ;;
+      esac
+    done <<< "$srcs"
+    return 0
+  fi
+  printf '%s\n' "$dest"
+  return 0
 }
 
 # Print the `.md` files written by the tool call described by the hook input.
@@ -368,7 +485,13 @@ md_targets() {
     if ! _mdt_is_write_segment "$seg" "$name" "$stripped"; then
       continue
     fi
-    rest="$seg"
+    # `cp` / `mv` write their destination only, so the sources are replaced
+    # by the destination before the token scan runs. Every other shape offers
+    # the whole segment.
+    case "$name" in
+      cp|mv) rest=$(_mdt_copy_targets "$stripped" "$seg_cwd") ;;
+      *) rest="$seg" ;;
+    esac
     while [ -n "$rest" ]; do
       while :; do
         case "$rest" in
