@@ -475,7 +475,7 @@ md_targets() {
       *.md*) ;;
       *) continue ;;
     esac
-    stripped=$(strip_prefixes "$seg")
+    strip_prefixes_into stripped "$seg"
     first="${stripped%%[[:space:]]*}"
     name="${first##*/}"
     # A3: a restore operation must not lint a file this call did not write.

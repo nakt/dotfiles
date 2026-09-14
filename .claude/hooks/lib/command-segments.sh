@@ -33,6 +33,14 @@
 #     short options that take a separate argument (`sudo -u root`,
 #     `xargs -I {}`, `env -u FOO`) take that argument with them.
 #
+#   strip_prefixes_into <varname> <segment>
+#     Assign what strip_prefixes would print to the named variable instead of
+#     printing it. A caller that strips one segment at a time should prefer
+#     this form: reading the printed value through a command substitution forks
+#     a subshell per call, and a command holding a few thousand segments then
+#     spends seconds on the forks alone. <varname> must not begin with
+#     `__csp_`, which is the prefix the locals of this function use.
+#
 # Intended pipeline
 #   The caller runs split_segments first and strip_prefixes on each segment.
 #   Splitting happens before quotes are parsed, so a wrapped list is cut apart:
@@ -69,95 +77,115 @@
 #   - Prefix removal gives up after 16 tokens, so a segment carrying more than
 #     16 leading wrappers or options keeps the remainder as-is.
 
-# Remove leading and trailing whitespace from a string.
-_cmdseg_trim() {
-  local text="${1-}"
+# Every helper below assigns its result to a caller-named variable instead of
+# printing it, because `$(helper ...)` forks a subshell and these run once per
+# segment, per token or per line. Each helper prefixes its own locals so that a
+# caller can hand it any variable name that does not carry that prefix.
+
+# Assign <text> with leading and trailing whitespace removed to <varname>.
+_cmdseg_trim_into() {
+  local __cst_name="${1-}"
+  local __cst_text="${2-}"
   while :; do
-    case "$text" in
-      [[:space:]]*) text="${text#?}" ;;
+    case "$__cst_text" in
+      [[:space:]]*) __cst_text="${__cst_text#?}" ;;
       *) break ;;
     esac
   done
   while :; do
-    case "$text" in
-      *[[:space:]]) text="${text%?}" ;;
+    case "$__cst_text" in
+      *[[:space:]]) __cst_text="${__cst_text%?}" ;;
       *) break ;;
     esac
   done
-  printf '%s' "$text"
+  printf -v "$__cst_name" '%s' "$__cst_text"
   return 0
 }
 
-# Expand a leading ~ / $HOME / ${HOME} in a literal path token. Anything else is
-# left alone so that unresolvable paths simply fail to resolve later.
-_cmdseg_expand_home() {
-  local path="${1-}"
-  local home="${HOME:-}"
-  case "$path" in
-    '~') path="$home" ;;
-    '~/'*) path="$home/${path#'~/'}" ;;
-    '$HOME') path="$home" ;;
-    '$HOME/'*) path="$home/${path#'$HOME/'}" ;;
-    '${HOME}') path="$home" ;;
-    '${HOME}/'*) path="$home/${path#'${HOME}/'}" ;;
+# Assign <path> with a leading ~ / $HOME / ${HOME} expanded to <varname>.
+# Anything else is left alone so that unresolvable paths simply fail to resolve
+# later.
+_cmdseg_expand_home_into() {
+  local __ceh_name="${1-}"
+  local __ceh_path="${2-}"
+  local __ceh_home="${HOME:-}"
+  case "$__ceh_path" in
+    '~') __ceh_path="$__ceh_home" ;;
+    '~/'*) __ceh_path="$__ceh_home/${__ceh_path#'~/'}" ;;
+    '$HOME') __ceh_path="$__ceh_home" ;;
+    '$HOME/'*) __ceh_path="$__ceh_home/${__ceh_path#'$HOME/'}" ;;
+    '${HOME}') __ceh_path="$__ceh_home" ;;
+    '${HOME}/'*) __ceh_path="$__ceh_home/${__ceh_path#'${HOME}/'}" ;;
   esac
-  printf '%s' "$path"
+  printf -v "$__ceh_name" '%s' "$__ceh_path"
   return 0
 }
 
-# Print the heredoc delimiters declared on one command line, one per line, each
-# prefixed with `-` for the `<<-` form or `=` for the plain `<<` form.
-_cmdseg_heredoc_delims() {
-  local rest="${1-}"
-  local before dash delim
-  local word_re='^[A-Za-z_][A-Za-z0-9_.-]*'
+# Assign the heredoc delimiters declared on one command line to <varname>, one
+# per line, each prefixed with `-` for the `<<-` form or `=` for the plain `<<`
+# form. The value carries no trailing newline, so the caller decides how these
+# lines join the ones it already holds. An empty value means the line declares
+# no heredoc.
+_cmdseg_heredoc_delims_into() {
+  local __chd_name="${1-}"
+  local __chd_rest="${2-}"
+  local __chd_before __chd_dash __chd_delim
+  local __chd_out=''
+  local __chd_nl=$'\n'
+  local __chd_word_re='^[A-Za-z_][A-Za-z0-9_.-]*'
   while :; do
-    case "$rest" in
+    case "$__chd_rest" in
       *'<<'*) ;;
       *) break ;;
     esac
-    before="${rest%%'<<'*}"
-    rest="${rest:${#before}}"
-    rest="${rest#'<<'}"
+    __chd_before="${__chd_rest%%'<<'*}"
+    __chd_rest="${__chd_rest:${#__chd_before}}"
+    __chd_rest="${__chd_rest#'<<'}"
     # `<<<` is a here-string and has no body.
-    case "$rest" in
-      '<'*) rest="${rest#<}"; continue ;;
+    case "$__chd_rest" in
+      '<'*) __chd_rest="${__chd_rest#<}"; continue ;;
     esac
-    dash='='
-    case "$rest" in
-      '-'*) dash='-'; rest="${rest#-}" ;;
+    __chd_dash='='
+    case "$__chd_rest" in
+      '-'*) __chd_dash='-'; __chd_rest="${__chd_rest#-}" ;;
     esac
     while :; do
-      case "$rest" in
-        [[:space:]]*) rest="${rest#?}" ;;
+      case "$__chd_rest" in
+        [[:space:]]*) __chd_rest="${__chd_rest#?}" ;;
         *) break ;;
       esac
     done
-    case "$rest" in
-      '\'*) rest="${rest#\\}" ;;
+    case "$__chd_rest" in
+      '\'*) __chd_rest="${__chd_rest#\\}" ;;
     esac
-    delim=''
-    case "$rest" in
+    __chd_delim=''
+    case "$__chd_rest" in
       "'"*)
-        rest="${rest#\'}"
-        case "$rest" in
-          *"'"*) delim="${rest%%\'*}"; rest="${rest:$(( ${#delim} + 1 ))}" ;;
+        __chd_rest="${__chd_rest#\'}"
+        case "$__chd_rest" in
+          *"'"*)
+            __chd_delim="${__chd_rest%%\'*}"
+            __chd_rest="${__chd_rest:$(( ${#__chd_delim} + 1 ))}"
+            ;;
           # No closing quote on this line, so this `<<` opens no heredoc. Keep
           # scanning the remainder: a real marker may still follow.
-          *) delim='' ;;
+          *) __chd_delim='' ;;
         esac
         ;;
       '"'*)
-        rest="${rest#\"}"
-        case "$rest" in
-          *'"'*) delim="${rest%%\"*}"; rest="${rest:$(( ${#delim} + 1 ))}" ;;
-          *) delim='' ;;
+        __chd_rest="${__chd_rest#\"}"
+        case "$__chd_rest" in
+          *'"'*)
+            __chd_delim="${__chd_rest%%\"*}"
+            __chd_rest="${__chd_rest:$(( ${#__chd_delim} + 1 ))}"
+            ;;
+          *) __chd_delim='' ;;
         esac
         ;;
       [A-Za-z_]*)
-        if [[ "$rest" =~ $word_re ]]; then
-          delim="${BASH_REMATCH[0]}"
-          rest="${rest:${#delim}}"
+        if [[ "$__chd_rest" =~ $__chd_word_re ]]; then
+          __chd_delim="${BASH_REMATCH[0]}"
+          __chd_rest="${__chd_rest:${#__chd_delim}}"
         fi
         ;;
       *)
@@ -165,10 +193,15 @@ _cmdseg_heredoc_delims() {
         continue
         ;;
     esac
-    if [ -n "$delim" ]; then
-      printf '%s%s\n' "$dash" "$delim"
+    if [ -n "$__chd_delim" ]; then
+      if [ -z "$__chd_out" ]; then
+        __chd_out="$__chd_dash$__chd_delim"
+      else
+        __chd_out="$__chd_out$__chd_nl$__chd_dash$__chd_delim"
+      fi
     fi
   done
+  printf -v "$__chd_name" '%s' "$__chd_out"
   return 0
 }
 
@@ -209,7 +242,7 @@ strip_heredoc_bodies() {
     else
       out="$out$nl$line"
     fi
-    added=$(_cmdseg_heredoc_delims "$line")
+    _cmdseg_heredoc_delims_into added "$line"
     if [ -n "$added" ]; then
       pending="$pending$added$nl"
     fi
@@ -274,12 +307,12 @@ split_segments() {
   body="${body//|/$nl}"
 
   while IFS= read -r line; do
-    seg=$(_cmdseg_trim "$line")
+    _cmdseg_trim_into seg "$line"
     # Drop grouping punctuation so `(cd docs && ...)` is tracked like `cd docs`.
     while :; do
       case "$seg" in
-        '('*) seg=$(_cmdseg_trim "${seg#\(}") ;;
-        '{'[[:space:]]*) seg=$(_cmdseg_trim "${seg#\{}") ;;
+        '('*) _cmdseg_trim_into seg "${seg#\(}" ;;
+        '{'[[:space:]]*) _cmdseg_trim_into seg "${seg#\{}" ;;
         *) break ;;
       esac
     done
@@ -287,7 +320,7 @@ split_segments() {
     # so `rm -rf $(pwd)` keeps its own parenthesis.
     case "$seg" in
       *'('*) : ;;
-      *')') seg=$(_cmdseg_trim "${seg%\)}") ;;
+      *')') _cmdseg_trim_into seg "${seg%\)}" ;;
     esac
     seg="${seg//$sep/$esc_semi_rep}"
     seg="${seg//$sep2/$clobber}"
@@ -307,7 +340,7 @@ split_segments() {
     printf '%s\t%s\n' "$cwd" "$seg"
     case "$seg" in
       cd|cd[[:space:]]*)
-        dir=$(_cmdseg_trim "${seg#cd}")
+        _cmdseg_trim_into dir "${seg#cd}"
         # Skip the option forms (`cd -P docs`, `cd -L /etc`, `cd -- docs`) so
         # that the operand is tracked. A bare `-` is the previous-directory
         # form and is handled with the no-operand case below.
@@ -316,10 +349,10 @@ split_segments() {
           cd_guard=$((cd_guard + 1))
           case "$dir" in
             '--') dir=''; break ;;
-            '--'[[:space:]]*) dir=$(_cmdseg_trim "${dir#--}"); break ;;
+            '--'[[:space:]]*) _cmdseg_trim_into dir "${dir#--}"; break ;;
             -?*)
               tok="${dir%%[[:space:]]*}"
-              dir=$(_cmdseg_trim "${dir:${#tok}}")
+              _cmdseg_trim_into dir "${dir:${#tok}}"
               ;;
             *) break ;;
           esac
@@ -332,7 +365,7 @@ split_segments() {
         if [ -z "$dir" ] || [ "$dir" = '-' ]; then
           cwd="$base_cwd"
         else
-          dir=$(_cmdseg_expand_home "$dir")
+          _cmdseg_expand_home_into dir "$dir"
           # `--` keeps an option-looking operand from sending `cd` to $HOME,
           # which would silently succeed and overwrite the tracked directory.
           if resolved=$(unset CDPATH; cd -- "$cwd" 2>/dev/null && cd -- "$dir" 2>/dev/null && pwd -L); then
@@ -345,50 +378,54 @@ split_segments() {
   return 0
 }
 
-# Print the argument of `sh -c` / `bash -c` / `zsh -c`, or nothing without -c.
-_cmdseg_shell_c_arg() {
-  local rest="${1-}"
-  local guard=0
-  local token arg=''
-  local c_re='^-[A-Za-z]*c[A-Za-z]*$'
-  while [ "$guard" -lt 16 ]; do
-    guard=$((guard + 1))
-    rest=$(_cmdseg_trim "$rest")
-    token="${rest%%[[:space:]]*}"
-    if [ -z "$token" ]; then
+# Assign the argument of `sh -c` / `bash -c` / `zsh -c` to <varname>, or the
+# empty string when the wrapper carries no -c. Every path assigns, so a caller
+# looping over tokens never reads the value left by an earlier round.
+_cmdseg_shell_c_arg_into() {
+  local __csc_name="${1-}"
+  local __csc_rest="${2-}"
+  local __csc_guard=0
+  local __csc_token __csc_arg=''
+  local __csc_c_re='^-[A-Za-z]*c[A-Za-z]*$'
+  while [ "$__csc_guard" -lt 16 ]; do
+    __csc_guard=$((__csc_guard + 1))
+    _cmdseg_trim_into __csc_rest "$__csc_rest"
+    __csc_token="${__csc_rest%%[[:space:]]*}"
+    if [ -z "$__csc_token" ]; then
       break
     fi
-    case "$token" in
-      '--'*) rest="${rest:${#token}}"; continue ;;
+    case "$__csc_token" in
+      '--'*) __csc_rest="${__csc_rest:${#__csc_token}}"; continue ;;
       '-'*)
-        if [[ "$token" =~ $c_re ]]; then
-          rest=$(_cmdseg_trim "${rest:${#token}}")
-          case "$rest" in
+        if [[ "$__csc_token" =~ $__csc_c_re ]]; then
+          _cmdseg_trim_into __csc_rest "${__csc_rest:${#__csc_token}}"
+          case "$__csc_rest" in
             "'"*)
-              rest="${rest#\'}"
-              case "$rest" in
-                *"'"*) arg="${rest%%\'*}" ;;
-                *) arg="$rest" ;;
+              __csc_rest="${__csc_rest#\'}"
+              case "$__csc_rest" in
+                *"'"*) __csc_arg="${__csc_rest%%\'*}" ;;
+                *) __csc_arg="$__csc_rest" ;;
               esac
               ;;
             '"'*)
-              rest="${rest#\"}"
-              case "$rest" in
-                *'"'*) arg="${rest%%\"*}" ;;
-                *) arg="$rest" ;;
+              __csc_rest="${__csc_rest#\"}"
+              case "$__csc_rest" in
+                *'"'*) __csc_arg="${__csc_rest%%\"*}" ;;
+                *) __csc_arg="$__csc_rest" ;;
               esac
               ;;
-            *) arg="$rest" ;;
+            *) __csc_arg="$__csc_rest" ;;
           esac
-          printf '%s' "$arg"
+          printf -v "$__csc_name" '%s' "$__csc_arg"
           return 0
         fi
-        rest="${rest:${#token}}"
+        __csc_rest="${__csc_rest:${#__csc_token}}"
         continue
         ;;
     esac
     break
   done
+  printf -v "$__csc_name" '%s' ''
   return 0
 }
 
@@ -416,89 +453,103 @@ _cmdseg_takes_arg() {
   return 1
 }
 
-# Drop the options a stripped wrapper owns, plus the duration of `timeout`.
-_cmdseg_drop_options() {
-  local rest="${1-}"
-  local wrapper="${2-}"
-  local guard=0
-  local token next
-  local duration_re='^[0-9]+([.][0-9]+)?[smhd]?$'
-  while [ "$guard" -lt 16 ]; do
-    guard=$((guard + 1))
-    rest=$(_cmdseg_trim "$rest")
-    token="${rest%%[[:space:]]*}"
-    if [ -z "$token" ]; then
+# Assign <rest> with the options the wrapper owns dropped, plus the duration of
+# `timeout`, to <varname>.
+_cmdseg_drop_options_into() {
+  local __cdo_name="${1-}"
+  local __cdo_rest="${2-}"
+  local __cdo_wrapper="${3-}"
+  local __cdo_guard=0
+  local __cdo_token __cdo_next
+  local __cdo_duration_re='^[0-9]+([.][0-9]+)?[smhd]?$'
+  while [ "$__cdo_guard" -lt 16 ]; do
+    __cdo_guard=$((__cdo_guard + 1))
+    _cmdseg_trim_into __cdo_rest "$__cdo_rest"
+    __cdo_token="${__cdo_rest%%[[:space:]]*}"
+    if [ -z "$__cdo_token" ]; then
       break
     fi
-    if [ "$token" = '--' ]; then
+    if [ "$__cdo_token" = '--' ]; then
       # End of the wrapper's own options; the real command starts here.
-      rest=$(_cmdseg_trim "${rest:${#token}}")
+      _cmdseg_trim_into __cdo_rest "${__cdo_rest:${#__cdo_token}}"
       break
     fi
-    case "$token" in
+    case "$__cdo_token" in
       '-'*)
-        rest=$(_cmdseg_trim "${rest:${#token}}")
+        _cmdseg_trim_into __cdo_rest "${__cdo_rest:${#__cdo_token}}"
         # `sudo -u root rm -rf /` must not leave `root` as the command name.
-        if _cmdseg_takes_arg "$wrapper" "$token"; then
-          next="${rest%%[[:space:]]*}"
-          if [ -n "$next" ]; then
-            rest=$(_cmdseg_trim "${rest:${#next}}")
+        if _cmdseg_takes_arg "$__cdo_wrapper" "$__cdo_token"; then
+          __cdo_next="${__cdo_rest%%[[:space:]]*}"
+          if [ -n "$__cdo_next" ]; then
+            _cmdseg_trim_into __cdo_rest "${__cdo_rest:${#__cdo_next}}"
           fi
         fi
         continue
         ;;
     esac
-    if [ "$wrapper" = 'timeout' ] && [[ "$token" =~ $duration_re ]]; then
-      rest="${rest:${#token}}"
-      wrapper=''
+    if [ "$__cdo_wrapper" = 'timeout' ] && [[ "$__cdo_token" =~ $__cdo_duration_re ]]; then
+      __cdo_rest="${__cdo_rest:${#__cdo_token}}"
+      __cdo_wrapper=''
       continue
     fi
     break
   done
-  printf '%s' "$(_cmdseg_trim "$rest")"
+  _cmdseg_trim_into "$__cdo_name" "$__cdo_rest"
   return 0
 }
 
-# Print the segment with leading env assignments and command wrappers removed.
-strip_prefixes() {
-  local segment="${1-}"
-  local guard=0
-  local token rest name inner
-  local assign_re='^[A-Za-z_][A-Za-z0-9_]*='
+# Assign the segment with leading env assignments and command wrappers removed
+# to <varname>.
+strip_prefixes_into() {
+  local __csp_name="${1-}"
+  local __csp_segment="${2-}"
+  local __csp_guard=0
+  local __csp_token __csp_rest __csp_base __csp_inner
+  local __csp_assign_re='^[A-Za-z_][A-Za-z0-9_]*='
 
-  segment=$(_cmdseg_trim "$segment")
-  while [ "$guard" -lt 16 ]; do
-    guard=$((guard + 1))
-    token="${segment%%[[:space:]]*}"
-    if [ -z "$token" ]; then
+  _cmdseg_trim_into __csp_segment "$__csp_segment"
+  while [ "$__csp_guard" -lt 16 ]; do
+    __csp_guard=$((__csp_guard + 1))
+    __csp_token="${__csp_segment%%[[:space:]]*}"
+    if [ -z "$__csp_token" ]; then
       break
     fi
-    rest=$(_cmdseg_trim "${segment:${#token}}")
+    _cmdseg_trim_into __csp_rest "${__csp_segment:${#__csp_token}}"
     # Match on the basename so that /bin/sh and /usr/bin/env are covered too.
-    name="${token##*/}"
+    __csp_base="${__csp_token##*/}"
 
-    if [[ "$token" =~ $assign_re ]]; then
-      segment="$rest"
+    if [[ "$__csp_token" =~ $__csp_assign_re ]]; then
+      __csp_segment="$__csp_rest"
       continue
     fi
 
-    case "$name" in
+    case "$__csp_base" in
       sh|bash|zsh)
         # Only the `-c` form is a wrapper; `bash script.sh` is the real command.
-        inner=$(_cmdseg_shell_c_arg "$rest")
-        if [ -n "$inner" ]; then
-          segment=$(_cmdseg_trim "$inner")
+        _cmdseg_shell_c_arg_into __csp_inner "$__csp_rest"
+        if [ -n "$__csp_inner" ]; then
+          _cmdseg_trim_into __csp_segment "$__csp_inner"
           continue
         fi
         break
         ;;
       sudo|env|command|time|timeout|nohup|xargs)
-        segment=$(_cmdseg_drop_options "$rest" "$name")
+        _cmdseg_drop_options_into __csp_segment "$__csp_rest" "$__csp_base"
         continue
         ;;
     esac
     break
   done
-  printf '%s' "$segment"
+  printf -v "$__csp_name" '%s' "$__csp_segment"
+  return 0
+}
+
+# Print the segment with leading env assignments and command wrappers removed.
+# Kept for callers that want the value through a command substitution; a caller
+# in a per-segment loop should use strip_prefixes_into instead.
+strip_prefixes() {
+  local __spw_out=''
+  strip_prefixes_into __spw_out "${1-}"
+  printf '%s' "$__spw_out"
   return 0
 }

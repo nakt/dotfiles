@@ -115,11 +115,14 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd) || SCRI
 LIB="$SCRIPT_DIR/lib/command-segments.sh"
 # source 前に構文チェックする。壊れたファイルを source すると
 # シェル自体が終了コード 2 で落ち、何も出力できなくなるため
+# 検査するのはこのフックが実際に呼ぶ関数だけにする。呼ばない関数を検査すると、
+# 呼ぶ側の関数が欠けていても素通りし、未定義コマンドの終了コード 127 で終わる。
+# PreToolUse は 2 以外の非ゼロをブロックしないため、それは deny ではなく通過になる
 if [ -n "$SCRIPT_DIR" ] && [ -r "$LIB" ] \
   && "${BASH:-/bin/bash}" -n "$LIB" 2>/dev/null \
   && . "$LIB" 2>/dev/null \
   && [ "$(type -t split_segments 2>/dev/null || true)" = "function" ] \
-  && [ "$(type -t strip_prefixes 2>/dev/null || true)" = "function" ]; then
+  && [ "$(type -t strip_prefixes_into 2>/dev/null || true)" = "function" ]; then
   :
 else
   emit_deny "削除チェック用ライブラリを読み込めませんでした: ${LIB}。安全のためコマンドをブロックします"
@@ -234,9 +237,9 @@ while IFS=$'\t' read -r SEG_CWD SEGMENT; do
     continue
   fi
   if [ "$KEYWORD_SKIPPED" -eq 1 ]; then
-    STRIPPED=$(strip_prefixes "$*")
+    strip_prefixes_into STRIPPED "$*"
   else
-    STRIPPED=$(strip_prefixes "$SEGMENT")
+    strip_prefixes_into STRIPPED "$SEGMENT"
   fi
   set -- $STRIPPED
   if [ $# -eq 0 ]; then
@@ -305,7 +308,7 @@ while IFS=$'\t' read -r SEG_CWD SEGMENT; do
               esac
               EXEC_ARGS="$EXEC_ARGS $NEXT"
             done
-            EXEC_CMD=$(strip_prefixes "$EXEC_ARGS")
+            strip_prefixes_into EXEC_CMD "$EXEC_ARGS"
             EXEC_CMD="${EXEC_CMD%%[[:space:]]*}"
             if [ "${EXEC_CMD##*/}" = "rm" ] && [ -z "$ACTION" ]; then
               ACTION="$EXEC_TOK rm"
