@@ -1,6 +1,7 @@
 # 実装タスクの記述形式
 
-`/execute-plan` で実装フェーズを進めるプランには `## 実装タスク` セクションを設け、各タスクを以下の構造で書く。controller はこの形式を前提にタスクを抽出し、fresh subagent に Context を渡す。
+`/execute-plan` で実装フェーズを進めるプランには `## 実装タスク` セクションを設け、各タスクを以下の構造で書く。
+controller はこの形式を前提に各タスクの範囲を特定し、fresh subagent にその参照 (プランファイルのパスと行範囲) を渡す。
 
 ````markdown
 ## 実装タスク
@@ -28,9 +29,9 @@ Context:
 ## 抽出規則 (controller 側の前提)
 
 - `### Task N:` 見出しでタスクを抽出
-- セクション本文の全文を implementer prompt の `[FULL TEXT of task]` に貼る
-- `Acceptance criteria` を reviewer prompt の検証基準に貼る
-- `対象ファイル` `Context` を implementer prompt の `[Context]` に貼る
+- タスクセクションの行範囲を、プランファイルの絶対パスとともに implementer へ参照として渡す。セクション本文は prompt に転記しない
+- 同じ行範囲を reviewer にも渡す。reviewer は `Acceptance criteria` をその範囲から読む
+- `Context` は行範囲に含まれるので別途渡さない。`対象ファイル` だけは編集してよい範囲の宣言として controller が直接渡す
 
 ## `## 実装タスク` セクションがないプラン
 

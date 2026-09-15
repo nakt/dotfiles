@@ -62,7 +62,8 @@ allowed-tools:
 
 A1, A2… と番号付きで、1 判断につき「判断 1〜2 行 + 根拠 1 行」。根拠には、その判断を選ばせた制約（既存資産・データ量・運用体制・非機能要件など）を書く。AskUserQuestion で確定した判断も、代替案比較で選んだ判断も、このプラン内では合意事項に一元化する。棄却案・代替案の比較はプランに書かない。
 
-execute-plan の controller はこのセクションを implementer / reviewer prompt に転記する。ここに無い判断は実装に引き渡されない。
+execute-plan の controller は、このセクションの行範囲をプランファイルのパスとともに implementer / reviewer へ参照として渡し、subagent 自身がその範囲を読む。
+ここに無い判断は実装への引き渡しが保証されない。
 
 ### ## 実装タスク
 
