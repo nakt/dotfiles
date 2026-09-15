@@ -48,7 +48,8 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 - fresh subagent per task: タスクごとに新しい `Agent` を立て、controller の会話履歴を継承させない
 - post-implementation review: 実装完了後に別の fresh subagent でレビュー (仕様適合 + 品質を 1 段で統合)
 - continuous execution: タスク間で人に確認しない。停止は BLOCKED / 解消不能な ambiguity / 全タスク完了の 3 つに限る
-- controller がコンテキストを curate: implementer に plan ファイルを読ませず、controller が必要な全文を prompt に貼って渡す
+- controller がコンテキストを curate: controller はプラン内の位置 (パスと行範囲) を渡し、subagent は指定された範囲だけを読む
+- 実行中はプランファイルを編集しない: 行範囲の参照が行番号に依存するため、実行中に編集すると subagent が誤った範囲を読む
 
 ## ワークフロー
 
@@ -61,12 +62,17 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - 複数 → `AskUserQuestion` で選択 (最新 4 件を選択肢として提示)
    - 0 件 → 「プランがありません」と報告して終了
 4. `Read` でプラン全文を取得。冒頭が参照スタブマーカー (「このファイルは参照スタブ。実行対象: <パス>」) なら、指定された本体パスのプランへ読み替えて再取得する
+   - このとき `## 合意事項` と各 `### Task N` の行範囲を記録する。以降 subagent にはこの行範囲を渡し、本文は渡さない
+   - 行範囲は `開始行-終了行` 形式で、開始行・終了行とも 1 始まり (`Read` の出力に付く行番号と同じ) のまま渡す。`offset` / `limit` への変換は subagent 側で行う
+   - 範囲の取り方は、`## 合意事項` が当該見出し行から次の `##` 見出しの直前まで、各タスクが `### Task N` 見出し行から次の `###` 見出し (または次の `##` 見出し) の直前まで。いずれも次の見出しがなければファイル末尾まで
+   - 参照スタブを経由した場合は、読み替え先の本体プランの行番号を使う (subagent に渡すパスも本体プランのもの)
+   - `Read` が全文を返さなかった場合 (既定の上限行数を超える長さのプラン) に限り、`grep -n '^## \|^### Task '` で見出し行を取り直す
 5. プラン本文に `## 実装タスク` セクションがあるか確認
    - ない場合: `AskUserQuestion` で「実装タスクを追記してから再実行する」「このまま見出し / 番号付きリストから抽出を試みる」「中止」の 3 択を提示
 6. プラン本文に `## 合意事項` セクションがあるか確認
-   - ある場合: 全文を controller のメモリに保持する (Phase 2 チェックリストで使う)
+   - ある場合: ステップ 4 で記録した行範囲を controller のメモリに保持する (Phase 2 チェックリストで使う)
    - ない場合: 合意事項なしのプラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)
-   - 「続行する」を選んだ場合: 合意事項は存在しないものとして扱い、implementer / reviewer prompt の `[合意事項全文]` には固定文言 `(このプランは合意事項なし。合意事項との整合性は評価対象外)` を入れる。合意事項を推測して捏造しない
+   - 「続行する」を選んだ場合: 合意事項は存在しないものとして扱い、implementer / reviewer には合意事項の行範囲の代わりに固定文言 `(このプランは合意事項なし。合意事項との整合性は評価対象外)` を渡す。合意事項を推測して捏造しない
 7. Branch が Base branch と同じ場合は `AskUserQuestion` で続行確認し、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
 8. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)。ただしプランファイル (`.claude/plans/` 配下。本体プラン・参照スタブとも) はこの判定から除外する。理由: write-plan の承認直後に execute-plan が起動される経路では、今から実行するプラン自身が untracked で作業ツリーに存在するのが正常であり、除外しないと必ず中止になる。プランファイルはどのタスクの対象ファイルにもならないので、パス限定のレビュー差分にも `git add` にも混入しない
    - プランファイル以外がクリーン → 続行
@@ -80,7 +86,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - `- [ ]` 形式の TaskList
    - 番号付きリスト (`1.`, `2.`, ...)
 2. 各タスクから以下を controller のメモリに保持:
-   - タスク全文 (本文をそのまま)
+   - タスクの行範囲 (Phase 1 ステップ 4 で記録したもの。本文は保持しない)
    - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
    - 複雑度ヒント (対象ファイル数 / Context 長さ / criteria の主観性)
 3. `TaskCreate` で抽出した各タスクを登録
@@ -91,10 +97,11 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 
 #### controller チェックリスト (Phase 3 へ渡す前)
 
-各タスクの implementer / reviewer prompt を組み立てる前に、以下 2 点を controller のメモリに揃えておく (Phase 3 のステップ 2 / ステップ 4 で prompt に埋め込むため)。1 点目が欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
+各タスクの implementer / reviewer を起動する前に、合意事項の行範囲を controller のメモリに揃えておく (Phase 3 のステップ 2 / ステップ 4 で渡すため)。
+これが欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
 
-- プランの `## 合意事項` セクションの全文を、implementer prompt の `[Context]` と reviewer prompt の `[合意事項全文]` に転記できる状態にしておく。要約・抜粋はしない。合意事項なしのプランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて判断が本文へ散在していないかを 1 パスで確認する
-- 対象リポの `CLAUDE.md` を「リポルート → 対象ファイルの各先祖ディレクトリ」の順に読む (`.claude/CLAUDE.md` があれば併せて確認)。monorepo の `packages/*/CLAUDE.md` などサブ階層に個別規約があれば、当該タスクに関係する検証項目 (例: 独自の命名規約、特定ディレクトリでのテスト必須ルール、コミット前に通すべきチェック) を抜粋し、implementer prompt の `[Context]` に含める。階層に CLAUDE.md が一つも無ければ、この項目自体を省略してよい
+- プランの `## 合意事項` セクションの行範囲を確定させる (Phase 1 ステップ 4 で記録したもの)。合意事項なしのプランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて `## 合意事項` の外に判断が散在していないかを 1 パスで確認し、散在があればその箇所の行範囲も控えておく (控えるのは行範囲だけで、本文は保持しない)
+- 対象リポの `CLAUDE.md` は controller では読まない。リポルートから対象ファイルの各先祖ディレクトリまでを辿って当該タスクに関係する検証項目を拾うのは implementer 自身の仕事で、その指示は implementer テンプレート側にある
 
 ### Phase 3: タスクループ
 
@@ -102,29 +109,33 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 
 並列実行時に守ること:
 
-- 各 implementer prompt の `[Context]` に、同一バッチで並行実行している他タスクの対象ファイル一覧を渡し、担当外のファイルは読むだけで編集しないことを明示する
+- 各 implementer に、同一バッチで並行実行している他タスクの対象ファイル一覧を渡し、担当外のファイルは読むだけで編集しないことを明示する
 - reviewer に渡す差分は必ず `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定にする。同じツリーに他タスクの未コミット変更が同居するため、パス限定を外すと他タスクの変更を誤検出する
 - `[BASE_SHA]` はバッチ開始時点の `git rev-parse HEAD` をバッチ内の全タスクで共有する (バッチ内の他タスクのコミットで base がずれると差分に他タスクの変更が混ざる)
 - コミットは controller が APPROVED になったタスクから 1 件ずつ、`git add <対象ファイル>` のパス限定で行う (1 タスク = 1 コミット)
+
+ステップ 2 / 4 で subagent に渡すパスは絶対パスとする。
+相対パスは subagent の作業ディレクトリ次第で解決できないため、テンプレートは `~/.claude/skills/execute-plan/references/` 配下のパスを `~` を展開せずそのまま渡し、プランファイルは対象リポのルートからの絶対パスに解決してから渡す。
 
 各バッチについて以下を行う。
 
 1. バッチ選定: Phase 2 の順で次のバッチを取り、含まれる各タスクを `TaskUpdate(status=in_progress)`。`BASE_SHA` として `git rev-parse HEAD` を記録する
 2. 実装: バッチ内の各タスクに implementer `Agent` を起動する (バッチ内は同時起動可)
-   - `~/.claude/skills/execute-plan/references/implementer-prompt.md` をテンプレートとして使用 (プレースホルダー `[FULL TEXT of task]`, `[Context]`, `[Working directory]` を埋める)
-   - `[Context]` には (a) 当該タスクの `対象ファイル` と `Context`、(b) `## 合意事項` 全文 (合意事項なしのプランなら Phase 1 ステップ 6 の固定文言)、(c) 対象リポ CLAUDE.md 由来の検証項目 (CLAUDE.md が無ければこの項目自体を省く)、(d) 並列実行時は他タスクの対象ファイル一覧 を含める。(b) と (c) は Phase 2 「controller チェックリスト」で用意したものを使う
+   - prompt では `~/.claude/skills/execute-plan/references/implementer-prompt.md` を `Read` し、それに従って実装するよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
+   - あわせて渡す値は次の 8 つ: タスク番号 / プランファイルの絶対パス / 当該タスクの行範囲 / 合意事項の行範囲 (散在があれば追加の行範囲も) / 対象ファイル / 作業ディレクトリ / 並列実行時は同一バッチの他タスクの対象ファイル一覧 / 再委譲時の追加指摘 (初回の起動では無し)
+   - 合意事項の行範囲は Phase 2 「controller チェックリスト」で揃えたものを使う。合意事項なしのプランなら、合意事項の行範囲の代わりに Phase 1 ステップ 6 の固定文言を渡す
    - `subagent_type=general-purpose`、`model` はタスク複雑度に応じて切替 (後述の「モデル選択方針」)
    - implementer は自分の対象ファイルのみ編集し、コミットはしない
 3. implementer の報告を受けてタスクごとにステータス分岐 (後述の「ステータスハンドリング」)
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
-   - `~/.claude/skills/execute-plan/references/reviewer-prompt.md` をテンプレートとして使用
-   - プレースホルダー `[FULL TEXT of task]`, `[Acceptance criteria]`, `[合意事項全文]`, `[implementer report]`, `[BASE_SHA]` (= ステップ 1 で記録した SHA), `[TARGET_FILES]` (= 当該タスクの対象ファイル) を埋める
-   - `[合意事項全文]` にはプランの `## 合意事項` を丸ごと転記する (合意事項なしのプランなら Phase 1 ステップ 6 の固定文言。reviewer 側でこの観点がスキップされる)。空のまま渡すと reviewer が「プラン合意事項との整合性」観点をレビューできない
+   - prompt では `~/.claude/skills/execute-plan/references/reviewer-prompt.md` を `Read` し、それに従ってレビューするよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
+   - あわせて渡す値は次の 7 つ: タスク番号 / プランファイルの絶対パス / 当該タスクの行範囲 / 合意事項の行範囲 (散在があれば追加の行範囲も) / `[BASE_SHA]` (= ステップ 1 で記録した SHA) / `[TARGET_FILES]` (= 当該タスクの対象ファイル) / implementer の報告
+   - 合意事項なしのプランなら、合意事項の行範囲の代わりに Phase 1 ステップ 6 の固定文言を渡す (reviewer 側でこの観点がスキップされる)。どちらも渡さないと reviewer が「プラン合意事項との整合性」観点をレビューできない
    - `subagent_type=general-purpose`、`model=opus` 固定 (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
-   - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容を `[Context]` に追記)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
+   - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
    - Phase 1 ステップ 7 で既にフィーチャーブランチ上にいることを前提とする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
@@ -137,9 +148,9 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 
 ステップ 6 の `git commit` で pre-commit hook (`.pre-commit-config.yaml` / husky / lint-staged 等) が fail した場合は、その commit を諦めて `NEEDS_CHANGES` 相当の扱いに切り替える。具体的には:
 
-- hook の stderr / stdout を Context として抜粋する (どのファイルの何が引っ掛かったか)
+- hook の stderr / stdout を抜粋する (どのファイルの何が引っ掛かったか)
 - 当該タスクを fresh implementer に再委譲する (ステップ 5 の NEEDS_CHANGES 再委譲と同じフローに乗せる)
-- 抜粋した hook エラーは implementer prompt の `[Context]` に追記する
+- 抜粋した hook エラーは「再委譲時の追加指摘」として implementer に渡す (ファイルに残っていない情報なので controller が文面を書く)
 - hook が示している問題は必ず implementer に fix させる (`--no-verify` で skip して commit を通さない)
 - hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
 
@@ -164,14 +175,14 @@ implementer subagent は 4 種の status で報告する。
 | -- | -- |
 | `DONE` | レビュー段階へ進む |
 | `DONE_WITH_CONCERNS` | 懸念を読み、影響なければレビュー段階へ。影響あれば fresh implementer に修正委譲 |
-| `NEEDS_CONTEXT` | 不足コンテキストを controller が補完して fresh で再委譲 |
+| `NEEDS_CONTEXT` | 不足分の参照先 (プランの行範囲、ファイルパス) を「再委譲時の追加指摘」として渡し fresh で再委譲。ファイルに存在しない情報 (ユーザーからの口頭の指示など) に限って controller が文面を書く |
 | `BLOCKED` | 「エスカレーション」フローへ |
 
 ## エスカレーション
 
 修正ループ 2 回超過時、または `BLOCKED` 報告時は、`AskUserQuestion` で 3 択をユーザーに提示する。
 
-1. 追加指示を与えて再試行 (ユーザー入力を `[Context]` に追記して fresh で再委譲)
+1. 追加指示を与えて再試行 (ユーザー入力を「再委譲時の追加指摘」として渡し fresh で再委譲)
 2. 当該タスクをスキップして次へ (`TaskUpdate(status=deleted)`、状況をログ出力。Phase 4 では未完タスクとして一覧に載せる)
 3. スキル全体を停止 (残タスクを `pending` のまま終了し、Phase 4 のサマリで未完一覧を出力)
 
