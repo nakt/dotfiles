@@ -41,7 +41,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 - Branch: !`git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "(not a git repository)"`
 - Base branch: !`git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1`
 - Uncommitted changes: !`git status --porcelain 2>/dev/null | head -20`
-- Available plans: !`ls -1t .claude/plans/ 2>/dev/null | head -20 || echo "no plans"`
+- Available plans: !`ls -1t .claude/plans/ 2>/dev/null | grep '\.md$' | head -20`
 
 ## コア原則
 
@@ -86,7 +86,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - `- [ ]` 形式の TaskList
    - 番号付きリスト (`1.`, `2.`, ...)
 2. 各タスクから以下を controller のメモリに保持:
-   - タスクの行範囲 (Phase 1 ステップ 4 で記録したもの。本文は保持しない)
+   - タスクの行範囲 (Phase 1 ステップ 4 で記録したもの。subagent の prompt には本文を転記しない)
    - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
    - 複雑度ヒント (対象ファイル数 / Context 長さ / criteria の主観性)
 3. `TaskCreate` で抽出した各タスクを登録
@@ -100,7 +100,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 各タスクの implementer / reviewer を起動する前に、合意事項の行範囲を controller のメモリに揃えておく (Phase 3 のステップ 2 / ステップ 4 で渡すため)。
 これが欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
 
-- プランの `## 合意事項` セクションの行範囲を確定させる (Phase 1 ステップ 4 で記録したもの)。合意事項なしのプランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて `## 合意事項` の外に判断が散在していないかを 1 パスで確認し、散在があればその箇所の行範囲も控えておく (控えるのは行範囲だけで、本文は保持しない)
+- プランの `## 合意事項` セクションの行範囲を確定させる (Phase 1 ステップ 4 で記録したもの)。合意事項なしのプランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて `## 合意事項` の外に判断が散在していないかを 1 パスで確認し、散在があればその箇所の行範囲も控えておく (控えるのは行範囲で、subagent の prompt には本文を転記しない)
 - 対象リポの `CLAUDE.md` は controller では読まない。リポルートから対象ファイルの各先祖ディレクトリまでを辿って当該タスクに関係する検証項目を拾うのは implementer 自身の仕事で、その指示は implementer テンプレート側にある
 
 ### Phase 3: タスクループ
@@ -136,7 +136,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
    - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
-   - NEEDS_CONTEXT → reviewer が見出しの照合に失敗してレビューに入れなかった場合。実装には差し戻さず、Phase 1 ステップ 4 で記録した行範囲を確認し、正しい行範囲を渡して fresh reviewer を起動し直す。この再起動はレビューループの回数に数えない
+   - NEEDS_CONTEXT → reviewer が先頭行の照合または終端の検査に失敗してレビューに入れなかった場合。実装には差し戻さず、プランを読み直して行範囲を取り直してから fresh reviewer を起動し直す。この再起動はレビューループの回数に数えない
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
    - Phase 1 ステップ 7 で既にフィーチャーブランチ上にいることを前提とする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
@@ -176,7 +176,7 @@ implementer subagent は 4 種の status で報告する。
 | -- | -- |
 | `DONE` | レビュー段階へ進む |
 | `DONE_WITH_CONCERNS` | 懸念を読み、影響なければレビュー段階へ。影響あれば fresh implementer に修正委譲 |
-| `NEEDS_CONTEXT` | 不足分の参照先 (プランの行範囲、ファイルパス) を「再委譲時の追加指摘」として渡し fresh で再委譲。ファイルに存在しない情報 (ユーザーからの口頭の指示など) に限って controller が文面を書く |
+| `NEEDS_CONTEXT` | 行範囲の不整合が原因の場合は、プランを読み直して行範囲を取り直してから fresh subagent を起動する。着手前の質問が原因の場合は、不足分の参照先 (プランの行範囲、ファイルパス) を「再委譲時の追加指摘」として渡し fresh で再委譲する。ファイルに存在しない情報 (ユーザーからの口頭の指示など) に限って controller が文面を書く。原因は controller が報告の文面で見分ける |
 | `BLOCKED` | 「エスカレーション」フローへ |
 
 ## エスカレーション
