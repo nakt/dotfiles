@@ -85,6 +85,7 @@ src/
 - カスタムフックは `use` プレフィックスで命名
 - コードスタイルは Biome で統一
 - シンプルな選択を優先し、過度な最適化・設計を避ける
+- コメントの書き方は [../typescript-dev-guide/SKILL.md](../typescript-dev-guide/SKILL.md) の Coding Conventions > Comments に従う
 
 ## Decision Guide
 
