@@ -88,7 +88,6 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 2. 各タスクから以下を controller のメモリに保持:
    - タスクの行範囲 (Phase 1 ステップ 4 で記録したもの。subagent の prompt には本文を転記しない)
    - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
-   - 複雑度ヒント (対象ファイル数 / Context 長さ / criteria の主観性)
 3. `TaskCreate` で抽出した各タスクを登録
 4. 実行順とバッチを決める:
    - 依存が明示されているタスクは依存元の後に回し、それ以外はプラン記載順とする
@@ -124,7 +123,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
    - prompt では `~/.claude/skills/execute-plan/references/implementer-prompt.md` を `Read` し、それに従って実装するよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
    - あわせて渡す値は次の 8 つ: タスク番号 / プランファイルの絶対パス / 当該タスクの行範囲 / 合意事項の行範囲 (散在があれば追加の行範囲も) / 対象ファイル / 作業ディレクトリ / 並列実行時は同一バッチの他タスクの対象ファイル一覧 / 再委譲時の追加指摘 (初回の起動では無し)
    - 合意事項の行範囲は Phase 2 「controller チェックリスト」で揃えたものを使う。合意事項なしのプランなら、合意事項の行範囲の代わりに Phase 1 ステップ 6 の固定文言を渡す
-   - `subagent_type=general-purpose`、`model` はタスク複雑度に応じて切替 (後述の「モデル選択方針」)
+   - `subagent_type=general-purpose`、初回起動は `model=sonnet` (ユーザーが `opus` を明示指定していればそれに従う。詳細は後述の「モデル選択方針」)
    - implementer は自分の対象ファイルのみ編集し、コミットはしない
 3. implementer の報告を受けてタスクごとにステータス分岐 (後述の「ステータスハンドリング」)
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
@@ -135,7 +134,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
-   - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
+   - NEEDS_CHANGES → 指摘を fresh implementer に `model=opus` で再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
    - NEEDS_CONTEXT → reviewer が先頭行の照合または終端の検査に失敗してレビューに入れなかった場合。実装には差し戻さず、プランを読み直して行範囲を取り直してから fresh reviewer を起動し直す。この再起動はレビューループの回数に数えない
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
    - Phase 1 ステップ 7 で既にフィーチャーブランチ上にいることを前提とする
@@ -150,7 +149,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 ステップ 6 の `git commit` で pre-commit hook (`.pre-commit-config.yaml` / husky / lint-staged 等) が fail した場合は、その commit を諦めて `NEEDS_CHANGES` 相当の扱いに切り替える。具体的には:
 
 - hook の stderr / stdout を抜粋する (どのファイルの何が引っ掛かったか)
-- 当該タスクを fresh implementer に再委譲する (ステップ 5 の NEEDS_CHANGES 再委譲と同じフローに乗せる)
+- 当該タスクを fresh implementer に `model=opus` で再委譲する (ステップ 5 の NEEDS_CHANGES 再委譲と同じフローに乗せる)
 - 抜粋した hook エラーは「再委譲時の追加指摘」として implementer に渡す (ファイルに残っていない情報なので controller が文面を書く)
 - hook が示している問題は必ず implementer に fix させる (`--no-verify` で skip して commit を通さない)
 - hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
@@ -175,15 +174,15 @@ implementer subagent は 4 種の status で報告する。
 | Status | 対応 |
 | -- | -- |
 | `DONE` | レビュー段階へ進む |
-| `DONE_WITH_CONCERNS` | 懸念を読み、影響なければレビュー段階へ。影響あれば fresh implementer に修正委譲 |
-| `NEEDS_CONTEXT` | 行範囲の不整合が原因の場合は、プランを読み直して行範囲を取り直してから fresh subagent を起動する。着手前の質問が原因の場合は、不足分の参照先 (プランの行範囲、ファイルパス) を「再委譲時の追加指摘」として渡し fresh で再委譲する。ファイルに存在しない情報 (ユーザーからの口頭の指示など) に限って controller が文面を書く。原因は controller が報告の文面で見分ける |
+| `DONE_WITH_CONCERNS` | 懸念を読み、影響なければレビュー段階へ。影響あれば fresh implementer に `model=opus` で修正委譲 |
+| `NEEDS_CONTEXT` | 行範囲の不整合が原因の場合は `sonnet` のまま、プランを読み直して行範囲を取り直してから fresh subagent を起動する。着手前の質問が原因の場合も `sonnet` のまま、不足分の参照先 (プランの行範囲、ファイルパス) を「再委譲時の追加指摘」として渡し fresh で再委譲する。ファイルに存在しない情報 (ユーザーからの口頭の指示など) に限って controller が文面を書く。「何ファイル読んでも理解が深まらず、行き詰まっている」が原因の場合は `model=opus` に昇格して再委譲する。原因は controller が報告の文面で見分ける |
 | `BLOCKED` | 「エスカレーション」フローへ |
 
 ## エスカレーション
 
 修正ループ 2 回超過時、または `BLOCKED` 報告時は、`AskUserQuestion` で 3 択をユーザーに提示する。
 
-1. 追加指示を与えて再試行 (ユーザー入力を「再委譲時の追加指摘」として渡し fresh で再委譲)
+1. 追加指示を与えて再試行 (ユーザー入力を「再委譲時の追加指摘」として渡し fresh implementer に `model=opus` で再委譲)
 2. 当該タスクをスキップして次へ (`TaskUpdate(status=deleted)`、状況をログ出力。Phase 4 では未完タスクとして一覧に載せる)
 3. スキル全体を停止 (残タスクを `pending` のまま終了し、Phase 4 のサマリで未完一覧を出力)
 
@@ -194,11 +193,22 @@ implementer subagent は 4 種の status で報告する。
 | ロール | 既定モデル | 切替条件 |
 | -- | -- | -- |
 | controller (本スキル本体) | セッション継承 | 切替しない |
-| implementer (通常タスク) | `sonnet` | 明確な仕様、リファクタ、パターン照合、デバッグ |
-| implementer (設計判断) | `opus` | 設計判断、広範な理解、Context 長大 |
+| implementer (初回) | `sonnet` | 常に `sonnet` |
+| implementer (再委譲) | `opus` | 実装のやり直しになる再委譲で昇格 |
 | reviewer | `opus` | 常に固定 |
 
-複雑度判定は controller がプランの `対象ファイル` の数、`Context` の長さ、`Acceptance criteria` の主観性で行う。プラン内に明示的な複雑度ヒントがあれば優先する。
+controller は初回起動のモデルをタスクの複雑度で判定しない。
+ただしユーザーが実行時に `opus` を明示指定した場合 (実行全体でもタスク単位でも) はそれに従う。
+
+実装のやり直しになる再委譲では、次の経路で implementer を `opus` に昇格させる。
+
+- `NEEDS_CHANGES` による再委譲
+- pre-commit hook fail による再委譲
+- `DONE_WITH_CONCERNS` からの修正委譲
+- エスカレーション後の追加指示つき再試行
+
+implementer の `NEEDS_CONTEXT` は原因によって扱いが分かれる。
+行範囲の不整合や参照先不足が原因の場合は `sonnet` のまま再委譲し、「何ファイル読んでも理解が深まらず、行き詰まっている」が原因の場合は `opus` に昇格させる。
 
 ## References
 
