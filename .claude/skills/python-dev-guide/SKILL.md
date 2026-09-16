@@ -76,6 +76,17 @@ def calculate_area(length: float, width: float) -> float:
     return length * width
 ```
 
+### Comments
+
+コメントと docstring には、コードから読み取れない意図と理由を書く。
+計測して得た事実を書くと、コードに手を入れるたびに数値を更新するための再計測が必要になる。
+
+- 計測結果（実行時間・カバレッジ・ベンチマーク値）は書かない。記録先はコミットメッセージ・PR 本文・ADR
+- 定数名で表せる値そのものは書かない（避ける: `TIMEOUT_SECONDS: Final = 30  # 30 second timeout`）
+- 値の理由は書く（例: `# Matches the upstream API's server-side timeout`）
+- テストの許容値は assertion 側の定数として置き、その値を出した計測はコミットメッセージに書く
+- 既存コメントの数値が古くなっていたら、再計測せず数値を削って理由だけ残す
+
 ### Type Hints
 
 ```python
