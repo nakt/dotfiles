@@ -49,8 +49,9 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 - fresh subagent per task: タスクごとに新しい `Agent` を立て、controller の会話履歴を継承させない
 - post-implementation review: 実装完了後に別の fresh subagent でレビュー (仕様適合 + 品質を 1 段で統合)
 - continuous execution: タスク間で人に確認しない。停止は BLOCKED / 解消不能な ambiguity / 全タスク完了の 3 つに限る
-- controller がコンテキストを curate: controller はプラン内の位置 (パスと行範囲) を渡し、subagent は指定された範囲だけを読む
-- 実行中はプランファイルを編集しない: 行範囲の参照が行番号に依存するため、実行中に編集すると subagent が誤った範囲を読む
+- controller がコンテキストを curate: controller はプランファイルの絶対パスとタスク番号を渡し、subagent は自分でタスク本文の見出しを探して該当範囲だけを読む
+- 実行中はプランファイルを編集しない: implementer と reviewer が同じタスク本文を読むことを保証するため
+- 対象リポの `CLAUDE.md` は controller では読まない: リポジトリルートの `CLAUDE.md` はハーネスがサブエージェントに注入済みで、入れ子の `CLAUDE.md` を拾う仕組みは本スキルにない
 
 ## ワークフロー
 
@@ -62,18 +63,12 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - 1 件 → それを使う
    - 複数 → `AskUserQuestion` で選択 (最新 4 件を選択肢として提示)
    - 0 件 → 「プランがありません」と報告して終了
-4. `Read` でプラン全文を取得。冒頭が参照スタブマーカー (「このファイルは参照スタブ。実行対象: <パス>」) なら、指定された本体パスのプランへ読み替えて再取得する
-   - このとき `## 合意事項` と各 `### Task N` の行範囲を記録する。以降 subagent にはこの行範囲を渡し、本文は渡さない
-   - 行範囲は `開始行-終了行` 形式で、開始行・終了行とも 1 始まり (`Read` の出力に付く行番号と同じ) のまま渡す。`offset` / `limit` への変換は subagent 側で行う
-   - 範囲の取り方は、`## 合意事項` が当該見出し行から次の `##` 見出しの直前まで、各タスクが `### Task N` 見出し行から次の `###` 見出し (または次の `##` 見出し) の直前まで。いずれも次の見出しがなければファイル末尾まで
-   - 参照スタブを経由した場合は、読み替え先の本体プランの行番号を使う (subagent に渡すパスも本体プランのもの)
-   - `Read` が全文を返さなかった場合 (既定の上限行数を超える長さのプラン) に限り、`grep -n '^## \|^### Task '` で見出し行を取り直す
+4. `Read` でプラン全文を取得する。冒頭が参照スタブマーカー (「このファイルは参照スタブ。実行対象: <パス>」) なら、指定された本体パスのプランへ読み替えて再取得する
+   - 参照スタブを経由した場合、以降 subagent に渡すプランファイルの絶対パスと controller 自身が `grep` する対象は、どちらも読み替え先の本体プランとする (スタブのパスは渡さない)
+   - `Read` が全文を返さなかった場合 (既定の上限行数を超える長さのプラン) に限り、`grep -n '^## \|^### '` で見出し行の位置を取り直し、`offset` / `limit` で必要な範囲を読む
 5. プラン本文に `## 実装タスク` セクションがあるか確認
    - ない場合: `AskUserQuestion` で「実装タスクを追記してから再実行する」「このまま見出し / 番号付きリストから抽出を試みる」「中止」の 3 択を提示
-6. プラン本文に `## 合意事項` セクションがあるか確認
-   - ある場合: ステップ 4 で記録した行範囲を controller のメモリに保持する (Phase 2 チェックリストで使う)
-   - ない場合: 合意事項なしのプラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)
-   - 「続行する」を選んだ場合: 合意事項は存在しないものとして扱い、implementer / reviewer には合意事項の行範囲の代わりに固定文言 `(このプランは合意事項なし。合意事項との整合性は評価対象外)` を渡す。合意事項を推測して捏造しない
+6. プラン本文に `## 合意事項` セクションが無い場合、合意事項なしのプラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)。「続行する」を選んだ場合、合意事項は存在しないものとして扱う。合意事項を推測して捏造しない
 7. 実装経路の選択: `ls ~/.claude/plugins/cache/openai-codex` で Codex プラグインの導入有無を確認する
    - 導入されていない → 質問せず Claude 経路に決定する (選べない選択肢を毎回提示しない)
    - 導入されている → `AskUserQuestion` で「Claude サブエージェント」「Codex」の 2 択を実行全体で 1 回だけ提示する (タスクごとには聞かない)
@@ -90,22 +85,12 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - `## 実装タスク` 配下の `### Task N: ...` 見出し (推奨形式。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
    - `- [ ]` 形式の TaskList
    - 番号付きリスト (`1.`, `2.`, ...)
-2. 各タスクから以下を controller のメモリに保持:
-   - タスクの行範囲 (Phase 1 ステップ 4 で記録したもの。subagent の prompt には本文を転記しない)
-   - 目的 / 対象ファイル / 依存 / Acceptance criteria / Context (推奨形式の場合。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
+2. 各タスクから目的 / 対象ファイル / 依存 / Acceptance criteria / Context を controller のメモリに保持する (推奨形式の場合。詳細は `~/.claude/skills/write-plan/references/task-format.md` を参照)
 3. `TaskCreate` で抽出した各タスクを登録
 4. 実行順とバッチを決める:
    - 依存が明示されているタスクは依存元の後に回し、それ以外はプラン記載順とする
    - この順に走査し、対象ファイルが互いに素かつ依存関係のないタスク群を 1 バッチにまとめる。対象ファイルが 1 つでも重なるタスク、依存関係のあるタスク、対象ファイルが特定できないタスクは同じバッチに入れず、単独バッチとする
    - Phase 3 はバッチ単位で処理する (1 件だけのバッチは逐次実行と同じ)
-
-#### controller チェックリスト (Phase 3 へ渡す前)
-
-各タスクの implementer / reviewer を起動する前に、合意事項の行範囲を controller のメモリに揃えておく (Phase 3 のステップ 4 で渡すため。Claude 経路ではステップ 2 でも渡す)。
-これが欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
-
-- プランの `## 合意事項` セクションの行範囲を確定させる (Phase 1 ステップ 4 で記録したもの)。合意事項なしのプランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて `## 合意事項` の外に判断が散在していないかを 1 パスで確認し、散在があればその箇所の行範囲も控えておく (控えるのは行範囲で、subagent の prompt には本文を転記しない)
-- 対象リポの `CLAUDE.md` は controller では読まない。リポルートから対象ファイルの各先祖ディレクトリまでを辿って当該タスクに関係する検証項目を拾うのは implementer 自身の仕事で、その指示は implementer テンプレート側にある
 
 ### Phase 3: タスクループ
 
@@ -132,14 +117,13 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 3. implementer の報告を受けてタスクごとにステータス分岐 (後述の「ステータスハンドリング」)
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
    - prompt では `~/.claude/skills/execute-plan/references/reviewer-prompt.md` を `Read` し、それに従ってレビューするよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
-   - あわせて渡す値は次の 7 つ: タスク番号 / プランファイルの絶対パス / 当該タスクの行範囲 / 合意事項の行範囲 (散在があれば追加の行範囲も) / `[BASE_SHA]` (= ステップ 1 で記録した SHA) / `[TARGET_FILES]` (= 当該タスクの対象ファイル) / implementer の報告
-   - 合意事項なしのプランなら、合意事項の行範囲の代わりに Phase 1 ステップ 6 の固定文言を渡す (reviewer 側でこの観点がスキップされる)。どちらも渡さないと reviewer が「プラン合意事項との整合性」観点をレビューできない
+   - あわせて渡す値は次の 5 つ: タスク番号 / プランファイルの絶対パス / `[BASE_SHA]` (= ステップ 1 で記録した SHA) / `[TARGET_FILES]` (= 当該タスクの対象ファイル) / implementer の報告
    - `subagent_type=general-purpose`、`model=opus` 固定 (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
    - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。宛先とモデル / フラグは選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従う。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
-   - NEEDS_CONTEXT → reviewer が先頭行の照合または終端の検査に失敗してレビューに入れなかった場合。実装には差し戻さず、プランを読み直して行範囲を取り直してから fresh reviewer を起動し直す。この再起動はレビューループの回数に数えない
+   - NEEDS_CONTEXT → reviewer が渡されたタスク番号に一致する `### Task N:` 見出しを見つけられずレビューに入れなかった場合。実装には差し戻さず、controller が再起動前に `grep -n '^### Task N:'` (N は当該タスク番号) をプランファイルに対して実行して見出しの有無を確認する。見出しが見つかれば fresh reviewer を起動し直す (この再起動はレビューループの回数に数えない)。見出しが見つからなければ reviewer を再起動せず「エスカレーション」フローへ送る
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
    - Phase 1 ステップ 8 で既にフィーチャーブランチ上にいることを前提とする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
@@ -209,4 +193,4 @@ implementer のモデル / ルーティング選択は実装経路ごとに異�
 - `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md`: Codex 経路の implementer 用テンプレート (Codex 自身が読む)
 - `~/.claude/skills/execute-plan/references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
 - `~/.claude/skills/execute-plan/references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)
-- `~/.claude/skills/write-plan/references/task-format.md`: 実装タスクの記述形式 (controller 側の抽出規則はこの形式に従う)
+- `~/.claude/skills/write-plan/references/task-format.md`: 実装タスクの記述形式。`### Task N:` 見出しの抽出規則は implementer / reviewer 側の前提として書かれている
