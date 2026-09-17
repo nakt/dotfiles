@@ -2,6 +2,7 @@
 name: execute-plan
 description: >-
   承認済みプラン (`.claude/plans/`) を、タスクごとに fresh subagent で実装 → レビュー → コミット → 完了マークの順に進めるスキル。
+  実装は Claude サブエージェントと Codex の 2 経路から選べ、実行全体で 1 回だけ選択する。
   ユーザーが「プランを実行して」「実装を進めて」「プランの通り実装して」「execute-plan」と言ったとき、
   または Plan モードで ExitPlanMode 承認されたプランを実装フェーズに進めるときに使用する。
   ユーザーからの明示的な実行依頼がないまま起動した場合 (ExitPlanMode 承認後の自動継続など) のみ、最初に AskUserQuestion で実行確認してから進む。
@@ -73,11 +74,15 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - ある場合: ステップ 4 で記録した行範囲を controller のメモリに保持する (Phase 2 チェックリストで使う)
    - ない場合: 合意事項なしのプラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)
    - 「続行する」を選んだ場合: 合意事項は存在しないものとして扱い、implementer / reviewer には合意事項の行範囲の代わりに固定文言 `(このプランは合意事項なし。合意事項との整合性は評価対象外)` を渡す。合意事項を推測して捏造しない
-7. Branch が Base branch と同じ場合は `AskUserQuestion` で続行確認し、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
-8. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)。ただしプランファイル (`.claude/plans/` 配下。本体プラン・参照スタブとも) はこの判定から除外する。理由: write-plan の承認直後に execute-plan が起動される経路では、今から実行するプラン自身が untracked で作業ツリーに存在するのが正常であり、除外しないと必ず中止になる。プランファイルはどのタスクの対象ファイルにもならないので、パス限定のレビュー差分にも `git add` にも混入しない
+7. 実装経路の選択: `ls ~/.claude/plugins/cache/openai-codex` で Codex プラグインの導入有無を確認する
+   - 導入されていない → 質問せず Claude 経路に決定する (選べない選択肢を毎回提示しない)
+   - 導入されている → `AskUserQuestion` で「Claude サブエージェント」「Codex」の 2 択を実行全体で 1 回だけ提示する (タスクごとには聞かない)
+   - 決まった経路 (質問で選んだ場合も未導入で自動決定した場合も) を controller のメモリに保持し、Phase 3 ステップ 2 で使う
+8. Branch が Base branch と同じ場合は `AskUserQuestion` で続行確認し、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
+9. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)。ただしプランファイル (`.claude/plans/` 配下。本体プラン・参照スタブとも) はこの判定から除外する。理由: write-plan の承認直後に execute-plan が起動される経路では、今から実行するプラン自身が untracked で作業ツリーに存在するのが正常であり、除外しないと必ず中止になる。プランファイルはどのタスクの対象ファイルにもならないので、パス限定のレビュー差分にも `git add` にも混入しない
    - プランファイル以外がクリーン → 続行
    - プランファイル以外に未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクのレビュー差分 (直前コミット (HEAD) からのパス限定差分) に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
-9. 権限モードの案内: 実装開始前に、acceptEdits モード (`shift+tab` で切替) への切り替えをユーザーに 1 度だけ案内する。理由: implementer subagent の Edit / Write が権限プロンプトで拒否されると自律実行が中断し、連続実行というスキルの狙いが崩れるため。案内後は返答を待たずに続行してよい (切り替えなくても実行は可能だが、Edit ごとに確認が発生しうる)
+10. 権限モードの案内 (Claude 経路のみ): Claude 経路を選んだ場合、`~/.claude/skills/execute-plan/references/route-claude.md` の「acceptEdits モードの案内」に従い、実装開始前に案内する。Codex 経路では Claude Code の Edit / Write 権限プロンプトが介在しないため、このステップは行わない
 
 ### Phase 2: タスク抽出と TaskList 作成
 
@@ -96,7 +101,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
 
 #### controller チェックリスト (Phase 3 へ渡す前)
 
-各タスクの implementer / reviewer を起動する前に、合意事項の行範囲を controller のメモリに揃えておく (Phase 3 のステップ 2 / ステップ 4 で渡すため)。
+各タスクの implementer / reviewer を起動する前に、合意事項の行範囲を controller のメモリに揃えておく (Phase 3 のステップ 4 で渡すため。Claude 経路ではステップ 2 でも渡す)。
 これが欠けていると、implementer が合意事項を無視した実装をしても reviewer が検出できない。
 
 - プランの `## 合意事項` セクションの行範囲を確定させる (Phase 1 ステップ 4 で記録したもの)。合意事項なしのプランで Phase 1 ステップ 6 の「続行する」を選んだ場合は、そこで定めた固定文言を代わりに使う。あわせて `## 合意事項` の外に判断が散在していないかを 1 パスで確認し、散在があればその箇所の行範囲も控えておく (控えるのは行範囲で、subagent の prompt には本文を転記しない)
@@ -115,16 +120,15 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 
 ステップ 2 / 4 で subagent に渡すパスは絶対パスとする。
 相対パスは subagent の作業ディレクトリ次第で解決できないため、テンプレートは `~/.claude/skills/execute-plan/references/` 配下のパスを `~` を展開せずそのまま渡し、プランファイルは対象リポのルートからの絶対パスに解決してから渡す。
+ただし Codex 経路のステップ 2 に限り、パスはすべて `~` を展開した絶対パスで渡す (`~` が Codex 側で展開される保証がないため。詳細は `~/.claude/skills/execute-plan/references/route-codex.md` の「プロンプトに載せる値」)。
 
 各バッチについて以下を行う。
 
 1. バッチ選定: Phase 2 の順で次のバッチを取り、含まれる各タスクを `TaskUpdate(status=in_progress)`。`BASE_SHA` として `git rev-parse HEAD` を記録する
-2. 実装: バッチ内の各タスクに implementer `Agent` を起動する (バッチ内は同時起動可)
-   - prompt では `~/.claude/skills/execute-plan/references/implementer-prompt.md` を `Read` し、それに従って実装するよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
-   - あわせて渡す値は次の 8 つ: タスク番号 / プランファイルの絶対パス / 当該タスクの行範囲 / 合意事項の行範囲 (散在があれば追加の行範囲も) / 対象ファイル / 作業ディレクトリ / 並列実行時は同一バッチの他タスクの対象ファイル一覧 / 再委譲時の追加指摘 (初回の起動では無し)
-   - 合意事項の行範囲は Phase 2 「controller チェックリスト」で揃えたものを使う。合意事項なしのプランなら、合意事項の行範囲の代わりに Phase 1 ステップ 6 の固定文言を渡す
-   - `subagent_type=general-purpose`、初回起動は `model=sonnet` (ユーザーが `opus` を明示指定していればそれに従う。詳細は後述の「モデル選択方針」)
-   - implementer は自分の対象ファイルのみ編集し、コミットはしない
+2. 実装: Phase 1 ステップ 7 で選んだ経路に従い、バッチ内の各タスクに implementer を起動する (バッチ内は同時起動可)
+   - Claude 経路 → `~/.claude/skills/execute-plan/references/route-claude.md` の「implementer の起動」に従う
+   - Codex 経路 → `~/.claude/skills/execute-plan/references/route-codex.md` に従う (「実装の委譲」で起動したうえで、「戻り値の受け取り」「Codex 起動失敗時の扱い」まで読んでから次のステップへ進む。戻り値が空またはジョブ起動メッセージだった場合はステップ 3 のステータス分岐に載せない)
+   - どちらの経路でも、implementer は自分の対象ファイルのみ編集し、コミットはしない
 3. implementer の報告を受けてタスクごとにステータス分岐 (後述の「ステータスハンドリング」)
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
    - prompt では `~/.claude/skills/execute-plan/references/reviewer-prompt.md` を `Read` し、それに従ってレビューするよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
@@ -134,14 +138,14 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
-   - NEEDS_CHANGES → 指摘を fresh implementer に `model=opus` で再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
+   - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。宛先とモデル / フラグは選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従う。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
    - NEEDS_CONTEXT → reviewer が先頭行の照合または終端の検査に失敗してレビューに入れなかった場合。実装には差し戻さず、プランを読み直して行範囲を取り直してから fresh reviewer を起動し直す。この再起動はレビューループの回数に数えない
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
-   - Phase 1 ステップ 7 で既にフィーチャーブランチ上にいることを前提とする
+   - Phase 1 ステップ 8 で既にフィーチャーブランチ上にいることを前提とする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
    - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更しても、また同一バッチの他タスクが未コミットで同居していても、コミットには入らない
 7. コミットしたタスクを `TaskUpdate(status=completed)`
-8. バッチ後チェック: バッチ内全タスクの対象ファイル以外に未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する。Phase 1 ステップ 8 と同じくプランファイル (`.claude/plans/` 配下) は除外する
+8. バッチ後チェック: バッチ内全タスクの対象ファイル以外に未コミット変更が残っていないか `git status --porcelain` で確認し、あればスコープ逸脱としてユーザーに報告する。Phase 1 ステップ 9 と同じくプランファイル (`.claude/plans/` 配下) は除外する
 9. 残バッチがあれば次のバッチへ (ステップ 1 に戻る)
 
 #### pre-commit hook fail 時の扱い
@@ -149,19 +153,19 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 ステップ 6 の `git commit` で pre-commit hook (`.pre-commit-config.yaml` / husky / lint-staged 等) が fail した場合は、その commit を諦めて `NEEDS_CHANGES` 相当の扱いに切り替える。具体的には:
 
 - hook の stderr / stdout を抜粋する (どのファイルの何が引っ掛かったか)
-- 当該タスクを fresh implementer に `model=opus` で再委譲する (ステップ 5 の NEEDS_CHANGES 再委譲と同じフローに乗せる)
+- 当該タスクを fresh implementer に再委譲する (ステップ 5 の NEEDS_CHANGES 再委譲と同じフローに乗せる)。宛先とモデル / フラグは選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従う
 - 抜粋した hook エラーは「再委譲時の追加指摘」として implementer に渡す (ファイルに残っていない情報なので controller が文面を書く)
 - hook が示している問題は必ず implementer に fix させる (`--no-verify` で skip して commit を通さない)
 - hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
 
-hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。`~/.claude/skills/execute-plan/references/implementer-prompt.md` の「lint / hook self-check」で `~/.claude/skills/execute-plan/references/lint-per-language.md` に沿った検出・実行が徹底されていれば、この分岐に来る頻度は下がる。
+hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。Claude 経路は `~/.claude/skills/execute-plan/references/implementer-prompt.md`、Codex 経路は `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md` の「lint / hook self-check」で、ともに `~/.claude/skills/execute-plan/references/lint-per-language.md` に沿った検出・実行を求めている。徹底されていれば、この分岐に来る頻度は下がる。
 
 ### Phase 4: 完了報告
 
 全タスク完了後:
 
 - 変更ファイル数とコミット数を `git log` / `git diff` で確認
-- 1〜2 文のサマリを出力 (例: 「3 タスク完了。5 ファイル変更、3 コミット作成」)
+- 1〜2 文のサマリを出力し、実装経路 (Claude / Codex) を含める (例: 「Claude 経路で 3 タスク完了。5 ファイル変更、3 コミット作成」)
 - `TaskList` で全タスクの最終ステータスを取得し (個別の詳細が要るときは `TaskGet`)、未完タスクがあれば一覧で報告する。内訳は、エスカレーションでスキップした `deleted`、着手前に停止して `pending` のまま残ったもの、バッチ処理中に停止して `in_progress` のまま残ったものの 3 種
 - PR の作成に進む場合は `pr-merge` スキルを使うようユーザーに案内する
 
@@ -174,15 +178,15 @@ implementer subagent は 4 種の status で報告する。
 | Status | 対応 |
 | -- | -- |
 | `DONE` | レビュー段階へ進む |
-| `DONE_WITH_CONCERNS` | 懸念を読み、影響なければレビュー段階へ。影響あれば fresh implementer に `model=opus` で修正委譲 |
-| `NEEDS_CONTEXT` | 行範囲の不整合が原因の場合は `sonnet` のまま、プランを読み直して行範囲を取り直してから fresh subagent を起動する。着手前の質問が原因の場合も `sonnet` のまま、不足分の参照先 (プランの行範囲、ファイルパス) を「再委譲時の追加指摘」として渡し fresh で再委譲する。ファイルに存在しない情報 (ユーザーからの口頭の指示など) に限って controller が文面を書く。「何ファイル読んでも理解が深まらず、行き詰まっている」が原因の場合は `model=opus` に昇格して再委譲する。原因は controller が報告の文面で見分ける |
+| `DONE_WITH_CONCERNS` | 懸念を読み、影響なければレビュー段階へ。影響あれば選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順で fresh implementer に修正委譲 |
+| `NEEDS_CONTEXT` | 原因は controller が報告の文面で見分け、選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従って fresh subagent を起動する |
 | `BLOCKED` | 「エスカレーション」フローへ |
 
 ## エスカレーション
 
 修正ループ 2 回超過時、または `BLOCKED` 報告時は、`AskUserQuestion` で 3 択をユーザーに提示する。
 
-1. 追加指示を与えて再試行 (ユーザー入力を「再委譲時の追加指摘」として渡し fresh implementer に `model=opus` で再委譲)
+1. 追加指示を与えて再試行 (ユーザー入力を「再委譲時の追加指摘」として渡し fresh implementer に再委譲。宛先とモデル / フラグは選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従う)
 2. 当該タスクをスキップして次へ (`TaskUpdate(status=deleted)`、状況をログ出力。Phase 4 では未完タスクとして一覧に載せる)
 3. スキル全体を停止 (残タスクを `pending` のまま終了し、Phase 4 のサマリで未完一覧を出力)
 
@@ -193,26 +197,16 @@ implementer subagent は 4 種の status で報告する。
 | ロール | 既定モデル | 切替条件 |
 | -- | -- | -- |
 | controller (本スキル本体) | セッション継承 | 切替しない |
-| implementer (初回) | `sonnet` | 常に `sonnet` |
-| implementer (再委譲) | `opus` | 実装のやり直しになる再委譲で昇格 |
 | reviewer | `opus` | 常に固定 |
 
-controller は初回起動のモデルをタスクの複雑度で判定しない。
-ただしユーザーが実行時に `opus` を明示指定した場合 (実行全体でもタスク単位でも) はそれに従う。
-
-実装のやり直しになる再委譲では、次の経路で implementer を `opus` に昇格させる。
-
-- `NEEDS_CHANGES` による再委譲
-- pre-commit hook fail による再委譲
-- `DONE_WITH_CONCERNS` からの修正委譲
-- エスカレーション後の追加指示つき再試行
-
-implementer の `NEEDS_CONTEXT` は原因によって扱いが分かれる。
-行範囲の不整合や参照先不足が原因の場合は `sonnet` のまま再委譲し、「何ファイル読んでも理解が深まらず、行き詰まっている」が原因の場合は `opus` に昇格させる。
+implementer のモデル / ルーティング選択は実装経路ごとに異なるため、選ばれた経路の reference (`route-claude.md` / `route-codex.md`) に従う。
 
 ## References
 
-- `~/.claude/skills/execute-plan/references/implementer-prompt.md`: implementer subagent 用テンプレート
+- `~/.claude/skills/execute-plan/references/route-claude.md`: Claude 経路の controller 手順 (implementer 起動 / モデル選択 / ステータスハンドリング / acceptEdits 案内)
+- `~/.claude/skills/execute-plan/references/route-codex.md`: Codex 経路の controller 手順 (実装の委譲 / 戻り値の受け取り / 起動失敗時の扱い / ステータス別の再委譲)
+- `~/.claude/skills/execute-plan/references/implementer-prompt.md`: Claude 経路の implementer subagent 用テンプレート
+- `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md`: Codex 経路の implementer 用テンプレート (Codex 自身が読む)
 - `~/.claude/skills/execute-plan/references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
 - `~/.claude/skills/execute-plan/references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)
 - `~/.claude/skills/write-plan/references/task-format.md`: 実装タスクの記述形式 (controller 側の抽出規則はこの形式に従う)
