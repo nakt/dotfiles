@@ -1,3 +1,16 @@
 {
-  "hooks": {}
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^(apply_patch|Bash|Edit|Write)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.codex/hooks/lint-markdown.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
 }
