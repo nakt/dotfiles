@@ -10,3 +10,6 @@
 !skills
 !hooks
 !output-styles
+
+# Anthropic 配布スキルの同期キャッシュ (harness が再生成する)
+skills/synced/
