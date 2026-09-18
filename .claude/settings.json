@@ -92,7 +92,6 @@
       "Bash(gh pr merge *)"
     ]
   },
-  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -241,5 +240,6 @@
   "editorMode": "vim",
   "verbose": false,
   "remoteControlAtStartup": false,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "model": "sonnet"
 }
