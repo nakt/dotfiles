@@ -118,12 +118,12 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
    - prompt では `~/.claude/skills/execute-plan/references/reviewer-prompt.md` を `Read` し、それに従ってレビューするよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
    - あわせて渡す値は次の 5 つ: タスク番号 / プランファイルの絶対パス / `[BASE_SHA]` (= ステップ 1 で記録した SHA) / `[TARGET_FILES]` (= 当該タスクの対象ファイル) / implementer の報告
-   - `subagent_type=general-purpose`、`model=opus` 固定 (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
+   - `subagent_type=general-purpose` を指定し、`model` は当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路で implementer に `--effort high` が付与された、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）であれば `opus`、そうでなければ `sonnet` とする (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
    - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。宛先とモデル / フラグは選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従う。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
-   - NEEDS_CONTEXT → reviewer が渡されたタスク番号に一致する `### Task N:` 見出しを見つけられずレビューに入れなかった場合。実装には差し戻さず、controller が再起動前に `grep -n '^### Task N:'` (N は当該タスク番号) をプランファイルに対して実行して見出しの有無を確認する。見出しが見つかれば fresh reviewer を起動し直す (この再起動はレビューループの回数に数えない)。見出しが見つからなければ reviewer を再起動せず「エスカレーション」フローへ送る
+   - NEEDS_CONTEXT → reviewer が渡されたタスク番号に一致する `### Task N:` 見出しを見つけられずレビューに入れなかった場合。実装には差し戻さず、controller が再起動前に `grep -n '^### Task N:'` (N は当該タスク番号) をプランファイルに対して実行して見出しの有無を確認する。見出しが見つかれば、直前のレビュー起動時と同じモデル判定に従って fresh reviewer を起動し直す (この再起動はレビューループの回数に数えない)。見出しが見つからなければ reviewer を再起動せず「エスカレーション」フローへ送る
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
    - Phase 1 ステップ 8 で既にフィーチャーブランチ上にいることを前提とする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
@@ -181,7 +181,7 @@ implementer subagent は 4 種の status で報告する。
 | ロール | 既定モデル | 切替条件 |
 | -- | -- | -- |
 | controller (本スキル本体) | セッション継承 | 切替しない |
-| reviewer | `opus` | 常に固定 |
+| reviewer | `sonnet` | 当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路で implementer に `--effort high` が付与された、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）の場合は `opus` にする。一度「昇格済み」になったら、そのタスクの完了まで以降の reviewer 呼び出しでも `opus` を維持する |
 
 implementer のモデル / ルーティング選択は実装経路ごとに異なるため、選ばれた経路の reference (`route-claude.md` / `route-codex.md`) に従う。
 
