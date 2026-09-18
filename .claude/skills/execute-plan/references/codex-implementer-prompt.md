@@ -115,5 +115,6 @@ controller から渡されたタスクのみを実装し、完了したら報告
 
 - Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 - 実装内容: 変更の要約
+- テスト: 実行したコマンドと結果。reviewer はこの結果を証跡として扱い、原則再実行しない。実行しなかった場合はその理由 (該当するテストが存在しない等) を書く
 - lint / hook: 実行したコマンドと結果。検出条件が偽で省略した場合は `lint-per-language.md` のスキップ文言テンプレをそのまま書く
 - 懸念 / ブロック内容: DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT の場合に必須
