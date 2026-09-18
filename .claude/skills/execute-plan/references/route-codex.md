@@ -30,10 +30,11 @@ Codex の起動をサブエージェントに委ねることはできないた�
 
 ### routing flag
 
-初回起動では `--write --fresh` を prompt 文字列に明示する (`Agent` ツールのパラメータではなく、`codex:codex-rescue` が自身のプロンプトテキストから読み取るルーティングフラグ)。
+初回起動では `--write --fresh --wait` を prompt 文字列に明示する (`Agent` ツールのパラメータではなく、`codex:codex-rescue` が自身のプロンプトテキストから読み取るルーティングフラグ)。
 
 - `--write`: 付けないと `codex-companion.mjs` が読み取り専用サンドボックスでジョブを実行し、実装が丸ごと空振りする。wrapper (`codex:codex-rescue`) は既定でこのフラグを付けるが、プロンプトが調査・診断と読まれた場合は付けない規約になっているため、確実に付けるよう明示する。
 - `--fresh`: このプロンプトが継続依頼と誤読されて `--resume-last` が付くのを防ぐ。
+- `--wait`: 付けないと wrapper (`codex:codex-rescue`) がタスクを複雑・長時間と判断した場合にバックグラウンド実行を選び、`Agent` の戻り値がジョブ起動メッセージだけになる。この場合 controller は実装報告を回収できず、continuous execution の原則が崩れてユーザーの手動介入 (`/codex:result`) が要る。フォアグラウンド実行を確実にするため明示する。
 
 再委譲時は上記に加えて `--effort high` を付ける。
 Claude 経路の `sonnet` → `opus` 昇格に対応する。
