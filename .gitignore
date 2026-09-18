@@ -80,3 +80,7 @@ docs/workflow/memo/
 
 **/.claude/settings.local.json
 issues/
+
+# Node (accidental npm init artifacts)
+package.json
+package-lock.json
