@@ -47,6 +47,12 @@ wrapper (`codex:codex-rescue`) は既定で `--model` を付けないため、�
 - pre-commit hook fail による再委譲
 - エスカレーション後の追加指示つき再試行
 
+いずれかの経路で `--effort high` に昇格した場合、当該タスクは合意事項 A2 の「昇格済み」になる。
+「昇格済み」とは、当該タスクで Claude 経路の implementer が `opus` で起動した、Codex 経路の implementer に `--effort high` が付与された、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態を指す。
+これは Claude 経路の `route-claude.md` における「implementer のモデル選択」と対応するルールである。
+controller は「昇格済み」になった当該タスクについて reviewer も `opus` にする状態を保持し、タスクが完了するまで取り消さない。
+したがって、1 タスク内でレビューが複数回走っても、一度「昇格済み」になれば以降は常に reviewer を `opus` にする。
+
 ## 戻り値の受け取り
 
 `Agent` の戻り値は 2 通りある。
@@ -108,7 +114,7 @@ implementer (Codex) の報告本文先頭行の `Status:` に応じて、再委�
 
 | Status | 再委譲先 |
 | -- | -- |
-| `DONE` | 再委譲なし。レビュー段階へ進む (レビューは経路によらず `general-purpose` + `model=opus` 固定) |
+| `DONE` | 再委譲なし。レビュー段階へ進む (レビューのモデル選択は経路によらず共通。`SKILL.md` の「モデル選択方針」を参照) |
 | `DONE_WITH_CONCERNS` | 懸念を読み、影響がなければレビュー段階へ。影響があれば fresh `Agent` (`subagent_type: "codex:codex-rescue"`) に `--effort high` を付けて再委譲する |
 | `NEEDS_CONTEXT` | 不足している参照先 (プランのタスク番号やファイルパスなど) を「再委譲時の追加指摘」としてプロンプトに加え、fresh `Agent` (`subagent_type: "codex:codex-rescue"`) に再委譲する。何ファイル読んでも理解が深まらず行き詰まっているのが原因の場合は `--effort high` を付ける。原因は controller が報告の文面で見分ける |
 | `BLOCKED` | `SKILL.md` の「エスカレーション」フローへ (`AskUserQuestion` の 3 択。追加指示を与えて再試行を選んだ場合は、ユーザー入力を「再委譲時の追加指摘」として渡し、fresh `Agent` に `--effort high` を付けて再委譲する) |
