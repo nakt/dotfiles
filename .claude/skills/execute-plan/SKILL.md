@@ -118,7 +118,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
    - prompt では `~/.claude/skills/execute-plan/references/reviewer-prompt.md` を `Read` し、それに従ってレビューするよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
    - あわせて渡す値は次の 5 つ: タスク番号 / プランファイルの絶対パス / `[BASE_SHA]` (= ステップ 1 で記録した SHA) / `[TARGET_FILES]` (= 当該タスクの対象ファイル) / implementer の報告
-   - `subagent_type=general-purpose` を指定し、`model` は当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路で implementer に `--effort high` が付与された、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）であれば `opus`、そうでなければ `sonnet` とする (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
+   - `subagent_type=general-purpose` を指定し、`model` は当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路から Claude フォールバックが発生した、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）であれば `opus`、そうでなければ `sonnet` とする (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
@@ -181,14 +181,14 @@ implementer subagent は 4 種の status で報告する。
 | ロール | 既定モデル | 切替条件 |
 | -- | -- | -- |
 | controller (本スキル本体) | セッション継承 | 切替しない |
-| reviewer | `sonnet` | 当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路で implementer に `--effort high` が付与された、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）の場合は `opus` にする。一度「昇格済み」になったら、そのタスクの完了まで以降の reviewer 呼び出しでも `opus` を維持する |
+| reviewer | `sonnet` | 当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路から Claude フォールバックが発生した、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）の場合は `opus` にする。一度「昇格済み」になったら、そのタスクの完了まで以降の reviewer 呼び出しでも `opus` を維持する |
 
 implementer のモデル / ルーティング選択は実装経路ごとに異なるため、選ばれた経路の reference (`route-claude.md` / `route-codex.md`) に従う。
 
 ## References
 
 - `~/.claude/skills/execute-plan/references/route-claude.md`: Claude 経路の controller 手順 (implementer 起動 / モデル選択 / ステータスハンドリング / acceptEdits 案内)
-- `~/.claude/skills/execute-plan/references/route-codex.md`: Codex 経路の controller 手順 (実装の委譲 / 戻り値の受け取り / 起動失敗時の扱い / ステータス別の再委譲)
+- `~/.claude/skills/execute-plan/references/route-codex.md`: Codex 経路の controller 手順 (実装の委譲 / 再委譲時の Claude フォールバック / 戻り値の受け取り / 起動失敗時の扱い / ステータス別の再委譲)
 - `~/.claude/skills/execute-plan/references/implementer-prompt.md`: Claude 経路の implementer subagent 用テンプレート
 - `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md`: Codex 経路の implementer 用テンプレート (Codex 自身が読む)
 - `~/.claude/skills/execute-plan/references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
