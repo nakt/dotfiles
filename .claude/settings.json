@@ -240,6 +240,5 @@
   "editorMode": "vim",
   "verbose": false,
   "remoteControlAtStartup": false,
-  "agentPushNotifEnabled": true,
-  "model": "sonnet"
+  "agentPushNotifEnabled": true
 }
