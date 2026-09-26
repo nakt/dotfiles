@@ -18,7 +18,7 @@ allowed-tools:
   - Bash(grep:*)
   - Bash(git add:*)
   - Bash(git commit:*)
-  - Bash(git checkout:*)
+  - Bash(uv run --script ~/.claude/skills/issue-tracker/scripts/it.py:*)
   - Bash(ls:*)
   - Bash(head:*)
   - Bash(echo:*)
@@ -73,7 +73,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - 導入されていない → 質問せず Claude 経路に決定する (選べない選択肢を毎回提示しない)
    - 導入されている → `AskUserQuestion` で「Claude サブエージェント」「Codex」の 2 択を実行全体で 1 回だけ提示する (タスクごとには聞かない)
    - 決まった経路 (質問で選んだ場合も未導入で自動決定した場合も) を controller のメモリに保持し、Phase 3 ステップ 2 で使う
-8. Branch が Base branch と同じ場合は `AskUserQuestion` で続行確認し、「はい」ならその場でフィーチャーブランチを作成 (`git checkout -b <内容を表す名前>`) してから継続する。「いいえ」なら中止する。これにより実装開始前にブランチを確定させ、以降のコミットは全てフィーチャーブランチ上で行う
+8. Branch が Base branch と同じ場合は続行せずスキルを中止する。main の作業ツリーでは実装しない旨と、`EnterWorktree` で worktree に入り、プランの絶対パス（Phase 1 ステップ 2〜4 で特定したもの）を渡して execute-plan を再実行する旨を案内する
 9. 作業ツリーがクリーンか確認 (`## Current state` の `git status --porcelain` 出力を参照)。ただしプランファイル (`.claude/plans/` 配下。本体プラン・参照スタブとも) はこの判定から除外する。理由: write-plan の承認直後に execute-plan が起動される経路では、今から実行するプラン自身が untracked で作業ツリーに存在するのが正常であり、除外しないと必ず中止になる。プランファイルはどのタスクの対象ファイルにもならないので、パス限定のレビュー差分にも `git add` にも混入しない
    - プランファイル以外がクリーン → 続行
    - プランファイル以外に未コミット変更や untracked file がある → スキルを中止し、ユーザーに `git commit` か `git stash` でクリーンにしてから再実行するよう案内する。理由: タスクのレビュー差分 (直前コミット (HEAD) からのパス限定差分) に無関係な変更が混ざると reviewer が誤検出する / コミット時に意図しないファイルを巻き込むリスクがある
@@ -125,7 +125,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
    - NEEDS_CHANGES → 指摘を fresh implementer に再委譲 (同じ Agent ではなく fresh で起動。指摘内容は「再委譲時の追加指摘」として渡す)。宛先とモデル / フラグは選ばれた経路の reference (`route-claude.md` / `route-codex.md`) の再委譲手順に従う。再レビューは最大 2 ループまで、3 回目到達で「エスカレーション」フローへ
    - NEEDS_CONTEXT → reviewer が渡されたタスク番号に一致する `### Task N:` 見出しを見つけられずレビューに入れなかった場合。実装には差し戻さず、controller が再起動前に `grep -n '^### Task N:'` (N は当該タスク番号) をプランファイルに対して実行して見出しの有無を確認する。見出しが見つかれば、直前のレビュー起動時と同じモデル判定に従って fresh reviewer を起動し直す (この再起動はレビューループの回数に数えない)。見出しが見つからなければ reviewer を再起動せず「エスカレーション」フローへ送る
 6. コミット: APPROVED になったタスクを controller が直接コミットする。バッチ内に複数あれば 1 件ずつ順にコミットする
-   - Phase 1 ステップ 8 で既にフィーチャーブランチ上にいることを前提とする
+   - Phase 1 ステップ 8 で base ブランチ上ではないことを確認済みなので、現在のブランチ (通常は worktree のブランチ) 上でそのままコミットする
    - 当該タスクの対象ファイルのみを `git add <対象ファイル>` して `git commit` (1 タスク = 1 コミット)
    - `git add` は対象ファイルのみを stage するため、implementer が誤って対象外ファイルを変更しても、また同一バッチの他タスクが未コミットで同居していても、コミットには入らない
 7. コミットしたタスクを `TaskUpdate(status=completed)`
@@ -151,9 +151,28 @@ hook fail が発生する主因は、implementer の self-check が対象リポ�
 - 変更ファイル数とコミット数を `git log` / `git diff` で確認
 - 1〜2 文のサマリを出力し、実装経路 (Claude / Codex) を含める (例: 「Claude 経路で 3 タスク完了。5 ファイル変更、3 コミット作成」)
 - `TaskList` で全タスクの最終ステータスを取得し (個別の詳細が要るときは `TaskGet`)、未完タスクがあれば一覧で報告する。内訳は、エスカレーションでスキップした `deleted`、着手前に停止して `pending` のまま残ったもの、バッチ処理中に停止して `in_progress` のまま残ったものの 3 種
+- プランの `## 要約` に「対象 issue: `<id>`」の行がある場合、直前の `TaskList` の結果を使って下記「claim した issue の done 化」を行う
 - PR の作成に進む場合は `pr-merge` スキルを使うようユーザーに案内する
 
 最終全体レビューは実施しない (タスクごとの 1 段レビューで担保)。
+
+#### claim した issue の done 化
+
+プランの `## 要約` に「対象 issue: `<id>`」の行がある場合のみ行う (この行を書く条件は `~/.claude/skills/write-plan/SKILL.md` を参照)。
+
+1. 直前の `TaskList` の結果を確認する。`deleted` / `pending` / `in_progress` のいずれかのタスクが 1 件でもあれば done 化せず、未完了のタスクが残っているため done 化を見送った旨を完了報告に含めて終える
+2. 完了メモを、プランの `## 要約` と実装中に作ったコミットの一覧 (`git log`) から書く
+3. worktree の中で次を実行する (`<id>` は要約の id、`<完了メモ>` はステップ 2 で書いたメモ。ヒアドキュメントの区切りはクォートする)
+
+   ```bash
+   uv run --script ~/.claude/skills/issue-tracker/scripts/it.py done <id> --note <<'EOF'
+   <完了メモ>
+   EOF
+   ```
+
+4. `git status --porcelain issues/` を確認する
+   - 変更がある → `git add -A issues/` でステージし、`chore(issues): close <id>` でコミットする
+   - 変更が無い (`issues/` を gitignore しているリポジトリ) → コミットしない
 
 ## ステータスハンドリング
 
