@@ -41,7 +41,7 @@ issues 行に「見つかりません」と出ていれば `issues/` は未作�
 
 - 実行するコマンドは常に `uv run --script ~/.claude/skills/issue-tracker/scripts/it.py <サブコマンド>` の完全形で書く。 以下の説明文に出てくる `it` はこの完全形の略記で、そのまま実行しない。Bash の許可はコマンド文字列の前方一致で判定されるため、略記や `cd ... &&` のような前置きを付けると許可にマッチせず毎回確認を求められる。
 - 長い散文（本文・完了メモ・ログ）は引数ではなく標準入力で渡す。 ヒアドキュメントの区切りは必ずクォートする（`<<'EOF'`）。issue の本文にはバッククォートや `$` が入るため、クォートしないとシェルが展開する。
-- issue の移動を伴う操作（`claim` / `release` / `done` / `reap`）の後は、コミット時に `git add -A issues/` で移動元の削除と移動先の追加を対にしてステージする。 `commit` スキルは `git status --short` を見て選択的にステージするため、対にしないと片方だけがコミットに乗る。`claim` と `done` は同じ案内を標準エラーに出す（`--json` 出力を壊さないため。出力例を採るときは `2>&1` が要る）。このスキル自身はコミットもステージもしない（初期化時の `git check-ignore` だけが例外で、これは読み取り専用）。
+- `git add -A issues/` でステージするのは、worktree の中で行う `done` の後に限る。 移動元の削除と移動先の追加を対にしてステージしないと、`commit` スキルは `git status --short` を見て選択的にステージするため片方だけがコミットに乗る。`done` はこの案内を標準エラーに出す（`--json` 出力を壊さないため。出力例を採るときは `2>&1` が要る）。main の作業ツリーで行う `claim` / `release` / `reap` による移動は、ステージもコミットもしない（claim を全セッションで共有するため、未コミットのまま `issues/wip/` に置く）。このスキル自身もコミットもステージもしない（初期化時の `git check-ignore` だけが例外で、これは読み取り専用）。
 - `it` は判断をしない。 何を起票するか・どれが優先か・完了したか・メモに何を書くかは、すべてこのスキルが決めて渡す。
 
 ## モード判定
@@ -142,6 +142,7 @@ git check-ignore -v issues/inbox
      理由は一覧には載らないので、hold 付きの issue に限って `## ログ` を Read し、最新（末尾）の `hold:` 行から取る。
      抽出できなければ理由部分は省略する。
      hold 付きが 0 件ならセクション自体を出さない。
+5. ユーザーが着手する issue を決めたら、新しいセッションを `/issue-tracker claim <id>` で開始するよう案内する。 claim 以降（worktree 作成・brainstorm・write-plan・実装）は、その新しいセッションで進める。
 
 ## hold（保留）
 
@@ -183,25 +184,27 @@ done との違い: hold は「未完了だが今は動かさない」。
 
 inbox の issue を `wip/` へ移して手元に取る。
 移動そのものが排他になるので、同じ issue を 2 つのエージェントが同時に取ることはない。
+claim は main の作業ツリーで、`EnterWorktree` で worktree に入る前に行う。
 
-- 対象が決まっている場合（triage で選んだ、id を指定された）は `--id` で指定する。
-
-  ```bash
-  uv run --script ~/.claude/skills/issue-tracker/scripts/it.py claim --id <id>
-  ```
-
-- 「次のタスクを取って」のように対象が決まっていない場合は `--id` を省く。優先度順に自動で選ぶ。競合して負けた場合はスクリプト側が次の候補に回るので、リトライを書かない。
-
-  ```bash
-  uv run --script ~/.claude/skills/issue-tracker/scripts/it.py claim
-  ```
-
+- 対象が決まっている場合（triage で選んだ、id を指定された）は、そのまま `--id` と `--agent` を付けて claim する。
+- 「次のタスクを取って」のように対象が決まっていない場合は、まず `it list` で候補を確認して対象を選び、同じく `--id` と `--agent` を付けて claim する。 `--id` を省いて優先度順に自動で選ぶ手順はここでは使わない。
 - 「いま何を持っているか」を聞かれた場合は、Current state の一覧の wip 行（`@<owner>` 付き）から答える。コマンドを追加で叩かない。
 
-`--agent` は省略してよい（`$IT_AGENT`、無ければ作業ディレクトリ名が入る）。
+`--agent` には、続けて `EnterWorktree` に渡す予定の name（`<type>/<short-description>` 形式）を指定する。
+`EnterWorktree` の name は `--agent` に渡した文字列と同じにする。
+
+```bash
+uv run --script ~/.claude/skills/issue-tracker/scripts/it.py claim --id <id> --agent <type>/<short-description>
+```
+
 claim すると `## ログ` に `- <Today> claim: <owner>` が自動で追記される。
+claim の後は `EnterWorktree(name="<type>/<short-description>")` で worktree に入り、brainstorm・write-plan・実装をその worktree の中で進める。
+
+`issues/` を追跡しているリポジトリでは、worktree 専用の `issues/`（linked worktree の中にあるコピー）に対する claim を `it.py` が拒否し、main の作業ツリーで実行するよう促すエラーで終わる。
+`issues/` を gitignore しているリポジトリでは worktree に `issues/` が無いため、worktree の中から claim してもそのまま main の `issues/` に対して行われ、拒否はされない。
 
 着手をやめて inbox に戻すときは release を使う。
+release は main の作業ツリーで行う。
 hold と同じく自然文で反応し、新モードは追加しない。
 
 ```bash
@@ -209,6 +212,13 @@ uv run --script ~/.claude/skills/issue-tracker/scripts/it.py release <id> --reas
 ```
 
 ## 着手 → 完了（done への接続）
+
+claim した issue に write-plan でプランを書いた場合、done 化は execute-plan の完了処理が行う。
+execute-plan は全タスクが完了したときだけ、worktree の中で `it done` を実行する。
+worktree に該当の issue ファイルが無ければ（main で起票してまだコミットしていない場合など）、`it done` は main の作業ツリーの `issues/wip/` にあるコピーから worktree の `issues/done/YYYY-MM/` を書き出して done にする。
+このとき main 側に残るコピーの削除、main の更新、マージ済み worktree の削除は `/pr-merge` の後片付けが行う。
+
+プランを書かずに直接手を動かした場合など、上記の自動 done 化を経ない issue は、このセッションで従来どおり done 化を提案する。
 
 triage でピックアップした issue や、create で残しておいた issue に実際に取り掛かるときは、まず上記 claim で `wip/` へ移す。
 その作業がこのセッション内で片付いたら、ユーザーからの明示的な「done にして」を待たずに done 化を提案する。
@@ -302,7 +312,7 @@ uv run --script ~/.claude/skills/issue-tracker/scripts/it.py reap --stale 60m
 - 放置の判定は `claimed_at` と mtime の遅いほうからの経過で行う。`it log` で進捗を書き続けていれば回収されない。
 - 戻した issue には `- <Today> reap: ...` がログに残るので、なぜ inbox に戻っているかが後から分かる。
 - 単独作業では、triage の前に `--dry-run` で確認する程度でよい。多数のエージェントを常時回す環境では定期実行する。
-- 排他が効く範囲は「同一の作業ディレクトリの `issues/` を見ているエージェント同士」に限る。 worktree を分けると `issues/` も別実体になるので、worktree 間では claim も reap も互いに干渉しない。
+- 担当者名（frontmatter の `owner` の `/` を `+` に置き換えた名前）に対応する worktree が `.claude/worktrees/` の下に存在する issue は、経過時間に関わらず回収しない。 作業中の進捗ログ（`it log progress:`）は worktree 側のコピーに書かれ、main の `wip/` は更新されないため、経過時間だけでは作業中かどうかを判定できないことに対応している。担当者の worktree が無い issue（worktree を削除済み、または `--agent` を指定せず claim した場合など）は、従来どおり経過時間だけで判定する。
 
 ## ディレクトリ構成
 
