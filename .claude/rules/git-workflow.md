@@ -8,15 +8,16 @@ description: Git 操作に関するルール
 
 - main / master ブランチに直接コミットしない
 - 全ての変更はフィーチャーブランチ（デフォルトブランチ以外）から PR 経由で行う
-- ブランチを切るのはデフォルトブランチにいるときだけ。それ以外のブランチにいるならそのブランチで作業し、名前が下記形式でなくても切り直さない
-- 新しく切るブランチ名は `type/short-description` 形式で内容を表すものにする
+- 変更を伴う作業は常に worktree で行い、main の作業ツリーは常に `main` ブランチのまま保つ
+- main の作業ツリーにいるなら `EnterWorktree` で worktree に入り、既に worktree にいるならそこで作業を続ける
+- issue に着手する場合は issue-tracker の claim を main の作業ツリーで行ってから worktree に入る。マージ後の worktree の後片付けは `/pr-merge` が行う
 
 ## worktree での作業
 
 worktree で作業する場合は `EnterWorktree` ツールを使い、`name` に `type/short-description` 形式の名前を必ず渡す（`name` はスラッシュ区切りのセグメントを許容するのでこの形式をそのまま渡せる）。省略するとランダムな 3 語名が生成され、ブランチ名が内容を表さなくなる。
 
 - 1 worktree = 1 タスク = 1 PR
-- `name` がそのままブランチ名になるので、worktree のブランチをそのまま PR ブランチとして使い、リネームや切り直しはしない
+- `EnterWorktree(name="<type>/<short-description>")` で作ると、`/` が `+` に変換された `worktree-<type>+<short-description>` がブランチ名になる。これを正式なブランチ名とし、リネームや切り直しはしない
 
 ## コミット戦略
 

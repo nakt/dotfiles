@@ -4,11 +4,9 @@ description: 未コミットの変更を分析し、論理的なグループに�
 disable-model-invocation: true
 effort: low
 allowed-tools:
-  - AskUserQuestion
   - Bash(git add:*)
   - Bash(git status:*)
   - Bash(git commit:*)
-  - Bash(git checkout:*)
   - Bash(git branch:*)
   - Bash(git diff:*)
   - Bash(git log:*)
@@ -47,16 +45,15 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
      c. ルートコミットを作成する（通常は `chore: initial commit` などとする）
      d. その後 Step 6（`pre-commit フックの更新確認`）に進み、Step 3-5（ブランチ推定・分類・通常のコミット粒度）はスキップする
    - それ以外の場合: Step 3 に進む
-3. フィーチャーブランチを確保する。Branch が Base branch と同じ場合のみ扱い、それ以外は何もせず進む
-   - Status に変更がある場合: `AskUserQuestion` で続行確認し、「はい」ならフィーチャーブランチを作成して名前をユーザーに報告する。名前は上記の Status と Diff summary から推定する。「いいえ」なら中止する
-   - Status が空で Unpushed commits に中身がある場合: base ブランチ上でコミットまで済んでいる。`AskUserQuestion` で「コミットをフィーチャーブランチへ移して base を push 済みの位置に戻しますか」を確認し、「はい」なら次を実行して Step 6 へ進む（Step 4-5 はコミット対象が無いのでスキップする）。「いいえ」なら中止する
-
-     ```bash
-     git checkout -b <Unpushed commits のメッセージから推定した名前>
-     git branch -f <Base branch> @{upstream}
-     ```
-
-     `git branch -f` は base のローカル参照を push 済みの位置へ戻すだけで、コミット自体は新しいブランチに残る。Unpushed commits が `(no upstream)` の場合は戻す先が決まらないので、ブランチ作成だけ行い base はそのままにする
+3. base ブランチでの直接コミットを避ける。Branch が Base branch と同じ場合のみ扱い、それ以外は何もせず進む
+   - Status に変更がある場合: コミットせずに中止する。`EnterWorktree` で worktree に入り、変更を移してから `/commit` を実行し直すよう案内する。Unpushed commits にも中身がある場合は、base ブランチ上に未 push のコミットが残っていることもあわせて報告する。案内する移し方は次のとおりで、このスキルの中では実行しない
+     a. `issues/` の claim による移動は main の作業ツリーに残し、worktree へは移さない
+     b. それ以外の変更は、`EnterWorktree` の前に main の作業ツリーで `git stash push -u -m "<一意なタグ>" -- <パス>` で退避する。タグは `EnterWorktree` に渡す name と現在時刻を組み合わせるなどして一意にする。stash は全 worktree と他のセッションで共有され、別セッションのエントリを取り出すおそれがあるので、bare な `git stash` / `git stash pop` は使わない
+     c. 退避した直後に `git stash list --format='%H %gs'` を実行し、タグを含む行から自分のエントリの SHA を控える（件名は `On <ブランチ>: <タグ>` の形になる。`stash@{n}` の番号は他のセッションの退避でずれるが、SHA は変わらない）
+     d. worktree 側で `git stash apply <SHA>` を実行して変更を適用する
+     e. 適用できたら `git stash list --format='%gd %gs'` でタグから現在の `stash@{n}` を探し直し、`git stash drop stash@{n}` で削除する（`git stash drop` は SHA を受け付けない）
+     f. worktree 側で `/commit` を実行し直す
+   - Status が空で Unpushed commits に中身がある場合: base ブランチ上でコミットまで済んでいる。何も変更せずに中止し、その状況を報告する
    - Status が空で Unpushed commits も空の場合: コミットするものが無い旨を報告して終了する
 4. 変更を論理的なグループに分類する
 5. 適切な粒度でコミットする

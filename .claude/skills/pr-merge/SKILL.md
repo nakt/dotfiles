@@ -15,7 +15,9 @@ allowed-tools:
   - Bash(grep:*)
   - Bash(head:*)
   - Bash(echo:*)
+  - Bash(~/.claude/skills/pr-merge/scripts/cleanup-worktrees.sh:*)
   - AskUserQuestion
+  - ExitWorktree
 ---
 
 # PR Merge
@@ -112,37 +114,41 @@ git push origin --delete {branch}
 
 #### ステップ 4: ローカル cleanup
 
-`git rev-parse --git-dir` の出力に `worktrees/` を含むかで子 worktree か親 worktree かを判定し、cleanup 手順を分岐する。親 worktree が base ブランチを checkout している標準配置を前提とする（親が feature ブランチ、子が base ブランチという逆パターンは想定外）。以下の bash をそのまま実行する（`$branch` はステップ 3 の `{branch}` と同一値。ここで再取得しているのは bash ブロックを閉じた形にするため）:
+`.claude/worktrees/` 以下の worktree の後片付けは `~/.claude/skills/pr-merge/scripts/cleanup-worktrees.sh` に任せる。
+このスクリプトは引数を取らず、`git fetch --prune`・main の作業ツリーの早送り・`issues/wip/` に残ったコピーの削除・マージ済み worktree の削除（プランと設計メモの退避を含む）を行い、削除したもの／残したものとその理由／警告を 1 件 1 行で出力する。
+実行した場所の worktree はスクリプトの削除対象から外れる。
+別のセッションが開いたままの worktree も、条件を満たせばこのスクリプトが削除する。
 
-```bash
-branch=$(git branch --show-current)
-base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); base=${base#origin/}
-base=${base:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}
-parent_worktree=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
-current_worktree=$(git rev-parse --show-toplevel)
+現在地に応じて、次のいずれかの手順を実行する。
 
-if git rev-parse --git-dir | grep -q 'worktrees/'; then
-  # 子 worktree: cleanup 案内のみ（リモート削除はステップ 3 で成否を確認済み）
-  cat <<EOM
+- このセッションで `EnterWorktree(name)` を使って作成した worktree にいる場合: ユーザーが `/pr-merge` を起動したこと自体を `ExitWorktree` を呼ぶ依頼とみなし、`ExitWorktree(action: "keep")` で main の作業ツリーに戻ってから、以下を実行する:
 
-ローカル cleanup は親 worktree 側で後日実行してください:
+  ```bash
+  ~/.claude/skills/pr-merge/scripts/cleanup-worktrees.sh
+  ```
 
-    cd $parent_worktree
-    git worktree remove $current_worktree
-    git branch -D $branch
-    git fetch --prune
-EOM
-else
-  # 親 worktree: 従来通り cleanup
+- 上記に該当せず、`git rev-parse --git-dir` の出力が `worktrees/` を含む場合（このセッションが作ったのではない linked worktree にいる場合）: その場で以下を実行する。自分がいる worktree は削除されないので、次回の実行で片付く旨をステップ 5 の報告に含める:
+
+  ```bash
+  ~/.claude/skills/pr-merge/scripts/cleanup-worktrees.sh
+  ```
+
+- `git rev-parse --git-dir` の出力が `worktrees/` を含まない場合（main の作業ツリーにいる場合）: 以下をそのまま実行する（`$branch` はステップ 3 の `{branch}` と同一値。ここで再取得しているのは bash ブロックを閉じた形にするため）:
+
+  ```bash
+  branch=$(git branch --show-current)
+  base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); base=${base#origin/}
+  base=${base:-$(git rev-parse --verify -q main >/dev/null 2>&1 && echo main || echo master)}
   git checkout "$base"
-  git pull origin "$base"
+  ~/.claude/skills/pr-merge/scripts/cleanup-worktrees.sh
   git branch -d "$branch"
-fi
-```
+  ```
 
 #### ステップ 5: 完了報告
 
-PR URL とマージ結果をユーザーに報告する。子 worktree の場合はステップ 4 で出力された cleanup 案内文を最終メッセージに含めて報告する。
+PR URL とマージ結果をユーザーに報告する。
+ステップ 4 で実行した `cleanup-worktrees.sh` の出力（削除した worktree、残した worktree とその理由、警告）を完了報告に含める。
+自分がいる worktree が削除対象から外れて残った場合は、その旨もあわせて報告する。
 
 ## エラーハンドリング
 
