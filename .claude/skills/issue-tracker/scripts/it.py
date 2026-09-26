@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -80,16 +81,22 @@ def all_files(root: Path, status: str | None = None) -> list[tuple[str, Path]]:
     return out
 
 
+def locate(root: Path, key: str) -> list[tuple[str, Path]]:
+    """Matching (status, path) hits for key: exact id match, falling back to a prefix match."""
+    hits = [(st, p) for st, p in all_files(root) if p.stem == key]
+    if not hits:
+        hits = [(st, p) for st, p in all_files(root) if p.stem.startswith(key)]
+    return hits
+
+
 def find_one(root: Path, key: str) -> tuple[str, Path]:
-    """Resolve to exactly one issue by exact id match, falling back to a prefix match.
+    """Resolve to exactly one issue via locate().
 
     all_files scans the buckets in turn, so a claim landing mid-scan can list
     the same issue under both its old and its new bucket. Dropping entries that
     have since moved keeps that race from being reported as an ambiguous id.
     """
-    hits = [(st, p) for st, p in all_files(root) if p.stem == key]
-    if not hits:
-        hits = [(st, p) for st, p in all_files(root) if p.stem.startswith(key)]
+    hits = locate(root, key)
     if len(hits) > 1:
         hits = [(st, p) for st, p in hits if p.exists()]
     if not hits:
@@ -97,6 +104,55 @@ def find_one(root: Path, key: str) -> tuple[str, Path]:
     if len(hits) > 1:
         sys.exit("error: 曖昧です: " + ", ".join(p.stem for _, p in hits))
     return hits[0]
+
+
+# --------------------------------------------------------------------------
+# Git worktrees
+# --------------------------------------------------------------------------
+
+
+def git_dirs(path: Path) -> tuple[str, str] | None:
+    """(git-dir, git-common-dir) for path, or None when path isn't inside a git repository."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, OSError):
+        return None
+    lines = result.stdout.strip().split("\n")
+    return (lines[0], lines[1]) if len(lines) == 2 else None
+
+
+def is_linked_worktree(path: Path) -> bool:
+    """Whether path sits inside a linked worktree rather than the repository's main one.
+
+    A linked worktree's git-dir lives under the main worktree's .git/worktrees/,
+    distinct from git-common-dir; the main worktree has the two equal. Outside a
+    git repository git_dirs returns None, so this reports False -- the caller
+    then falls back to the behavior it had before this check existed.
+    """
+    dirs = git_dirs(path)
+    return dirs is not None and dirs[0] != dirs[1]
+
+
+def main_worktree_root(path: Path) -> Path | None:
+    """Root of the repository's main (first-listed) worktree, or None outside git."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(path), "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, OSError):
+        return None
+    for line in result.stdout.split("\n"):
+        if line.startswith("worktree "):
+            return Path(line.removeprefix("worktree "))
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -414,7 +470,16 @@ def cmd_claim(args, root: Path) -> None:
     When multiple agents race for the same top-priority issue, the loser
     automatically falls through to the next candidate, so callers don't need
     their own retry loop.
+
+    Rejected outright when root is a linked worktree's own issues/ (A2): the
+    move would only affect that worktree's private checkout, invisible to the
+    other sessions that share claim state through the main working tree.
     """
+    if is_linked_worktree(root):
+        main_root = main_worktree_root(root)
+        where = f"main の作業ツリー（{main_root}）" if main_root else "main の作業ツリー"
+        sys.exit(f"error: claim は worktree の中では実行できません。{where}で実行してください")
+
     who = agent_name(args.agent)
 
     if args.id:
@@ -436,7 +501,9 @@ def cmd_claim(args, root: Path) -> None:
         set_fields(dst, owner=who, claimed_at=stamp(), updated=today())
         append_log(dst, f"- {today()} claim: {who}")
         print(json.dumps(summarize(WIP, dst), ensure_ascii=False) if args.json else dst)
-        print(GIT_HINT, file=sys.stderr)  # stderr so --json output stays machine-readable
+        # No GIT_HINT here: per A2/A8, this move is meant to stay unstaged in
+        # the main working tree; the post-merge cleanup script deletes this
+        # wip/ copy once the same id shows up under done/.
         return
 
     sys.exit("error: claim できる issue がありません")
@@ -462,7 +529,23 @@ def cmd_done(args, root: Path) -> None:
     because a separate sequence of commands could leave only some of them
     applied. The note's content can only come from conversation context, so
     this script never generates it -- it only copies what it is handed.
+
+    A11: when root has no match at all and it is a linked worktree, the issue
+    may only exist as an uncommitted move sitting in the main working tree's
+    issues/wip/ (filed or claimed there, never committed into this worktree's
+    checkout). Pulling in a copy first lets the rest of this function process
+    it the normal way. The main copy is left untouched -- the post-merge
+    cleanup script removes it once this worktree's branch is merged.
     """
+    if not locate(root, args.id) and is_linked_worktree(root):
+        main_root = main_worktree_root(root)
+        if main_root is not None:
+            src = main_root / ROOT_NAME / WIP / f"{args.id}.md"
+            if src.is_file():
+                dst = bucket(root, WIP) / src.name
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+
     st, path = find_one(root, args.id)
     if st == DONE:
         sys.exit(f"error: {path.stem} は既に done です")
@@ -498,11 +581,21 @@ def cmd_reap(args, root: Path) -> None:
     so move mtime, and an agent still recording progress must not be
     reclaimed out from under itself. mtime alone covers a crash mid-claim,
     where claimed_at was never written.
+
+    A5: an owner whose worktree (.claude/worktrees/<owner, / turned into +>
+    under the main working tree) still exists is excluded regardless of
+    staleness -- that session's progress log lives in the worktree's own
+    copy, not in this one, so elapsed time here says nothing about whether
+    work is still happening.
     """
     limit = datetime.now() - parse_duration(args.stale)
+    main_root = main_worktree_root(root)
     reaped = []
     for _, path in all_files(root, WIP):
         fm, _, _ = parse(path)
+        owner = fm.get("owner") or ""
+        if main_root and owner and (main_root / ".claude" / "worktrees" / owner.replace("/", "+")).is_dir():
+            continue
         claimed = parse_stamp(fm.get("claimed_at", ""))
         mtime = datetime.fromtimestamp(path.stat().st_mtime)
         at = max(claimed, mtime) if claimed else mtime
