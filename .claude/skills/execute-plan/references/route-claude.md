@@ -10,7 +10,7 @@
 
 - prompt では `~/.claude/skills/execute-plan/references/implementer-prompt.md` を `Read` し、それに従って実装するよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
 - あわせて渡す値は次の 6 つ: タスク番号 / プランファイルの絶対パス / 対象ファイル / 作業ディレクトリ / 並列実行時は同一バッチの他タスクの対象ファイル一覧 / 再委譲時の追加指摘 (初回の起動では無し)
-- `subagent_type=general-purpose`、初回起動は `model=sonnet` (ユーザーが `opus` を明示指定していればそれに従う。詳細は下記「implementer のモデル選択」)
+- `subagent_type=execute-plan-implementer`、初回起動は `model=sonnet` (ユーザーが `opus` を明示指定していればそれに従う。詳細は下記「implementer のモデル選択」)
 - implementer は自分の対象ファイルのみ編集し、コミットはしない
 
 ## implementer のモデル選択 (元: モデル選択方針)

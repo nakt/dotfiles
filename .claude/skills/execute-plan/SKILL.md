@@ -6,6 +6,7 @@ description: >-
   ユーザーが「プランを実行して」「実装を進めて」「プランの通り実装して」「execute-plan」と言ったとき、
   または Plan モードで ExitPlanMode 承認されたプランを実装フェーズに進めるときに使用する。
   ユーザーからの明示的な実行依頼がないまま起動した場合 (ExitPlanMode 承認後の自動継続など) のみ、最初に AskUserQuestion で実行確認してから進む。
+effort: medium
 allowed-tools:
   - Read
   - Bash(git status:*)
@@ -118,7 +119,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 4. レビュー: DONE / DONE_WITH_CONCERNS のタスクごとに reviewer `Agent` を起動する (バッチ内は同時起動可)
    - prompt では `~/.claude/skills/execute-plan/references/reviewer-prompt.md` を `Read` し、それに従ってレビューするよう指示する。テンプレート本体は controller が読まず、prompt にも書き出さない
    - あわせて渡す値は次の 5 つ: タスク番号 / プランファイルの絶対パス / `[BASE_SHA]` (= ステップ 1 で記録した SHA) / `[TARGET_FILES]` (= 当該タスクの対象ファイル) / implementer の報告
-   - `subagent_type=general-purpose` を指定し、`model` は当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路から Claude フォールバックが発生した、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）であれば `opus`、そうでなければ `sonnet` とする (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
+   - `subagent_type=execute-plan-reviewer` を指定し、`model` は当該タスクが「昇格済み」（Claude 経路で implementer が `opus` で起動した、Codex 経路から Claude フォールバックが発生した、またはユーザーが実行時に `opus` を明示指定した、のいずれかが一度でも発生した状態）であれば `opus`、そうでなければ `sonnet` とする (`plan-reviewer` エージェントはプランのレビュー用で、実装差分のレビューには使わない)
    - レビューは `git diff [BASE_SHA] -- [TARGET_FILES]` のパス限定・未コミット差分で行う
 5. レビュー結果分岐 (タスクごと):
    - APPROVED → ステップ 6 のコミットへ進む
