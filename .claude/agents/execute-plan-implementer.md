@@ -1,6 +1,7 @@
 ---
 name: execute-plan-implementer
 description: execute-plan の controller 専用の implementer エージェント。controller 以外からは起動しない。
+model: sonnet # default only; execute-plan passes model per call (sonnet, or opus once promoted)
 effort: medium
 ---
 
