@@ -46,6 +46,14 @@
         "type": "separator"
       },
       {
+        "id": "aa01241e-989d-4fd7-90a5-84871c29432f",
+        "type": "thinking-effort"
+      },
+      {
+        "id": "36a34e28-8f41-4f99-a1f1-06a851c97727",
+        "type": "separator"
+      },
+      {
         "id": "a9018fa7-f6ca-46f6-8984-e57b696a84a3",
         "type": "session-clock",
         "color": "blue"
@@ -65,14 +73,6 @@
       {
         "id": "a60a9b7c-da7d-4b76-a688-c5806ddfdd08",
         "type": "git-branch"
-      },
-      {
-        "id": "b7ee01c4-0a8a-4143-ad4f-f1a7c4ae9ebf",
-        "type": "separator"
-      },
-      {
-        "id": "bfe22e98-ca9f-42d6-b5f3-1fe48c14778d",
-        "type": "git-worktree"
       }
     ],
     [
@@ -121,9 +121,12 @@
   "flexMode": "full",
   "compactThreshold": 60,
   "colorLevel": 1,
+  "defaultPaddingSide": "both",
   "inheritSeparatorColors": false,
   "globalBold": false,
   "gitCacheTtlSeconds": 5,
+  "terminalWidthCacheTtlSeconds": 5,
+  "customCommandCacheTtlSeconds": 0,
   "minimalistMode": false,
   "powerline": {
     "enabled": false,

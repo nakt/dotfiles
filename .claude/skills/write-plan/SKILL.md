@@ -5,6 +5,7 @@ description: >-
   要件検討 (`brainstorm`) の設計メモが揃って実装計画に落とす段になったとき、または plan mode でプランを書くときに使用する。手動 `/write-plan` でも呼べる。
   プランの実行 (`execute-plan`) や、判断がまだ固まっていない段階の要件検討 (`brainstorm`) には使わない。
 argument-hint: "[topic] または自然文の依頼"
+effort: xhigh
 allowed-tools:
   - Read
   - Glob

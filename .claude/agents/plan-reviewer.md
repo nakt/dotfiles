@@ -5,6 +5,8 @@ tools:
   - Read
   - Glob
   - Grep
+model: opus
+effort: xhigh
 color: blue
 ---
 
