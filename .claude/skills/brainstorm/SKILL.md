@@ -5,6 +5,7 @@ description: >-
   「設計を詰めたい」「これどう作るか一緒に考えて」など、機能・実装・アーキテクチャに関わる要件のすり合わせに使う。事業アイデア・サービス案・
   新規事業提案の評価・投資判断は対象外(business-idea-review が担当)。
 argument-hint: "[検討したいトピック] または自然文の依頼"
+effort: xhigh
 allowed-tools:
   - Read
   - Glob
