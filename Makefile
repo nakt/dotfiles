@@ -20,6 +20,12 @@ DOTFILES   := \
 	.zshrc
 BACKUP_DIR := $(HOME)/.dotfiles_backup
 
+# Scripts under bin/ are linked into BIN_DIR without their extension
+# (claude-sessions.py -> claude-sessions). Listed explicitly for the same
+# reason as DOTFILES.
+BINS    := claude-sessions.py
+BIN_DIR := $(HOME)/.local/bin
+
 # prezto Settings
 # .zshrc is repo-owned (linked via DOTFILES); the other runcoms are symlinked
 # from the pristine Prezto clone by the deploy target.
@@ -62,6 +68,16 @@ deploy: ## Create symbolic link to home directory
 	    fi; \
 	  done
 	@ $(foreach val, $(DOTFILES), ln -sfnv $(abspath $(val)) $(HOME)/$(val);)
+	@ mkdir -p $(BIN_DIR)
+	@ for val in $(BINS); do \
+	    dst=$(BIN_DIR)/$${val%.*}; \
+	    if [ -e "$$dst" ] && [ ! -L "$$dst" ]; then \
+	      mkdir -p $(BACKUP_DIR); \
+	      echo "backup existing $$dst -> $(BACKUP_DIR)/"; \
+	      mv "$$dst" $(BACKUP_DIR)/; \
+	    fi; \
+	  done
+	@ $(foreach val, $(BINS), ln -sfnv $(abspath bin/$(val)) $(BIN_DIR)/$(basename $(val));)
 	@ ln -sfnv $(NORD_DIRCOLORS_PATH)/src/dir_colors $(HOME)/.dir_colors
 	@ $(foreach val, $(PREZTO_RUNCOMS), ln -sfnv $(PREZTO_PATH)/runcoms/$(val) $(HOME)/.$(val);)
 
@@ -72,5 +88,6 @@ clean: ## Cleanup all configuration and tools
 	@ echo 'Remove dot files...'
 	@ $(foreach val, $(DOTFILES), rm -vrf $(HOME)/$(val);)
 	@ $(foreach val, $(PREZTO_RUNCOMS), rm -vf $(HOME)/.$(val);)
+	@ $(foreach val, $(BINS), rm -vf $(BIN_DIR)/$(basename $(val));)
 	rm -rf $(PREZTO_PATH)
 	rm -f ${HOME}/.dir_colors
