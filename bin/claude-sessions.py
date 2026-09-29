@@ -445,7 +445,7 @@ def run_tui(store: SessionStore, root: str | None, interval: float) -> None:
             for s in sessions:
                 items[s.pid].refresh_card(s, now, self.flash_on)
             counts = {k: sum(s.status == k for s in sessions) for k in STATUS_ORDER}
-            scope = f"repo: {Path(self.root).name}" if self.root else "all"
+            scope = "repo" if self.root else "all"
             waiting_color = (
                 f"bold {NORD['yellow']}" if counts["waiting"] else NORD["dim"]
             )
