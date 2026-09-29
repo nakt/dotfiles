@@ -209,7 +209,8 @@ class SessionStore:
 
     def _transcript(self, session_id: str, cwd: str) -> TranscriptInfo:
         reader = self._readers.get(session_id)
-        if reader is None:
+        # Entering a worktree moves the transcript to another project dir.
+        if reader is None or not reader.path.exists():
             path = find_transcript(session_id, cwd)
             if path is None:
                 return TranscriptInfo()
