@@ -24,6 +24,13 @@ repository root is not deployed until it is named there.
 is not deployed: pre-commit only reads the config at the root of the repository
 being committed to, so a copy in the home directory is never consulted.
 
+Scripts in `bin/` follow the same opt-in rule: only those named in the `BINS`
+variable in the `Makefile` are linked by `make deploy`, into `~/.local/bin/`
+with the extension dropped.
+
+- `claude-sessions` (`bin/claude-sessions.py`) - TUI that lists running Claude
+  Code sessions (requires [uv](https://docs.astral.sh/uv/))
+
 ## Setup Instructions
 
 ### 1. Install Developer Tools
@@ -64,7 +71,7 @@ silently.
 Run `make help` to list the available targets.
 
 - `prep` - Clone Prezto, tpm, and Nord modules
-- `deploy` - Symlink the repo's dotfiles into the home directory
+- `deploy` - Symlink the repo's dotfiles into the home directory and the `BINS` scripts into `~/.local/bin`
 - `install` - Run `prep` and `deploy`
 - `update` - Pull updates for the repo and cloned tools
-- `clean` - Remove the deployed dotfiles and cloned tools
+- `clean` - Remove the deployed dotfiles, the `~/.local/bin` links, and cloned tools
