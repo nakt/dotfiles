@@ -75,6 +75,8 @@ EOF
 - 「ドラフトで」と指定された場合は `--draft` を追加
 - 既存 PR がある場合は push のみ実行（追加コミットの反映）
 - 作成した PR の URL をユーザーに報告
+- `gh pr create` の応答に check-docs フックの reminder（`/record-adr` での起票や `/update-arch` での更新を促す文面）が含まれていても、その場では対処しない。record-adr / update-arch を起動しない。ドキュメントの要否は Phase 4 ステップ 1 で判断する
+- ドラフト PR の場合は Phase 4 に進まないため、reminder が届いていれば、ドキュメント要否の判断と理由を 1 行で報告して終了する（判断基準は Phase 4 ステップ 1 と同じ）
 
 ### Phase 4: マージ
 
@@ -82,7 +84,25 @@ EOF
 
 #### ステップ 1: マージ可否確認
 
+まず、ドキュメント要否の判断を行う。
+この判断は、この実行で Phase 3 の `gh pr create` を実行し、その応答に check-docs フックの reminder が含まれていた場合にだけ行う。
+既存 PR がある実行（`gh pr create` を実行していない）では行わず、会話に前回の reminder が残っていても無視して、次の `AskUserQuestion` に進む。
+
+判断の手順:
+
+- reminder の基準に従って判断する。処理フロー・構成の変化や新しい設計判断を含むなら必要、バグ修正・リファクタ・テストのみなら不要
+- 判断材料は reminder の基準と、上記 Current state の Diff stats とする。Diff stats に docs/adr・docs/arch の変更が既に含まれていれば、それを踏まえる
+- 必要とする種別は reminder に含まれるものに限る（docs/adr なら `/record-adr`、docs/arch なら `/update-arch`）
+- pr-merge の中から record-adr / update-arch を起動せず、ドキュメントも書かない
+
+判断結果ごとの動作:
+
+- 不要と判断した場合: 判断と理由を 1 行で報告してから、次の `AskUserQuestion` に進む
+- 必要と判断した場合: 必要な種別と理由を 1 行で示し、次の `AskUserQuestion` の選択肢に「マージせず中断してドキュメントを更新」を加える
+
 `AskUserQuestion` で「マージする／マージしない」を選んでもらう。
+「マージせず中断してドキュメントを更新」が選ばれた場合は、マージせずに終了する。
+必要と判断した種別のスキル（`/record-adr` / `/update-arch`）→ `/commit` → `/pr-merge` 再実行の順に実行するよう案内し、PR が open のまま残ることを伝える。
 
 #### ステップ 2: CI 完了待ち
 
