@@ -6,11 +6,21 @@ description: Git 操作に関するルール
 
 ## ブランチ戦略
 
-- main / master ブランチに直接コミットしない
+- デフォルトブランチ（`origin/HEAD` が指すブランチ）と main / master ブランチに直接コミットしない
 - 全ての変更はフィーチャーブランチ（デフォルトブランチ以外）から PR 経由で行う
-- 変更を伴う作業は常に worktree で行い、main の作業ツリーは常に `main` ブランチのまま保つ
+- 変更を伴う作業は常に worktree で行い、main の作業ツリーは常にデフォルトブランチのまま保つ
+- 「main の作業ツリー」は主チェックアウト（最初の worktree）を指す用語で、ブランチ名の `main` とは関係しない
 - main の作業ツリーにいるなら `EnterWorktree` で worktree に入り、既に worktree にいるならそこで作業を続ける
 - issue に着手する場合は issue-tracker の claim を main の作業ツリーで行ってから worktree に入る。マージ後の worktree の後片付けは `/pr-merge` が行う
+
+### デフォルトブランチが develop のリポジトリ
+
+- 日常の feature 開発は、デフォルトブランチが `main` のリポジトリと同じ流れで進める（`EnterWorktree` で worktree を作り、`/pr-merge` でマージする）
+- 本番の版だけを直す hotfix、back-merge、リリースは `/release-hotfix` を使う
+- 次の 2 つは `/release-hotfix` の手順だけに認める例外で、通常の作業では行わない
+  - hotfix 用 worktree の作成に `EnterWorktree(name)` を使わない（本番ブランチを起点にするため）
+  - リリース PR は develop を head にし、worktree を使わない
+- リポジトリのデフォルトブランチを変更した場合は、`git remote set-head origin -a` を実行して `origin/HEAD` を更新する
 
 ## worktree での作業
 
@@ -59,7 +69,7 @@ type(scope): description
 
 ### 実行禁止コマンド
 
-- `git push --force`（main/master へ）
+- `git push --force`（デフォルトブランチと main/master へ）
 - `git reset --hard`（ユーザー確認なしで）
 - `git rebase -i`（対話モード非対応）
 - `--no-verify` オプション
