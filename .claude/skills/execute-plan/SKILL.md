@@ -69,7 +69,7 @@ base ブランチは `origin/HEAD` から解決する（取得できなければ
    - `Read` が全文を返さなかった場合 (既定の上限行数を超える長さのプラン) に限り、`grep -n '^## \|^### '` で見出し行の位置を取り直し、`offset` / `limit` で必要な範囲を読む
 5. プラン本文に `## 実装タスク` セクションがあるか確認
    - ない場合: `AskUserQuestion` で「実装タスクを追記してから再実行する」「このまま見出し / 番号付きリストから抽出を試みる」「中止」の 3 択を提示
-6. プラン本文に `## 合意事項` セクションが無い場合、合意事項なしのプラン (要約 + 実装タスク) でありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)。「続行する」を選んだ場合、合意事項は存在しないものとして扱う。合意事項を推測して捏造しない
+6. プラン本文に `## 合意事項` セクションが無い場合、合意事項なし (`## 合意事項` を持たない) のプランでありインライン実装の対象である旨を明示し、`AskUserQuestion` で「このまま execute-plan で続行する」「中止してインライン実装に切り替える」を確認する (プランの形とセクション定義は `~/.claude/skills/write-plan/SKILL.md`)。「続行する」を選んだ場合、合意事項は存在しないものとして扱う。合意事項を推測して捏造しない
 7. 実装経路の選択: `ls ~/.claude/plugins/cache/openai-codex` で Codex プラグインの導入有無を確認する
    - 導入されていない → 質問せず Claude 経路に決定する (選べない選択肢を毎回提示しない)
    - 導入されている → `AskUserQuestion` で「Claude サブエージェント」「Codex」の 2 択を実行全体で 1 回だけ提示する (タスクごとには聞かない)
@@ -143,7 +143,7 @@ Phase 2 で決めたバッチを順に処理する。1 バッチ内のタスク 
 - hook が示している問題は必ず implementer に fix させる (`--no-verify` で skip して commit を通さない)
 - hook fail はレビューループ回数のカウントに含める (再委譲 2 回超過でエスカレーション)
 
-hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。Claude 経路は `~/.claude/skills/execute-plan/references/implementer-prompt.md`、Codex 経路は `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md` の「lint / hook self-check」で、ともに `~/.claude/skills/execute-plan/references/lint-per-language.md` に沿った検出・実行を求めている。徹底されていれば、この分岐に来る頻度は下がる。
+hook fail が発生する主因は、implementer の self-check が対象リポの hook を回していないこと。Claude 経路は `~/.claude/skills/execute-plan/references/implementer-prompt.md`、Codex 経路は `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md` の「lint / hook self-check」で、ともに `~/.claude/skills/execute-plan/references/lint-per-language.md` に沿った検出・実行を求めている。ただしプランに `## 検証コマンド` があれば、それを先に使う。`lint-per-language.md` を使うのは、節が無い場合・拡張子が `判定の対象外` の場合・コマンドが起動できない場合に限る。徹底されていれば、この分岐に来る頻度は下がる。
 
 ### Phase 4: 完了報告
 
@@ -212,5 +212,5 @@ implementer のモデル / ルーティング選択は実装経路ごとに異�
 - `~/.claude/skills/execute-plan/references/implementer-prompt.md`: Claude 経路の implementer subagent 用テンプレート
 - `~/.claude/skills/execute-plan/references/codex-implementer-prompt.md`: Codex 経路の implementer 用テンプレート (Codex 自身が読む)
 - `~/.claude/skills/execute-plan/references/reviewer-prompt.md`: reviewer subagent 用テンプレート (仕様適合 + 品質統合版)
-- `~/.claude/skills/execute-plan/references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)
+- `~/.claude/skills/execute-plan/references/lint-per-language.md`: implementer が「lint / hook self-check」で参照する言語別の判定・実行コマンド (Python / TypeScript・JavaScript を収録)。プランの `## 検証コマンド` を先に使い、このファイルは節が無い場合・`判定の対象外` の場合・コマンドが起動できない場合に使う
 - `~/.claude/skills/write-plan/references/task-format.md`: 実装タスクの記述形式。`### Task N:` 見出しの抽出規則は implementer / reviewer 側の前提として書かれている
