@@ -28,11 +28,15 @@ allowed-tools:
 
 base ブランチは `origin/HEAD` から解決する (取得できなければ `main` / `master` の存在で決める)。各行は独立に解決するため、base 相対の比較は解決済みの名前ではなく `origin/HEAD` を直接使い、それが未設定のときだけ `main` / `master` へフォールバックする。
 
+現在のブランチ名が `worktree-hotfix+` で始まる場合 (hotfix ブランチ) は、Base branch を本番ブランチ (`origin/main` があれば `main`、無ければ `master`) とし、Commits ahead of base と Diff stats を `origin/main` との比較にする。
+`origin/main` が無い hotfix ブランチでは、Commits ahead of base と Diff stats は `origin/HEAD` との比較になるため、Phase 1 で `origin/master` との比較に置き換えて判断する。
+hotfix ブランチ以外では、各行の出力は従来と同じである。
+
 - Branch: !`git branch --show-current | grep . || echo '(detached HEAD)'`
-- Base branch: !`git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1`
+- Base branch: !`git branch --show-current | grep -q '^worktree-hotfix+' && git branch -r --list origin/main origin/master --format='%(refname:short)' | sed 's|^origin/||' | head -1 | grep . || git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' | grep . || git branch --list --format='%(refname:short)' main master | head -1`
 - Uncommitted changes: !`git status --porcelain`
-- Commits ahead of base: !`git log --oneline origin/HEAD..HEAD 2>/dev/null || git log --oneline main..HEAD 2>/dev/null || git log --oneline master..HEAD 2>/dev/null || echo '(base unresolved)'`
-- Diff stats: !`git diff origin/HEAD..HEAD --stat 2>/dev/null || git diff main..HEAD --stat 2>/dev/null || git diff master..HEAD --stat 2>/dev/null || echo '(base unresolved)'`
+- Commits ahead of base: !`git branch --show-current | grep -q '^worktree-hotfix+' && git log --oneline origin/main..HEAD 2>/dev/null || git log --oneline origin/HEAD..HEAD 2>/dev/null || git log --oneline main..HEAD 2>/dev/null || git log --oneline master..HEAD 2>/dev/null || echo '(base unresolved)'`
+- Diff stats: !`git branch --show-current | grep -q '^worktree-hotfix+' && git diff origin/main..HEAD --stat 2>/dev/null || git diff origin/HEAD..HEAD --stat 2>/dev/null || git diff main..HEAD --stat 2>/dev/null || git diff master..HEAD --stat 2>/dev/null || echo '(base unresolved)'`
 
 ## ワークフロー
 
@@ -42,7 +46,9 @@ base ブランチは `origin/HEAD` から解決する (取得できなければ 
 
 - Branch が Base branch と同じ場合: 「`/commit` を先に実行してください。未コミットの変更があればコミットし、base 上にコミットが積まれているだけなら、確認のうえフィーチャーブランチへ移します」と案内
 - Uncommitted changes がある場合: 「`/commit` を先に実行してください」と案内
+- Branch が `worktree-hotfix+` で始まり Base branch が `master` の場合: Commits ahead of base と Diff stats を、`git log --oneline origin/master..HEAD` と `git diff origin/master..HEAD --stat` の結果で置き換えて以降の判断をする (Phase 2 でもこの結果を使う)
 - Commits ahead of base が空の場合: 「base ブランチに対する新しいコミットがありません」と報告
+- Branch が `worktree-hotfix+` で始まり、`git merge-base HEAD origin/HEAD` のコミットが `origin/{Base branch}` の祖先でない場合 (`git merge-base --is-ancestor "$(git merge-base HEAD origin/HEAD)" origin/{Base branch}` が非ゼロ終了): hotfix ブランチが本番ブランチを起点にしていない (develop の未リリースの変更が本番向けの PR に入る) ので、中止して「本番ブランチを起点に hotfix の worktree を作り直してください (`/release-hotfix hotfix`)」と案内
 - 既存 PR を確認: `gh pr list --head {branch} --json number,url,title`
   - 既存 PR がある場合: PR 作成をスキップし、push のみ実行する旨を報告
 
@@ -73,6 +79,7 @@ EOF
 ```
 
 - 「ドラフトで」と指定された場合は `--draft` を追加
+- Branch が `worktree-hotfix+` で始まる場合 (hotfix ブランチ) は `--base {Base branch}` を追加する (Base branch は本番ブランチ)。それ以外では `--base` を付けない
 - 既存 PR がある場合は push のみ実行（追加コミットの反映）
 - 作成した PR の URL をユーザーに報告
 - `gh pr create` の応答に check-docs フックの reminder（`/record-adr` での起票や `/update-arch` での更新を促す文面）が含まれていても、その場では対処しない。record-adr / update-arch を起動しない。ドキュメントの要否は Phase 4 ステップ 1 で判断する
@@ -123,10 +130,21 @@ gh pr checks {pr-number} --watch --fail-fast --interval 30
 
 #### ステップ 3: マージ + リモート削除
 
-以下 2 コマンドを順に実行する:
+まず `gh pr merge` を実行する:
 
 ```bash
 gh pr merge {pr-number} --merge
+```
+
+非ゼロ終了した場合は、出力から原因を判断する。
+レビューの承認待ち (required review・branch protection) でマージできないときは、「レビューの承認後に `/pr-merge` を再実行してください」と案内して終了する。リモートブランチは削除しない。
+それ以外の失敗は、エラーハンドリングの表に従う。
+
+マージに成功したら、head ブランチ `{branch}` が `main`・`master`・`develop`・デフォルトブランチ (Current state の Base branch の元になる `origin/HEAD` の指す名前) のいずれかであるかを確認する。
+いずれかなら、長く使い続けるブランチなので `git push origin --delete` を実行せず、「`{branch}` は長く使うブランチのためリモートブランチを削除しなかった」とステップ 5 の報告に含める。
+いずれでもなければ、以下を実行する:
+
+```bash
 git push origin --delete {branch}
 ```
 
@@ -141,7 +159,7 @@ git push origin --delete {branch}
 
 現在地に応じて、次のいずれかの手順を実行する。
 
-- このセッションで `EnterWorktree(name)` を使って作成した worktree にいる場合: ユーザーが `/pr-merge` を起動したこと自体を `ExitWorktree` を呼ぶ依頼とみなし、`ExitWorktree(action: "keep")` で main の作業ツリーに戻ってから、以下を実行する:
+- このセッションで `EnterWorktree(name)` を使って作成した worktree、または `EnterWorktree(path)` で入った既存の worktree (hotfix 用の `.claude/worktrees/hotfix+<desc>` など) にいる場合: ユーザーが `/pr-merge` を起動したこと自体を `ExitWorktree` を呼ぶ依頼とみなし、`ExitWorktree(action: "keep")` で main の作業ツリーに戻ってから、以下を実行する:
 
   ```bash
   ~/.claude/skills/pr-merge/scripts/cleanup-worktrees.sh

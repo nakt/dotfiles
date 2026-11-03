@@ -161,9 +161,10 @@ hook fail が発生する主因は、implementer の self-check が対象リポ�
 
 プランの `## 要約` に「対象 issue: `<id>`」の行がある場合のみ行う (この行を書く条件は `~/.claude/skills/write-plan/SKILL.md` を参照)。
 
-1. 直前の `TaskList` の結果を確認する。`deleted` / `pending` / `in_progress` のいずれかのタスクが 1 件でもあれば done 化せず、未完了のタスクが残っているため done 化を見送った旨を完了報告に含めて終える
-2. 完了メモを、プランの `## 要約` と実装中に作ったコミットの一覧 (`git log`) から書く
-3. worktree の中で次を実行する (`<id>` は要約の id、`<完了メモ>` はステップ 2 で書いたメモ。ヒアドキュメントの区切りはクォートする)
+1. `git branch --show-current` で現在のブランチ名を確認する。`worktree-hotfix+` で始まるときは `it done` もコミットも行わず、hotfix のため done 化を見送った。`/release-hotfix backmerge` で done にする旨を完了報告に含めて終える (hotfix の worktree は本番ブランチから作られ、develop にしかない issue ファイルが無いので、ここで done にすると back-merge で `open` と `done` が二重になる)
+2. 直前の `TaskList` の結果を確認する。`deleted` / `pending` / `in_progress` のいずれかのタスクが 1 件でもあれば done 化せず、未完了のタスクが残っているため done 化を見送った旨を完了報告に含めて終える
+3. 完了メモを、プランの `## 要約` と実装中に作ったコミットの一覧 (`git log`) から書く
+4. worktree の中で次を実行する (`<id>` は要約の id、`<完了メモ>` はステップ 3 で書いたメモ。ヒアドキュメントの区切りはクォートする)
 
    ```bash
    uv run --script ~/.claude/skills/issue-tracker/scripts/it.py done <id> --note <<'EOF'
@@ -171,7 +172,7 @@ hook fail が発生する主因は、implementer の self-check が対象リポ�
    EOF
    ```
 
-4. `git status --porcelain issues/` を確認する
+5. `git status --porcelain issues/` を確認する
    - 変更がある → `git add -A issues/` でステージし、`chore(issues): close <id>` でコミットする
    - 変更が無い (`issues/` を gitignore しているリポジトリ) → コミットしない
 
