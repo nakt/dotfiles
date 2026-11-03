@@ -100,7 +100,8 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/validate-rm.sh",
-            "timeout": 5
+            "timeout": 5,
+            "onFailure": "block"
           }
         ]
       },
