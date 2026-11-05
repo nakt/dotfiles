@@ -26,6 +26,7 @@
       - bun
       - glow
       - pandoc
+      - chezmoi
 
     homebrew_cask_packages:
       - font-plemol-jp-nf
