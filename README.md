@@ -8,7 +8,6 @@ Deployed to the home directory by `make deploy`. The `DOTFILES` variable in the
 `Makefile` is the authoritative list; entries are opt-in, so a file placed in the
 repository root is not deployed until it is named there.
 
-- `.claude/` - Claude Code configuration
 - `.codex/` - Codex configuration
 - `.config/` - XDG configuration directory
 - `.gemini/` - Gemini CLI configuration
@@ -19,6 +18,8 @@ repository root is not deployed until it is named there.
 - `.vim/` - Vim configuration directory
 - `.vimrc` - Vim configuration file
 - `.zshrc` - zsh runcom (sources Prezto and `~/.config/zsh/*.zsh`)
+
+Claude Code configuration (`~/.claude`) is not managed here; it lives in the separate [nakt/dotclaude](https://github.com/nakt/dotclaude) repository.
 
 `.pre-commit-config.yaml` configures this repository's own pre-commit hooks and
 is not deployed: pre-commit only reads the config at the root of the repository

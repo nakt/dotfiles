@@ -7,7 +7,6 @@
 # the opt-in step.
 DOTPATH    := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 DOTFILES   := \
-	.claude \
 	.codex \
 	.config \
 	.gemini \
