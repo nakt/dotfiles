@@ -42,6 +42,7 @@
       - chatgpt
       - claude
       - lm-studio
+      - zed
 
 
   tasks:
