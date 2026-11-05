@@ -1,5 +1,5 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-SKILLS_SRC   := $(abspath $(MAKEFILE_DIR)../.claude/skills)
+SKILLS_SRC   := $(HOME)/.claude/skills
 LINK_DIR     := $(abspath $(MAKEFILE_DIR)skills)
 CONFIG_SRC   := $(abspath $(MAKEFILE_DIR)config.toml)
 CONFIG_OUT   := $(abspath $(MAKEFILE_DIR)config.local.toml)
